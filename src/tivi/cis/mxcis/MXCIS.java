@@ -47,6 +47,7 @@ public class MXCIS extends CIS
       key += "_K3";
     }
 
+
     switch(getSpec("Internal Light Source"))
     {
       case 0:
