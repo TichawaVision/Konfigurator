@@ -329,6 +329,10 @@ public class CalculationController implements Initializable
     {
       int y = 0;
       
+      if(row.isEmpty()) {
+        continue;
+      }
+      
       if(row.equals("\t"))
       {
         row = " ";
@@ -368,10 +372,10 @@ public class CalculationController implements Initializable
     
     if(p.showPrintDialog(null))
     {
-      p.getJobSettings().setPageLayout(p.getPrinter().createPageLayout(p.getJobSettings().getPageLayout().getPaper(), PageOrientation.PORTRAIT, 0.0, 0.0, 0.0, 0.0));
+      p.getJobSettings().setPageLayout(p.getPrinter().createPageLayout(Paper.A4, PageOrientation.PORTRAIT, Printer.MarginType.EQUAL_OPPOSITES));
       double scaleX = p.getJobSettings().getPageLayout().getPrintableWidth() / printPane.getWidth();
-      double scaleY = p.getJobSettings().getPageLayout().getPrintableHeight() / (printPane.getRowConstraints().size() * 20.0) * 1.2;
-      
+      double scaleY = p.getJobSettings().getPageLayout().getPrintableHeight() / (getRowCount(printPane) * 20.0);
+
       printPane.getTransforms().add(new Scale(Math.min(scaleX, scaleY), Math.min(scaleX, scaleY)));
       
       if(p.printPage(printPane))
@@ -527,5 +531,23 @@ public class CalculationController implements Initializable
     }
     
     load();
+  }
+  
+  private int getRowCount(GridPane pane)
+  {
+    int numRows = pane.getRowConstraints().size();
+    for(int i = 0; i < pane.getChildren().size(); i++)
+    {
+      Node child = pane.getChildren().get(i);
+      if (child.isManaged())
+      {
+        Integer rowIndex = GridPane.getRowIndex(child);
+        if(rowIndex != null)
+        {
+          numRows = Math.max(numRows, rowIndex + 1);
+        }
+      }
+    }
+    return numRows;
   }
 }
