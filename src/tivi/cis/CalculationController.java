@@ -370,7 +370,7 @@ public class CalculationController implements Initializable
     {
       p.getJobSettings().setPageLayout(p.getPrinter().createPageLayout(p.getJobSettings().getPageLayout().getPaper(), PageOrientation.PORTRAIT, 0.0, 0.0, 0.0, 0.0));
       double scaleX = p.getJobSettings().getPageLayout().getPrintableWidth() / printPane.getWidth();
-      double scaleY = p.getJobSettings().getPageLayout().getPrintableHeight() / (printPane.getRowConstraints().size() * 20.0) * 1.05;
+      double scaleY = p.getJobSettings().getPageLayout().getPrintableHeight() / (printPane.getRowConstraints().size() * 20.0) * 1.2;
       
       printPane.getTransforms().add(new Scale(Math.min(scaleX, scaleY), Math.min(scaleX, scaleY)));
       
