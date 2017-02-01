@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.collections.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="510.0" prefWidth="1030.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tivi.cis.vtcis.MaskController">
+  <children>
+    <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+      <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="300.0" prefWidth="300.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="300.0" prefWidth="300.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="400.0" minWidth="400.0" prefWidth="400.0" />
+      </columnConstraints>
+      <rowConstraints>
+        <RowConstraints maxHeight="50.0" minHeight="50.0" prefHeight="50.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="125.0" minHeight="125.0" prefHeight="125.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="115.0" minHeight="115.0" prefHeight="115.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="40.0" minHeight="40.0" prefHeight="40.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="40.0" minHeight="40.0" prefHeight="40.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="40.0" minHeight="40.0" prefHeight="40.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="40.0" minHeight="40.0" prefHeight="40.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="15.0" minHeight="15.0" prefHeight="15.0" vgrow="SOMETIMES" />
+      </rowConstraints>
+      <children>
+        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3">
+          <children>
+            <Label text="Color:" />
+            <ComboBox promptText="Monochrome" fx:id="Color">
+              <items>
+                <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="Monochrome" />
+                  <String fx:value="RGB" />
+                </FXCollections>
+              </items>
+            </ComboBox>
+          </children>
+        </HBox>
+        <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Resolution &amp; Scan Width" GridPane.fillHeight="true" GridPane.fillWidth="true" GridPane.rowIndex="1">
+          <content>
+            <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.rowIndex="1">
+              <children>
+                <Label text="Resolution:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                <ComboBox promptText="Switchable 1200/600/300 dpi" GridPane.columnIndex="1" GridPane.rowIndex="0" fx:id="Resolution">
+                  <items>
+                    <FXCollections fx:factory="observableArrayList">
+                      <String fx:value="Switchable 1200/600/300 dpi" />
+                      <String fx:value="Fixed Resolution 1200 dpi" />
+                      <String fx:value="Fixed Resolution 600 dpi" />
+                      <String fx:value="Fixed Resolution 400 dpi" />
+                      <String fx:value="Fixed Resolution 300 dpi" />
+                      <String fx:value="Fixed Resolution 200 dpi" />
+                      <String fx:value="Fixed Resolution 150 dpi" />
+                      <String fx:value="Fixed Resolution 100 dpi" />
+                      <String fx:value="Fixed Resolution 75 dpi" />
+                      <String fx:value="Fixed Resolution 50 dpi" />
+                      <String fx:value="Fixed Resolution 25 dpi" />
+                    </FXCollections>
+                  </items>
+                </ComboBox>
+                <Label text="Scan Width:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <ComboBox promptText="1560 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="ScanWidth">
+                  <items>
+                    <FXCollections fx:factory="observableArrayList">
+                      <String fx:value="1560 mm" />
+                      <String fx:value="1300 mm" />
+                      <String fx:value="1040 mm" />
+                      <String fx:value="780 mm" />
+                      <String fx:value="520 mm" />
+                      <String fx:value="260 mm" />
+                    </FXCollections>
+                  </items>
+                </ComboBox>
+              </children>
+              <columnConstraints>
+                <ColumnConstraints maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
+                <ColumnConstraints maxWidth="190.0" minWidth="190.0" prefWidth="190.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0" />
+                <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0" />
+              </rowConstraints>
+            </GridPane>
+          </content>
+        </TitledPane>
+        <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Pixel &amp; Defect Size" GridPane.columnIndex="1" GridPane.fillHeight="true" GridPane.fillWidth="true" GridPane.rowIndex="1">
+          <content>
+            <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+              <children>
+                <Label text="Pixel Size:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                <Label text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="0" fx:id="PixelSize" />
+                <Label text="Defect Size:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <Label text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="DefectSize" />
+              </children>
+              <columnConstraints>
+                <ColumnConstraints maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
+                <ColumnConstraints maxWidth="100.0" minWidth="100.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0" />
+                <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0" />
+              </rowConstraints>
+            </GridPane>
+          </content>
+        </TitledPane>
+        <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Line Rate &amp; Transport Speed" GridPane.columnIndex="2" GridPane.fillHeight="true" GridPane.fillWidth="true" GridPane.rowIndex="1">
+          <content>
+            <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="78.0" minWidth="78.0" prefWidth="78.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints maxHeight="15.0" minHeight="15.0" prefHeight="15.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="15.0" minHeight="15.0" prefHeight="15.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="15.0" minHeight="15.0" prefHeight="15.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="15.0" minHeight="15.0" prefHeight="15.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+              <children>
+                <Label text="Max Line Rate:" />
+                <Label text="0 kHz" GridPane.columnIndex="1" fx:id="MaxLineRate" />
+                <Label text="Curr. Line Rate:" GridPane.rowIndex="1" />
+                <Label text="0 kHz" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="CurrLineRate" />
+                <Slider GridPane.columnSpan="2" GridPane.rowIndex="2" min="100" fx:id="SelLineRate" />
+                <Label text="Transport Speed:" GridPane.columnIndex="2" />
+                <Label text="0 mm/s" GridPane.columnIndex="3" fx:id="Speedmms" />
+                <Label text="0 m/s" GridPane.columnIndex="3" GridPane.rowIndex="1" fx:id="Speedms" />
+                <Label text="0 m/min" GridPane.columnIndex="3" GridPane.rowIndex="2" fx:id="Speedmmin" />
+                <Label text="0 ips" GridPane.columnIndex="3" GridPane.rowIndex="3" fx:id="Speedips" />
+              </children>
+            </GridPane>
+          </content>
+        </TitledPane>
+        <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Light" GridPane.columnSpan="3" GridPane.fillHeight="true" GridPane.fillWidth="true" GridPane.rowIndex="2">
+          <content>
+            <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.columnSpan="3" GridPane.rowIndex="2">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="130.0" minWidth="130.0" prefWidth="130.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="160.0" minWidth="160.0" prefWidth="160.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="130.0" minWidth="130.0" prefWidth="130.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="160.0" minWidth="160.0" prefWidth="160.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+              <children>
+                <Label text="Internal Light Source:" />
+                <ComboBox maxWidth="160.0" minWidth="160.0" prefHeight="25.0" prefWidth="160.0" promptText="One sided" GridPane.columnIndex="1" fx:id="InternalLightSource">
+                  <items>
+                    <FXCollections fx:factory="observableArrayList">
+                      <String fx:value="None" />
+                      <String fx:value="One sided" />
+                      <String fx:value="Two sided" />
+                      <String fx:value="Two sided plus Coax" />
+                      <String fx:value="Coax" />
+                    </FXCollections>
+                  </items>
+                </ComboBox>
+                <Label text="Internal Light Color:" GridPane.rowIndex="1" />
+                <ComboBox maxWidth="160.0" minWidth="160.0" prefWidth="160.0" promptText="Red" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="InternalLightColor">
+                  <items>
+                    <FXCollections fx:factory="observableArrayList">
+                      <String fx:value="Red" />
+                      <String fx:value="Green" />
+                      <String fx:value="Blue" />
+                      <String fx:value="IR" />
+                      <String fx:value="Yellow" />
+                      <String fx:value="White" />
+                    </FXCollections>
+                  </items>
+                </ComboBox>
+                <Label text="External Light Source:" GridPane.columnIndex="2" />
+                <ComboBox maxWidth="160.0" minWidth="160.0" prefWidth="160.0" promptText="One sided" GridPane.columnIndex="3" fx:id="ExternalLightSource">
+                  <items>
+                    <FXCollections fx:factory="observableArrayList">
+                      <String fx:value="None" />
+                      <String fx:value="One sided" />
+                    </FXCollections>
+                  </items>
+                </ComboBox>
+                <Label text="External Light Color:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                <ComboBox maxWidth="160.0" minWidth="160.0" prefWidth="160.0" promptText="Red" GridPane.columnIndex="3" GridPane.rowIndex="1" fx:id="ExternalLightColor">
+                  <items>
+                    <FXCollections fx:factory="observableArrayList">
+                      <String fx:value="Red" />
+                      <String fx:value="Green" />
+                      <String fx:value="Blue" />
+                      <String fx:value="IR" />
+                      <String fx:value="Yellow" />
+                      <String fx:value="White" />
+                    </FXCollections>
+                  </items>
+                </ComboBox>
+              </children>
+            </GridPane>
+          </content>
+        </TitledPane>
+        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="3">
+          <children>
+            <Label text="Interface:" />
+            <ComboBox promptText="CameraLink" fx:id="Interface" disable="true">
+              <items>
+                <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="CameraLink" />
+                  <String fx:value="GigE" />
+                </FXCollections>
+              </items>
+            </ComboBox>
+          </children>
+        </HBox>
+        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="4">
+          <children>
+            <Label text="Cooling:" />
+            <ComboBox promptText="Liquid Cooling (Default)" fx:id="Cooling" disable="true">
+              <items>
+                <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="None" />
+                  <String fx:value="Liquid Cooling (Default)" />
+                  <String fx:value="Ext. Forced Air" />
+                  <String fx:value="Passive Air" />
+                  <String fx:value="Liquid Cooling" />
+                </FXCollections>
+              </items>
+            </ComboBox>
+          </children>
+        </HBox>
+        <CheckBox mnemonicParsing="false" text="External Trigger over RS422 / Free running with programmable line rate (Default: CC1)" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" fx:id="Trigger" />
+        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="6">
+          <children>
+            <Button mnemonicParsing="false" text="Calculation" fx:id="Calculation" onAction="#handleCalculation" />
+            <Button mnemonicParsing="false" text="Part list" fx:id="PartList" onAction="#handlePartList" />
+            <Button mnemonicParsing="false" text="Data Sheet" fx:id="DataSheet" onAction="#handleDataSheet" />
+            <Button mnemonicParsing="false" text="OEM Mode" fx:id="OEMMode" onAction="#handleOEMMode" />
+          </children>
+        </HBox>
+        <Label text="For special options, please contact sales@tichawa.de" GridPane.columnSpan="3" GridPane.rowIndex="7" fx:id="Infotext" />
+      </children>
+    </GridPane>
+  </children>
+</AnchorPane>

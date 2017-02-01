@@ -1,0 +1,138 @@
+.root
+{
+  -fx-background-color: white;
+}
+.label
+{
+  -fx-padding: 10px;
+}
+#Menu
+{
+  -fx-padding: -2px;
+}
+#Menu .menu-item
+{
+  -fx-padding: -5px;
+}
+.menu
+{
+  -fx-padding: -3px;
+}
+
+.titled-pane
+{
+  -fx-padding: 0px;
+}
+
+.table-view .column-header-background
+{
+  -fx-padding: -3px;
+}
+
+.table-view .table-cell
+{
+  -fx-padding: 3px;
+}
+
+#Header
+{
+  -fx-alignment: center;
+  -fx-text-alignment: center;
+  -fx-border-color: black;
+  -fx-border-width: -1px -1px 2px -1px;
+}
+#ProductPic
+{
+
+}
+#ProfilePic
+{
+
+}
+
+#Electronics, #ElectSubTotals, #Mechanics, #MechaSubTotals, #Totals
+{
+  -fx-font-family: "Courier New";
+}
+
+.table-view-hidden .column-header-background
+{
+  -fx-padding: -1.0em;
+  -fx-visibility: hidden;
+}
+.table-view-hidden .scroll-bar:horizontal .track
+{
+  -fx-padding: 0px;
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-background-radius: 0em;
+  -fx-border-radius: 2em;
+}
+.table-view-hidden .scroll-bar:horizontal .increment-button ,
+.table-view-hidden .scroll-bar:horizontal .decrement-button
+{
+
+  -fx-background-color: transparent;
+  -fx-background-radius: 0em;
+  -fx-padding: 0 0 0 0;
+}
+
+.table-view-hidden .scroll-bar:horizontal .increment-arrow,
+.table-view-hidden .scroll-bar:horizontal .decrement-arrow
+{
+  -fx-shape: " ";	
+  -fx-padding:0;        
+}
+
+.table-view-hidden .scroll-bar:horizontal .thumb
+{
+  -fx-background-color: transparent;
+  -fx-background-insets: 0, 0, 0;
+  -fx-background-radius: 2em;
+  -fx-padding: 0px;
+}
+
+.table-bold
+{
+  -fx-font-weight: bold;
+}
+
+#Header, #Specs, #CLConfig
+{
+  -fx-font-weight: bold;
+  -fx-background-insets: 0;
+  -fx-background-color: transparent, white, transparent, white;
+}
+
+#Header .content, #Specs .content, #CLConfig .content
+{
+  -fx-background-color: transparent, white, transparent, white;
+  -fx-padding: 10px;
+  -fx-text-fill: gray;
+  -fx-highlight-fill: #7ecfff;
+}
+
+#Header:focused .content, #Specs:focused .content, #CLConfig:focused .content
+{
+  -fx-background-color: transparent, white, transparent, white;
+}
+
+#Header:focused, #Specs:focused, #CLConfig:focused
+{
+  -fx-highlight-fill: #7ecfff;
+}
+
+.white
+{
+  -fx-background-color: #ffffff;
+}
+
+.pale-blue
+{
+  -fx-background-color: #e0f0f0;
+}
+
+.bolder
+{
+  -fx-font-weight: bold;
+}
