@@ -74,6 +74,7 @@ public class MaskController extends tivi.cis.MaskController
               SelLineRate.setValue(maxLR * 1000);
 
               CIS_DATA.setSpec("Maximum line rate", (int) Math.round(maxLR * 1000));
+              CIS_DATA.setSpec("Speedmms", (int) (pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate")) * 1000);
 
               MXLED_DATA.setSpec("Color", CIS_DATA.getSpec("Color"));
     });

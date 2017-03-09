@@ -130,6 +130,7 @@ public class MaskController extends tivi.cis.MaskController
               });
 
               CIS_DATA.setSpec("Maximum line rate", (int) Math.round(maxLR * 1000));
+              CIS_DATA.setSpec("Speedmms", (int) (pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate")) * 1000);
     });
     Resolution.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
             -> 
