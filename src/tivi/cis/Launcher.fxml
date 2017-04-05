@@ -17,7 +17,6 @@
             <FXCollections fx:factory="observableArrayList">
               <String fx:value="VSCIS" />
               <String fx:value="VTCIS" />
-              <String fx:value="VHCIS" />
               <String fx:value="MXCIS" />
               <String fx:value="MXLED" />
             </FXCollections>

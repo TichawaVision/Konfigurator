@@ -234,6 +234,12 @@
         <CheckBox mnemonicParsing="false" text="External Trigger over RS422 / Free running with programmable line rate (Default: CC1)" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" fx:id="Trigger" />
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="6">
           <children>
+            <Label text="Maximum allowed colors: " />
+            <Label text="1" fx:id="AllowedColors" />
+          </children>
+        </HBox>
+        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="7">
+          <children>
             <Button mnemonicParsing="false" text="Calculation" fx:id="Calculation" onAction="#handleCalculation" />
             <Button mnemonicParsing="false" text="Part list" fx:id="PartList" onAction="#handlePartList" />
             <Button mnemonicParsing="false" text="Data Sheet" fx:id="DataSheet" onAction="#handleDataSheet" />

@@ -165,9 +165,9 @@
                     <FXCollections fx:factory="observableArrayList">
                       <String fx:value="None" />
                       <String fx:value="One sided" />
+                      <String fx:value="Coax" />
                       <String fx:value="Two sided" />
                       <String fx:value="One sided plus Coax" />
-                      <String fx:value="Coax" />
                     </FXCollections>
                   </items>
                 </ComboBox>
