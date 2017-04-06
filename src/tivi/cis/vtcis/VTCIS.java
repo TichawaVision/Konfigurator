@@ -139,6 +139,7 @@ public class VTCIS extends CIS
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 
+    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(getSpec("Color") * numOfPixNominal * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofcons")).append("%%%%%\n");
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofport")).append(taps * getSpec("Color")).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");
@@ -154,6 +155,7 @@ public class VTCIS extends CIS
           return null;
         }
         int x = 0;
+        int y = 0;
 
         tcounter = 1;
         printOut.append("Camera Link ").append(tcounter).append(":\n");
@@ -167,6 +169,7 @@ public class VTCIS extends CIS
                 .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                 .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
         x++;
+        y++;
 
         if(taps > 1)
         {
@@ -182,8 +185,9 @@ public class VTCIS extends CIS
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
           x++;
+          y++;
         }
-
+        
         if(taps > 4 || taps == 3)
         {
           printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
@@ -195,60 +199,58 @@ public class VTCIS extends CIS
           printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
+          x++;
+          y++;
         }
-        
-        x++;
 
         if(taps > 2 && taps != 3)
         {
+          y = 0;
           tcounter = 3;
-          System.out.println((x - 3) * 3);
           printOut.append("Camera Link ").append(tcounter).append(":\n");
-          printOut.append("\tPort ").append(getPortName((x - 3) * 3)).append(":\t")
+          printOut.append("\tPort ").append(getPortName(y * 3)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName((x - 3) * 3 + 1)).append(":\t")
+          printOut.append("\tPort ").append(getPortName(y * 3 + 1)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName((x - 3) * 3 + 2)).append(":\t")
+          printOut.append("\tPort ").append(getPortName(y * 3 + 2)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
           x++;
+          y++;
         }
 
         if(taps > 3)
         {
-          if(taps == 4)
-          {
-            x = 3;
-          }
-          
           tcounter = 4;
           printOut.append("Camera Link ").append(tcounter).append(":\n");
-          printOut.append("\tPort ").append(getPortName((x - 3) * 3)).append(":\t")
+          printOut.append("\tPort ").append(getPortName(y * 3)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName((x - 3) * 3 + 1)).append(":\t")
+          printOut.append("\tPort ").append(getPortName(y * 3 + 1)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName((x - 3) * 3 + 2)).append(":\t")
+          printOut.append("\tPort ").append(getPortName(y * 3 + 2)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
           x++;
+          y++;
         }
 
         if(taps > 5)
         {
-          printOut.append("\tPort ").append(getPortName((x - 3) * 3)).append(":\t")
+          printOut.append("\tPort ").append(getPortName(y * 3)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName((x - 3) * 3 + 1)).append(":\t")
+          printOut.append("\tPort ").append(getPortName(y * 3 + 1)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName((x - 3) * 3 + 2)).append(":\t")
+          printOut.append("\tPort ").append(getPortName(y * 3 + 2)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                   .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
           x++;
+          y++;
         }
         break;
       }

@@ -154,6 +154,7 @@ public class VSCIS extends CIS
     lval = (int) (chipsPerTap * (ppsbin - (getSensBoard("SMARAGD")[7] * binning) / getSensBoard("SMARAGD")[0]));
     lval -= lval % 8;
 
+    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofcons")).append((taps * getSpec("Color") > 3) ? "2" : "1").append("\n");
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofport")).append(taps * getSpec("Color")).append("\n");
     printOut.append("Pixel Clock: 85 MHz").append("\n");

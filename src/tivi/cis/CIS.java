@@ -704,7 +704,6 @@ public abstract class CIS
 
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("sellinerate") + Math.round(getSpec("Selected line rate") / 100.0) / 10.0 + " kHz\n";
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("transport speed") + ": " + String.format("%.1f", getSpec("Speedmms") / 1000.0) + " mm/s\n";
-    printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate") + Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0 + " MByte\n";
 
     if(getSpec("MXCIS") != null)
     {

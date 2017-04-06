@@ -120,6 +120,7 @@ public class VHCIS extends CIS
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 
+    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofcons")).append("%%%%%\n");
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofport")).append(taps * getSpec("Color")).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");

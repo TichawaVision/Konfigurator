@@ -190,6 +190,7 @@ public class MXCIS extends CIS
     pixPerTap = (int) ((double) pixPerFpga / (double) tapsPerFpga);
     lval = pixPerTap;
 
+    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 2.0))).append("\n");
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofport")).append(numOfPix / lval).append("\n");
     printOut.append("Pixel Clock: 85MHz\n\n");
