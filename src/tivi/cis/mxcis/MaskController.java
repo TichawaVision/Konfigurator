@@ -50,11 +50,6 @@ public class MaskController extends tivi.cis.MaskController
         Color.getSelectionModel().select(oldValue);
         return;
       }
-      
-      if(newValue.equals("RGB") && CIS_DATA.getSpec("Internal Light Source") == 2)
-      {
-        new Alert(AlertType.WARNING, "RGB-Coax selected.\nPlease check line rate.").show();
-      }
 
       switch(newValue)
       {
@@ -277,9 +272,9 @@ public class MaskController extends tivi.cis.MaskController
         return;
       }
       
-      if(CIS_DATA.getSpec("Color") == 4 && newValue.equals("Coax"))
+      if(newValue.equals("Coax"))
       {
-        new Alert(AlertType.WARNING, "RGB-Coax selected.\nPlease check line rate.").show();
+        new Alert(AlertType.WARNING, "Coax selected.\nPlease check line rate.").show();
       }
 
       CIS_DATA.setSpec("Internal Light Source", InternalLightSource.getSelectionModel().getSelectedIndex());
