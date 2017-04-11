@@ -47,7 +47,6 @@ public class MXCIS extends CIS
       key += "_K3";
     }
 
-
     switch(getSpec("Internal Light Source"))
     {
       case 0:
@@ -82,19 +81,21 @@ public class MXCIS extends CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv")))) {
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"))))
+    {
       String line;
       Map<String, String> calcMap = new HashMap<>();
-      
+
       while((line = reader.readLine()) != null)
       {
         String[] calc = line.split(";");
         calcMap.put(calc[0], calc[1]);
       }
-      
+
       key += calcMap.containsKey("VERSION") ? "_" + calcMap.get("VERSION") + "_" : "_2.0_";
     }
-    catch(IOException e) {
+    catch(IOException e)
+    {
       key += "_2.0_";
     }
 
@@ -161,12 +162,12 @@ public class MXCIS extends CIS
     int sensPerFpga;
     StringBuilder printOut = new StringBuilder();
 
-    if(spec.get("res_cp2") > 600)
+    if(getSpec("res_cp2") > 600)
     {
       spec.put("MODE", 2);
       sensPerFpga = 1;
     }
-    else if((spec.get("Selected line rate") / 1000.0) <= dpiToRate.get(spec.get("res_cp2")) && spec.get("Color") != 4)
+    else if((getSpec("Selected line rate") / 1000.0) <= dpiToRate.get(getSpec("res_cp2")) && getSpec("Color") != 4)
     {
       //HALF
       spec.put("MODE", 4);
@@ -178,11 +179,11 @@ public class MXCIS extends CIS
       spec.put("MODE", 2);
       sensPerFpga = 2;
     }
-    
+
     pixPerFpga = (int) (sensPerFpga * getBoard(getSpec("res_cp"))[0] * getChip(getSpec("res_cp2"))[3] / getSpec("Binning"));
-    FpgaDataRate = pixPerFpga * spec.get("Selected line rate") / 1000.0;
+    FpgaDataRate = pixPerFpga * getSpec("Selected line rate") / 1000.0;
     tapsPerFpga = (int) Math.ceil(FpgaDataRate / (84 * 1000.0));
-    if(getNumFPGA() > 1 && tapsPerFpga % 2 == 1)
+    if(getSpec("Color") == 1 && getNumFPGA() > 1 && tapsPerFpga % 2 == 1)
     {
       tapsPerFpga++;
     }
@@ -201,16 +202,30 @@ public class MXCIS extends CIS
       {
         for(int x = 0; x < tapsPerFpga * getNumFPGA(); x++)
         {
-          printOut.append("Camera Link ").append(x + 1).append(":\n");
-          printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                  .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                  .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                  .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
+          if((x + 1) * lval > numOfPix)
+          {
+            printOut.append("Camera Link ").append(x + 1).append(":\n");
+            printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
+                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
+                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
+            printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
+                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
+                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
+            printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
+                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
+                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
+          } else {
+            printOut.append("Camera Link ").append(x + 1).append(":\n");
+            printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
+                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
+            printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
+                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
+            printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
+                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
+          }
         }
 
         break;
@@ -224,8 +239,14 @@ public class MXCIS extends CIS
             printOut.append("Camera Link ").append((x + 1) / 2).append(":\n");
           }
 
-          printOut.append("\tPort ").append(getPortName((x + 1) % 2)).append(":\t")
+          if(lval > numOfPix)
+          {
+            printOut.append("\tPort ").append(getPortName((x + 1) % 2)).append(":\t")
+                  .append(String.format("%05d", (x - 1) * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\n");
+          } else {
+            printOut.append("\tPort ").append(getPortName((x + 1) % 2)).append(":\t")
                   .append(String.format("%05d", (x - 1) * lval)).append("\t - ").append(String.format("%05d", x * lval - 1)).append("\n");
+          }
         }
       }
     }
@@ -239,7 +260,7 @@ public class MXCIS extends CIS
     {
       res *= 2;
     }
-    
+
     return getSensBoard("SENS_" + res);
   }
 

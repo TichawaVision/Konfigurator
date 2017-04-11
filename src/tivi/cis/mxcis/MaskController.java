@@ -250,6 +250,7 @@ public class MaskController extends tivi.cis.MaskController
       }
 
       CIS_DATA.setSpec("Selected line rate", newValue.intValue());
+      CIS_DATA.setSpec("Speedmms", (int) (pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate")) * 1000);
 
       CurrLineRate.setText(newValue.intValue() / 1000.0 + " kHz");
 

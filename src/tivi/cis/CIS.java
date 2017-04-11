@@ -641,17 +641,17 @@ public abstract class CIS
         }
         case 2:
         {
-          printout += color + ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("twosided");
+          printout += color + ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("coax");
           break;
         }
         case 3:
         {
-          printout += color + ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("onepluscoax");
+          printout += color + ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("twosided");
           break;
         }
         case 4:
         {
-          printout += color + ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("coax");
+          printout += color + ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("onepluscoax");
           break;
         }
       }
@@ -810,13 +810,14 @@ public abstract class CIS
 
     if(getSpec("Interface") == 0)
     {
-      if(getCLCalc(numOfPix, getLocale()) == null)
+      String clCalc = getCLCalc(numOfPix, getLocale());
+      if(clCalc == null)
       {
         return null;
       }
 
       printout += "\n\t\n";
-      printout += getCLCalc(numOfPix, getLocale());
+      printout += clCalc;
     }
     else
     {
