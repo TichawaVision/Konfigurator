@@ -34,7 +34,7 @@ public class MXCIS extends CIS
     {
       key += "_K4";
     }
-    else if(getSpec("Selected line rate") <= getSpec("Maximum line rate") * 0.25)
+    else if((getSpec("res_cp2") != 600 && getSpec("Selected line rate") <= getSpec("Maximum line rate") * 0.25) || (getSpec("res_cp2") == 600 && getSpec("Selected line rate") <= getSpec("Maximum line rate") * 0.2))
     {
       key += "_K1";
     }
@@ -61,17 +61,17 @@ public class MXCIS extends CIS
       }
       case 2:
       {
-        key += "_2" + COLORCODE[getSpec("Internal Light Color")];
+        key += "_" + COLORCODE[getSpec("Internal Light Color")] + "C";
         break;
       }
       case 3:
       {
-        key += "_2" + COLORCODE[getSpec("Internal Light Color")] + "C";
+        key += "_2" + COLORCODE[getSpec("Internal Light Color")];
         break;
       }
       case 4:
       {
-        key += "_" + COLORCODE[getSpec("Internal Light Color")] + "C";
+        key += "_2" + COLORCODE[getSpec("Internal Light Color")] + "C";
         break;
       }
     }
@@ -193,7 +193,7 @@ public class MXCIS extends CIS
 
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 2.0))).append("\n");
-    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofport")).append(numOfPix / lval).append("\n");
+    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofport")).append((int) Math.ceil(numOfPix / (lval * 1.0))).append("\n");
     printOut.append("Pixel Clock: 85MHz\n\n");
 
     switch(getSpec("Color"))

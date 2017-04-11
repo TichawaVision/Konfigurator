@@ -76,7 +76,8 @@ public class MaskController extends tivi.cis.MaskController
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);
-      SelLineRate.setMajorTickUnit(SelLineRate.getMax() / 4);
+      SelLineRate.setMajorTickUnit(SelLineRate.getMax() / 20);
+      SelLineRate.setMinorTickCount(0);
       SelLineRate.setShowTickMarks(true);
       SelLineRate.setSnapToTicks(true);
       SelLineRate.setShowTickLabels(true);
@@ -98,7 +99,7 @@ public class MaskController extends tivi.cis.MaskController
           }
           else
           {
-            if(n == maxLR * 1000 / 4)
+            if((CIS_DATA.getSpec("res_cp") != 600 && n == maxLR * 1000 / 4) || (CIS_DATA.getSpec("res_cp") == 600 && n == maxLR * 1000 / 5))
             {
               return "K1";
             }
@@ -166,7 +167,16 @@ public class MaskController extends tivi.cis.MaskController
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);
-      SelLineRate.setMajorTickUnit(SelLineRate.getMax() / 4);
+      if(CIS_DATA.getSpec("res_cp2") != 600)
+      {
+        SelLineRate.setMajorTickUnit(SelLineRate.getMax() / 4);
+        SelLineRate.setMinorTickCount(3);
+      }
+      else
+      {
+        SelLineRate.setMajorTickUnit(SelLineRate.getMax() / 20);
+        SelLineRate.setMinorTickCount(0);
+      }
       SelLineRate.setShowTickMarks(true);
       SelLineRate.setSnapToTicks(true);
       SelLineRate.setShowTickLabels(true);
@@ -188,7 +198,7 @@ public class MaskController extends tivi.cis.MaskController
           }
           else
           {
-            if(n == maxLR * 1000 / 4)
+            if(n == maxLR * 1000 / 4 || (CIS_DATA.getSpec("res_cp") == 600 && n == maxLR * 1000 / 5))
             {
               return "K1";
             }

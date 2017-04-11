@@ -547,7 +547,14 @@ public abstract class CIS
       double factor;
       if(key.contains("K1"))
       {
-        factor = 0.25;
+        if(key.contains("0600"))
+        {
+          factor = 0.2;
+        }
+        else
+        {
+          factor = 0.25;
+        }
       }
       else if(key.contains("K2"))
       {
@@ -557,12 +564,12 @@ public abstract class CIS
       {
         factor = 1;
       }
-      
-      printout += ", max. " +  getSpec("Maximum line rate") * factor / 1000.0 + " kHz\n";
+
+      printout += ", max. " + getSpec("Maximum line rate") * factor / 1000.0 + " kHz\n";
     }
     else
     {
-      printout += ", max. " +  getSpec("Maximum line rate") / 1000.0 + " kHz\n";
+      printout += ", max. " + getSpec("Maximum line rate") / 1000.0 + " kHz\n";
     }
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("Resolution: ");
 
@@ -1056,18 +1063,18 @@ public abstract class CIS
             .append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("Weight/pc (kg)")).append("\n");
 
     getElectConfig().entrySet().stream().forEach((Map.Entry<Integer, Integer> e)
-            -> 
-            {
-              int ID = e.getKey();
-              String key = IDToKey.get(e.getKey());
+            ->
+    {
+      int ID = e.getKey();
+      String key = IDToKey.get(e.getKey());
 
-              electOutput.append(key).append("\t")
-                      .append(String.format("%05d", ID)).append("\t")
-                      .append(e.getValue()).append("\t")
-                      .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[0]))).append("\t")
-                      .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[3]))).append("\t")
-                      .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[1]))).append("\t")
-                      .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[2]))).append("\n");
+      electOutput.append(key).append("\t")
+              .append(String.format("%05d", ID)).append("\t")
+              .append(e.getValue()).append("\t")
+              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[0]))).append("\t")
+              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[3]))).append("\t")
+              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[1]))).append("\t")
+              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[2]))).append("\n");
     });
     electOutput.append("\n\t\n").append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Totals")).append("\t")
             .append(" \t")
@@ -1078,16 +1085,16 @@ public abstract class CIS
             .append(String.format(getLocale(), "%.2f", electSums[2])).append("\n");
 
     getMechaConfig().entrySet().stream().forEach((Map.Entry<Integer, Integer> e)
-            -> 
-            {
-              int ID = e.getKey();
-              String key = IDToKey.get(e.getKey());
+            ->
+    {
+      int ID = e.getKey();
+      String key = IDToKey.get(e.getKey());
 
-              mechaOutput.append(key).append("\t")
-                      .append(String.format("%05d", ID)).append("\t")
-                      .append(e.getValue()).append("\t")
-                      .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[0]))).append("\t")
-                      .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[3]))).append("\n");
+      mechaOutput.append(key).append("\t")
+              .append(String.format("%05d", ID)).append("\t")
+              .append(e.getValue()).append("\t")
+              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[0]))).append("\t")
+              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[3]))).append("\n");
     });
     mechaOutput.append("\n\t\n").append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Totals")).append("\t")
             .append(" \t")

@@ -90,12 +90,12 @@ public class DataSheetController implements Initializable
       {
         String append = "";
 
-        if(key.split("_")[4].endsWith("C"))
+        if(key.split("_")[5].endsWith("C"))
         {
           append += "_coax";
         }
 
-        if(key.split("_")[4].startsWith("2") || key.split("_")[4].startsWith("3"))
+        if(key.split("_")[5].startsWith("2"))
         {
           append += "_L2";
         }
