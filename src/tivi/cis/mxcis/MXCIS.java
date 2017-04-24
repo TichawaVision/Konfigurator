@@ -193,7 +193,7 @@ public class MXCIS extends CIS
 
     int portCount = getSpec("Color") == 1 ? (int) Math.ceil(numOfPix / (lval * 1.0)) : (int) Math.ceil(3 * Math.ceil(numOfPix / (lval * 1.0)));
 
-    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(portCount * lval * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MB/s\n");
+    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(portCount * Math.min(lval, numOfPix) * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte/s\n");
     
     if(getSpec("Color") == 1)
     {
@@ -215,26 +215,26 @@ public class MXCIS extends CIS
           if(lval > numOfPix)
           {
             printOut.append("Camera Link ").append(x + 1).append(":\n");
-            printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
+            printOut.append("\tPort A:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
                     .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
-            printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
+            printOut.append("\tPort B:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
                     .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
-            printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
+            printOut.append("\tPort C:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
                     .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
           }
           else
           {
             printOut.append("Camera Link ").append(x + 1).append(":\n");
-            printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
+            printOut.append("\tPort A:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                     .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
-            printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
+            printOut.append("\tPort B:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                     .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
-            printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
+            printOut.append("\tPort C:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
                     .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
           }
