@@ -47,6 +47,7 @@ public class MaskController extends tivi.cis.MaskController
     {
       if(newValue.equals("RGB") && CIS_DATA.getSpec("Internal Light Source") != 2 && CIS_DATA.getSpec("Internal Light Source") != 3)
       {
+        new Alert(AlertType.WARNING, "RGB only usable with Two Sided or One Sided plus Coax").show();
         Color.getSelectionModel().select(oldValue);
         return;
       }
@@ -283,7 +284,7 @@ public class MaskController extends tivi.cis.MaskController
         return;
       }
       
-      if(newValue.equals("Coax"))
+      if(newValue.contains("Coax"))
       {
         new Alert(AlertType.WARNING, "Coax selected.\nPlease check line rate.").show();
       }

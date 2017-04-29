@@ -194,6 +194,7 @@ public class MXCIS extends CIS
     int portCount = getSpec("Color") == 1 ? (int) Math.ceil(numOfPix / (lval * 1.0)) : (int) Math.ceil(3 * Math.ceil(numOfPix / (lval * 1.0)));
 
     printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(portCount * Math.min(lval, numOfPix) * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte/s\n");
+    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofpix")).append(numOfPix).append("\n");
     
     if(getSpec("Color") == 1)
     {
