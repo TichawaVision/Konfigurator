@@ -90,4 +90,10 @@ public class MXLED extends CIS
   {
     return " ";
   }
+  
+  @Override
+  public double getGeometry(boolean coax)
+  {
+    return coax ? 1 : 1;
+  }
 }

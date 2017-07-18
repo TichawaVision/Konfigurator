@@ -411,4 +411,10 @@ public class VHCIS extends CIS
     printOut = printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, tcounter + "");
     return printOut.toString();
   }
+  
+  @Override
+  public double getGeometry(boolean coax)
+  {
+    return coax ? 1 : 1;
+  }
 }

@@ -124,7 +124,7 @@ public class DataSheetController implements Initializable
     }
     catch(NullPointerException e)
     {
-      System.err.println(e.getMessage());
+      e.printStackTrace();
     }
   }
 

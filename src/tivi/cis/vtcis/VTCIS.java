@@ -400,4 +400,10 @@ public class VTCIS extends CIS
 
     return printOut.toString();
   }
+
+  @Override
+  public double getGeometry(boolean coax)
+  {
+    return coax ? 0.229 : 0.252;
+  }
 }

@@ -216,8 +216,8 @@ public abstract class CIS
 
   public boolean calculate()
   {
-    mechaSums = new Double[4];
-    electSums = new Double[4];
+    mechaSums = new Double[5];
+    electSums = new Double[5];
     totalPrices = new Double[4];
     mechaConfig = new HashMap<>();
     electConfig = new HashMap<>();
@@ -234,7 +234,7 @@ public abstract class CIS
       while((line = reader.readLine()) != null)
       {
         int artnum = Integer.parseInt(line.split(";")[0].replace("X", ""));
-        values = new Double[Math.max(line.split(";").length - 2, 4)];
+        values = new Double[Math.max(line.split(";").length - 2, 5)];
         for(int x = 2; x < Math.max(line.split(";").length, 6); x++)
         {
           try
@@ -380,7 +380,7 @@ public abstract class CIS
               System.out.println("Error, missing values");
               pricelist = new Double[]
               {
-                0.0, 0.0, 0.0, 0.0
+                0.0, 0.0, 0.0, 0.0, 1.0
               };
             }
 
@@ -388,11 +388,22 @@ public abstract class CIS
             {
               if(pricelist[x] != null)
               {
-                if(electSums[x] == null)
+                if(x < 4)
                 {
-                  electSums[x] = 0.0;
+                  if(electSums[x] == null)
+                  {
+                    electSums[x] = 0.0;
+                  }
+                  electSums[x] += pricelist[x] * amount;
                 }
-                electSums[x] += pricelist[x] * amount;
+                else
+                {
+                  if(electSums[x] == null)
+                  {
+                    electSums[x] = 1.0;
+                  }
+                  electSums[x] *= pricelist[x];
+                }
               }
             }
           }
@@ -408,6 +419,11 @@ public abstract class CIS
     catch(IOException e)
     {
       throw new CISException("Error in Electronics.csv");
+    }
+
+    if(electSums[4] == null)
+    {
+      electSums[4] = 1.0;
     }
 
     //Mechanics
@@ -451,13 +467,36 @@ public abstract class CIS
 
                   for(int x = 0; x < mechaSums.length; x++)
                   {
-                    if(pricelist[x] != null)
+                    /*if(pricelist[x] != null)
                     {
                       if(mechaSums[x] == null)
                       {
                         mechaSums[x] = 0.0;
                       }
                       mechaSums[x] += pricelist[x] * amount;
+                    }*/
+
+                    if(x < 4)
+                    {
+                      if(pricelist[x] != null)
+                      {
+                        if(mechaSums[x] == null)
+                        {
+                          mechaSums[x] = 0.0;
+                        }
+                        mechaSums[x] += pricelist[x] * amount;
+                      }
+                    }
+                    else
+                    {
+                      if(pricelist[x] != null)
+                      {
+                        if(mechaSums[x] == null)
+                        {
+                          mechaSums[x] = 1.0;
+                        }
+                        mechaSums[x] *= pricelist[x];
+                      }
                     }
                   }
                 }
@@ -486,13 +525,36 @@ public abstract class CIS
 
                   for(int x = 0; x < mechaSums.length; x++)
                   {
-                    if(pricelist[x] != null)
+                    /*if(pricelist[x] != null)
                     {
                       if(mechaSums[x] == null)
                       {
                         mechaSums[x] = 0.0;
                       }
                       mechaSums[x] += pricelist[x] * amount;
+                    }*/
+
+                    if(x < 4)
+                    {
+                      if(pricelist[x] != null)
+                      {
+                        if(mechaSums[x] == null)
+                        {
+                          mechaSums[x] = 0.0;
+                        }
+                        mechaSums[x] += pricelist[x] * amount;
+                      }
+                    }
+                    else
+                    {
+                      if(pricelist[x] != null)
+                      {
+                        if(mechaSums[x] == null)
+                        {
+                          mechaSums[x] = 1.0;
+                        }
+                        mechaSums[x] *= pricelist[x];
+                      }
                     }
                   }
                 }
@@ -509,6 +571,11 @@ public abstract class CIS
     catch(IOException e)
     {
       throw new CISException("Error in Mechanics.csv");
+    }
+
+    if(mechaSums[4] == null)
+    {
+      mechaSums[4] = 1.0;
     }
 
     if(getSpec("MXLED") == null)
@@ -777,6 +844,7 @@ public abstract class CIS
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("shading") + "\n";
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("powersource") + "(24 +/- 1) VDC\n";
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
+    printout += "Grenzfrequenz: " + getMinFreq(getTiViKey()) + " kHz\n";
 
     switch(getSpec("Cooling"))
     {
@@ -1294,5 +1362,37 @@ public abstract class CIS
   public int getNumFPGA()
   {
     return numFPGA;
+  }
+
+  public double getMinFreq(String key)
+  {
+    boolean coax = key.contains("C_");
+    System.out.println(100 + " gamma " + getGeometry(coax) + " n " + (coax ? 1 : getSpec("LEDLines")) + " I " + electSums[4] + " t " + mechaSums[4] + " Sv " + getSensitivity() + " / m " + 1.5);
+    return 100 * electSums[4]
+            * mechaSums[4]
+            * (coax ? 1 : getSpec("LEDLines"))
+            * getGeometry(coax)
+            * getSensitivity() / (1.5 * (key.contains("RGB") ? 3 : 1));
+  }
+
+  public abstract double getGeometry(boolean coax);
+
+  public double getSensitivity()
+  {
+    if(getSpec("MXCIS") != null)
+    {
+      return 30;
+    }
+    else if(getSpec("VTCIS") != null)
+    {
+      switch(getSpec("res_cp"))
+      {
+        case 1200: return 500;
+        case 600: return 1000;
+        case 300: return 1800;
+      }
+    }
+
+    return 1;
   }
 }

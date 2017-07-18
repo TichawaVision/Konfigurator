@@ -291,4 +291,10 @@ public class MXCIS extends CIS
 
     return getSensChip(resToSens.get(res * z));
   }
+  
+  @Override
+  public double getGeometry(boolean coax)
+  {
+    return coax ? 0.021 : 0.366;
+  }
 }
