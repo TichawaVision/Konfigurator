@@ -144,9 +144,13 @@ public class MaskController extends tivi.cis.MaskController
           break;
         }
         case 600:
-        case 200:
         {
           CIS_DATA.setSpec("res_cp", 600);
+          break;
+        }
+        case 200:
+        {
+          CIS_DATA.setSpec("res_cp", 200);
           break;
         }
         case 300:

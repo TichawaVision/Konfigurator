@@ -844,7 +844,7 @@ public abstract class CIS
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("shading") + "\n";
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("powersource") + "(24 +/- 1) VDC\n";
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
-    printout += "Grenzfrequenz: " + getMinFreq(getTiViKey()) + " kHz\n";
+    printout += "Grenzfrequenz: " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
 
     switch(getSpec("Cooling"))
     {

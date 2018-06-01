@@ -162,7 +162,7 @@ public abstract class MaskController implements Initializable
       {
         writer.write("Quantity,TiViKey");
         writer.newLine();
-        writer.write("\"\",\"\",\" \"");
+        writer.write("");
         writer.newLine();
         writer.flush();
 
