@@ -1,5 +1,6 @@
 package tivi.cis.mxled;
 
+import java.io.*;
 import java.util.*;
 import tivi.cis.*;
 
@@ -80,7 +81,23 @@ public class MXLED extends CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    key += "_2.1";
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"))))
+    {
+      String line;
+      Map<String, String> calcMap = new HashMap<>();
+
+      while((line = reader.readLine()) != null)
+      {
+        String[] calc = line.split(";");
+        calcMap.put(calc[0], calc[1]);
+      }
+
+      key += calcMap.containsKey("VERSION") ? "_" + calcMap.get("VERSION") + "_" : "_2.0_";
+    }
+    catch(IOException e)
+    {
+      key += "_2.0_";
+    }
 
     return key;
   }
