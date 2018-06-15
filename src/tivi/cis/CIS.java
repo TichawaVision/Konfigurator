@@ -233,20 +233,21 @@ public abstract class CIS
 
       while((line = reader.readLine()) != null)
       {
-        int artnum = Integer.parseInt(line.split(";")[0].replace("X", ""));
-        values = new Double[Math.max(line.split(";").length - 2, 5)];
-        for(int x = 2; x < Math.max(line.split(";").length, 6); x++)
+        String[] data = line.split("\t");
+        int artnum = Integer.parseInt(data[0].replace("X", ""));
+        values = new Double[Math.max(data.length - 2, 5)];
+        for(int x = 2; x < Math.max(data.length, 6); x++)
         {
           try
           {
-            values[x - 2] = Double.parseDouble(line.split(";")[x].replace(",", "."));
+            values[x - 2] = Double.parseDouble(data[x]);
           }
           catch(NumberFormatException | ArrayIndexOutOfBoundsException ex)
           {
             values[x - 2] = null;
           }
         }
-        IDToKey.put(artnum, line.split(";")[1]);
+        IDToKey.put(artnum, data[1]);
         prices.put(artnum, values);
       }
     }

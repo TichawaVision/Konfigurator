@@ -98,6 +98,11 @@ public class MXLED extends CIS
     {
       key += "_2.0_";
     }
+    
+    if(key.endsWith("_"))
+    {
+      key = key.substring(0, key.length() - 1);
+    }
 
     return key;
   }
