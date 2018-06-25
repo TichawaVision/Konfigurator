@@ -143,7 +143,7 @@ public class MaskController extends tivi.cis.MaskController
 
               CIS_DATA.setSpec("Scan Width", ScanWidth.getSelectionModel().getSelectedIndex());
               CIS_DATA.setSpec("sw_cp", sw);
-              CIS_DATA.setSpec("sw_index", (sw / 260) - 1);
+              CIS_DATA.setSpec("sw_index", (int) (sw / CIS_DATA.getBaseLength()) - 1);
 
               MXLED_DATA.setSpec("Scan Width", CIS_DATA.getSpec("Scan Width"));
               MXLED_DATA.setSpec("sw_cp", CIS_DATA.getSpec("sw_cp"));

@@ -40,7 +40,7 @@ public class LauncherController implements Initializable
     }
     catch(IOException e)
     {
-      
+      e.printStackTrace();
     }
   }
 }

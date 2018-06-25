@@ -7,8 +7,8 @@
     <offline-allowed/>
   </information>
   <resources>
-    <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="CISConfiguratorFX.jar" size="398776" download="eager" />
+    <j2se version="1.6+" java-vm-args="-Dfile.encoding=UTF-8 "  href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="CISConfiguratorFX.jar" size="446813" download="eager" />
   </resources>
   <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="CISConfiguratorFX" >
     <param name="requiredFXVersion" value="8.0+"/>

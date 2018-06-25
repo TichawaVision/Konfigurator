@@ -1,6 +1,7 @@
 package tivi.cis.vscis;
 
 import java.io.*;
+import java.nio.charset.*;
 import java.util.*;
 import tivi.cis.*;
 
@@ -63,14 +64,14 @@ public class VSCIS extends CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"))))
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"), Charset.forName("UTF-8"))))
     {
       String line;
       Map<String, String> calcMap = new HashMap<>();
 
       while((line = reader.readLine()) != null)
       {
-        String[] calc = line.split(";");
+        String[] calc = line.split("\t");
         calcMap.put(calc[0], calc[1]);
       }
 
@@ -135,9 +136,9 @@ public class VSCIS extends CIS
     double binning;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / 260) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
+    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / getBaseLength()) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
     taps = (int) Math.ceil((numOfPix * getSpec("Selected line rate") / 1000000.0) / 85.0);
-    chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / 260)) / (double) taps);
+    chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / getBaseLength())) / (double) taps);
     ppsbin = getSensChip("SMARAGD" + getSpec("res_cp") + "_VS")[3] / ((double) getSpec("res_cp") / (double) getSpec("res_cp2"));
     pixPerTap = (int) (chipsPerTap * ppsbin);
     portDataRate = pixPerTap * getSpec("Selected line rate") / 1000000.0;
@@ -145,7 +146,7 @@ public class VSCIS extends CIS
     while(portDataRate > 85.0)
     {
       taps++;
-      chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / 260)) / (double) taps);
+      chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / getBaseLength())) / (double) taps);
       ppsbin = getSensChip("SMARAGD" + getSpec("res_cp") + "_VS")[3] / ((double) getSpec("res_cp") / (double) getSpec("res_cp2"));
       pixPerTap = (int) (chipsPerTap * ppsbin);
       portDataRate = pixPerTap * getSpec("Selected line rate") / 1000000.0;

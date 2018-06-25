@@ -1,6 +1,7 @@
 package tivi.cis.mxcis;
 
 import java.io.*;
+import java.nio.charset.*;
 import java.util.*;
 import tivi.cis.*;
 
@@ -81,14 +82,14 @@ public class MXCIS extends CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"))))
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"), Charset.forName("UTF-8"))))
     {
       String line;
       Map<String, String> calcMap = new HashMap<>();
 
       while((line = reader.readLine()) != null)
       {
-        String[] calc = line.split(";");
+        String[] calc = line.split("\t");
         calcMap.put(calc[0], calc[1]);
       }
 

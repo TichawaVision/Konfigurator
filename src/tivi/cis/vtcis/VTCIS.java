@@ -1,6 +1,7 @@
 package tivi.cis.vtcis;
 
 import java.io.*;
+import java.nio.charset.*;
 import java.util.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -65,14 +66,14 @@ public class VTCIS extends CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"))))
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"), Charset.forName("UTF-8"))))
     {
       String line;
       Map<String, String> calcMap = new HashMap<>();
 
       while((line = reader.readLine()) != null)
       {
-        String[] calc = line.split(";");
+        String[] calc = line.split("\t");
         calcMap.put(calc[0], calc[1]);
       }
 
@@ -134,7 +135,7 @@ public class VTCIS extends CIS
     int tcounter = 0;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / 260) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
+    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / getBaseLength()) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
     taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSpec("Selected line rate") / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;

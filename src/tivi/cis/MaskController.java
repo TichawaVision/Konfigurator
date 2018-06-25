@@ -2,6 +2,8 @@ package tivi.cis;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.*;
+import java.nio.file.*;
 import java.util.*;
 import javafx.event.*;
 import javafx.fxml.*;
@@ -75,7 +77,7 @@ public abstract class MaskController implements Initializable
   @FXML
   public void handleCalculation(ActionEvent event)
   {
-    if(CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") > 0)
+    if(CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0)
     {
       try
       {
@@ -158,7 +160,7 @@ public abstract class MaskController implements Initializable
 
     if(file != null)
     {
-      try(BufferedWriter writer = new BufferedWriter(new FileWriter(file)))
+      try(BufferedWriter writer = Files.newBufferedWriter(file.toPath(), Charset.forName("UTF-8")))
       {
         writer.write("Quantity,TiViKey");
         writer.newLine();
@@ -194,7 +196,7 @@ public abstract class MaskController implements Initializable
   @FXML
   public void handleDataSheet(ActionEvent event)
   {
-    if(CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") > 0)
+    if(CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0)
     {
       try
       {

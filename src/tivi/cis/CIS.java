@@ -1,6 +1,7 @@
 package tivi.cis;
 
 import java.io.*;
+import java.nio.charset.*;
 import java.text.*;
 import java.util.*;
 import java.util.regex.*;
@@ -8,6 +9,7 @@ import tivi.cis.mxcis.*;
 
 public abstract class CIS
 {
+
   public final String CIS_NAME;
 
   protected HashMap<String, Integer> spec;
@@ -62,6 +64,11 @@ public abstract class CIS
 
   public abstract String getTiViKey();
 
+  public double getBaseLength()
+  {
+    return 260;
+  }
+
   public String getBlKey()
   {
     String key = "G_MXLED";
@@ -108,9 +115,9 @@ public abstract class CIS
 
   public int countNLs() throws IOException
   {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Mechanics.csv")));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Mechanics.csv"), Charset.forName("UTF-8")));
     String line = reader.readLine();
-    String[] row = line.split(";");
+    String[] row = line.split("\t");
 
     int x = 0;
     for(String field : row)
@@ -134,13 +141,13 @@ public abstract class CIS
     LANGUAGE = l;
   }
 
-  protected HashMap<String, Integer[]> readConfigTable(String path)
+  protected final HashMap<String, Integer[]> readConfigTable(String path)
   {
     HashMap<String, Integer[]> map = new HashMap<>();
 
     try
     {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(path)));
+      BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(path), Charset.forName("UTF-8")));
       String line;
 
       while((line = reader.readLine()) != null)
@@ -227,7 +234,7 @@ public abstract class CIS
     String line;
 
     //Reading price list
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/tivi/cis/Prices.csv"))))
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/tivi/cis/Prices.csv"), Charset.forName("UTF-8"))))
     {
       reader.readLine();
 
@@ -268,7 +275,7 @@ public abstract class CIS
       //FULL (RGB)
       sensPerFpga = 2;
     }
-    else if(getSpec("res_cp2") != null && (getSpec("Selected line rate") / 1000.0) <= maxRateForHalfMode.get(getSpec("res_cp2")))
+    else if(getSpec("res_cp2") != null && maxRateForHalfMode.get(getSpec("res_cp2")) != null && (getSpec("Selected line rate") / 1000.0) <= maxRateForHalfMode.get(getSpec("res_cp2")))
     {
       //HALF
       sensPerFpga = 4;
@@ -281,16 +288,16 @@ public abstract class CIS
 
     setSpec("MODE", sensPerFpga);
 
-    double lengthPerSens = 260.0 * sensPerFpga;
+    double lengthPerSens = getBaseLength() * sensPerFpga;
     numFPGA = (int) Math.ceil(getSpec("sw_cp") / lengthPerSens);
 
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Electronics.csv"))))
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Electronics.csv"), Charset.forName("UTF-8"))))
     {
       reader.readLine();
 
       while((line = reader.readLine()) != null)
       {
-        String[] row = line.split(";");
+        String[] row = line.split("\t");
         Pattern p = Pattern.compile("^\\d+dpi$");
 
         if(row[0].equals(""))
@@ -367,7 +374,7 @@ public abstract class CIS
           amount *= -1;
         }
 
-        amount *= (int) MathEval.evaluate(row[4 + getSpec("sw_index")].replace(" ", "").replace("L", "" + getSpec("LEDLines")).replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / 260).replace("N", "" + getSpec("sw_cp")));
+        amount *= (int) MathEval.evaluate(row[4 + getSpec("sw_index")].replace(" ", "").replace("L", "" + getSpec("LEDLines")).replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / getBaseLength()).replace("N", "" + getSpec("sw_cp")));
 
         if(amount > 0)
         {
@@ -399,7 +406,7 @@ public abstract class CIS
                 }
                 else
                 {
-                  if(electSums[x] == null)
+                  if(electSums[x] == null || electSums[x] == 0.0)
                   {
                     electSums[x] = 1.0;
                   }
@@ -428,13 +435,13 @@ public abstract class CIS
     }
 
     //Mechanics
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Mechanics.csv"))))
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Mechanics.csv"), Charset.forName("UTF-8"))))
     {
       reader.readLine();
 
       while((line = reader.readLine()) != null)
       {
-        String[] row = line.split(";");
+        String[] row = line.split("\t");
 
         if(row[0].equals(""))
         {
@@ -455,7 +462,7 @@ public abstract class CIS
               }
               else
               {
-                amount *= (int) MathEval.evaluate(row[3 + countNLs() + getSpec("Internal Light Source")].replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / 260).replace("N", "" + getSpec("sw_cp")).replace(" ", "").replace("L", "" + getSpec("LEDLines")));
+                amount *= (int) MathEval.evaluate(row[3 + countNLs() + getSpec("Internal Light Source")].replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / getBaseLength()).replace("N", "" + getSpec("sw_cp")).replace(" ", "").replace("L", "" + getSpec("LEDLines")));
               }
 
               if(amount > 0)
@@ -513,7 +520,7 @@ public abstract class CIS
               }
               else
               {
-                amount *= (int) MathEval.evaluate(row[3 + countNLs() + getSpec("sw_index")].replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / 260).replace("N", "" + getSpec("sw_cp")).replace(" ", "").replace("L", "" + getSpec("LEDLines")));
+                amount *= (int) MathEval.evaluate(row[3 + countNLs() + getSpec("sw_index")].replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / getBaseLength()).replace("N", "" + getSpec("sw_cp")).replace(" ", "").replace("L", "" + getSpec("LEDLines")));
               }
 
               if(amount > 0)
@@ -1173,14 +1180,14 @@ public abstract class CIS
 
     HashMap<String, Integer> calcMap = new HashMap<>();
 
+    String line = null;
     try
     {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv")));
-      String line;
+      BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"), Charset.forName("UTF-8")));
 
       while((line = reader.readLine()) != null)
       {
-        String[] calc = line.split(";");
+        String[] calc = line.split("\t");
         try
         {
           calcMap.put(calc[0], Integer.parseInt(calc[1]));
@@ -1214,9 +1221,9 @@ public abstract class CIS
               .append(String.format(getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0))).append("\t \n");
       totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0);
       totalOutput.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("Assembly")).append(":\t \t ")
-              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * ((int) getSpec("sw_cp") / 260)).append(" h\t")
-              .append(String.format(getLocale(), "%.2f", (double) (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / 260)) * calcMap.get("STUNDENSATZ"))).append("\t \n");
-      totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / 260)) * calcMap.get("STUNDENSATZ");
+              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * ((int) getSpec("sw_cp") / getBaseLength())).append(" h\t")
+              .append(String.format(getLocale(), "%.2f", (double) (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ"))).append("\t \n");
+      totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ");
 
       int surcharge = 0;
       int addition = 0;
@@ -1297,6 +1304,7 @@ public abstract class CIS
     }
     catch(NullPointerException | IndexOutOfBoundsException | NumberFormatException | IOException e)
     {
+      e.printStackTrace();
       throw new CISException(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("A fatal error occurred: Missing configuration tables.Please contact support@tichawa.de for further help."));
     }
 
@@ -1337,19 +1345,19 @@ public abstract class CIS
 
     if(getSpec("MXCIS") != null)
     {
-      numOfPix = (int) (((MXCIS) this).getBoard(getSpec("res_cp"))[0] * (getSpec("sw_cp") / 260.0) * ((MXCIS) this).getChip(getSpec("res_cp2"))[3] / getSpec("Binning"));
+      numOfPix = (int) (((MXCIS) this).getBoard(getSpec("res_cp"))[0] * (getSpec("sw_cp") / getBaseLength()) * ((MXCIS) this).getChip(getSpec("res_cp2"))[3] / getSpec("Binning"));
     }
     else if(getSpec("VHCIS") != null)
     {
-      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * (getSpec("sw_cp") / 260.0) * 0.72 * getSpec("res_cp2"));
+      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * (getSpec("sw_cp") / getBaseLength()) * 0.72 * getSpec("res_cp2"));
     }
     else if(getSpec("VTCIS") != null)
     {
-      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * (getSpec("sw_cp") / 260.0) * 0.72 * getSpec("res_cp2"));
+      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * (getSpec("sw_cp") / getBaseLength()) * 0.72 * getSpec("res_cp2"));
     }
     else
     {
-      numOfPix = (int) (getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / 260.0) * 0.72 * getSpec("res_cp2"));
+      numOfPix = (int) (getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / getBaseLength()) * 0.72 * getSpec("res_cp2"));
     }
 
     if((getSpec("Color") * numOfPix * getSpec("Selected line rate") / 1000000 > 80 && getSpec("Interface") == 1))
@@ -1388,9 +1396,12 @@ public abstract class CIS
     {
       switch(getSpec("res_cp"))
       {
-        case 1200: return 500;
-        case 600: return 1000;
-        case 300: return 1800;
+        case 1200:
+          return 500;
+        case 600:
+          return 1000;
+        case 300:
+          return 1800;
       }
     }
 
