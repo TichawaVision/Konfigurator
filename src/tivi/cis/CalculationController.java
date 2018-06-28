@@ -311,7 +311,7 @@ public class CalculationController implements Initializable
     }
     catch(ParseException | NullPointerException e)
     {
-      System.out.println(e.toString());
+      e.printStackTrace();
     }
   }
   

@@ -61,7 +61,7 @@ public class VDCIS extends CIS
       }
     }
 
-    if(getSpec("Color") == 3)
+    if(getSpec("Color") == 4)
     {
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
@@ -148,7 +148,7 @@ public class VDCIS extends CIS
 
     switch(getSpec("Color"))
     {
-      case 3:
+      case 4:
       {
         if(taps > 6)
         {
@@ -255,7 +255,7 @@ public class VDCIS extends CIS
         }
         break;
       }
-      case 1:
+      case 2:
       {
         tcounter = 1;
         printOut.append("Camera Link ").append(tcounter).append(":\n");

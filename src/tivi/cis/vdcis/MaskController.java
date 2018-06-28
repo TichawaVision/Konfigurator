@@ -26,7 +26,7 @@ public class MaskController extends tivi.cis.MaskController
     pixelSize.add(0.508);
     pixelSize.add(1.016);
 
-    CIS_DATA.setSpec("Color", 1);
+    CIS_DATA.setSpec("Color", 2);
     CIS_DATA.setSpec("Resolution", 0);
     CIS_DATA.setSpec("res_cp", 1000);
     CIS_DATA.setSpec("res_cp2", 1000);
@@ -42,12 +42,12 @@ public class MaskController extends tivi.cis.MaskController
       {
         case "Monochrome":
         {
-          CIS_DATA.setSpec("Color", 1);
+          CIS_DATA.setSpec("Color", 2);
           break;
         }
         case "RGB":
         {
-          CIS_DATA.setSpec("Color", 3);
+          CIS_DATA.setSpec("Color", 4);
           break;
         }
       }
@@ -144,7 +144,7 @@ public class MaskController extends tivi.cis.MaskController
     });
     InternalLightSource.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
-      if(CIS_DATA.getSpec("Color") == 3 && newValue.equals("None"))
+      if(CIS_DATA.getSpec("Color") == 4 && newValue.equals("None"))
       {
         InternalLightSource.getSelectionModel().select(oldValue);
         return;

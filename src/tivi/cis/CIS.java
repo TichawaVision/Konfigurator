@@ -270,7 +270,7 @@ public abstract class CIS
     {
       sensPerFpga = 1;
     }
-    else if(getSpec("Color") > 1)
+    else if((getSpec("VDCIS") != null && getSpec("Color") > 2) || (getSpec("VDCIS") == null && getSpec("Color") > 1))
     {
       //FULL (RGB)
       sensPerFpga = 2;
@@ -394,7 +394,7 @@ public abstract class CIS
 
             for(int x = 0; x < electSums.length; x++)
             {
-              if(pricelist[x] != null)
+              if(pricelist[x] != null && pricelist[x] != 0)
               {
                 if(x < 4)
                 {
@@ -406,11 +406,11 @@ public abstract class CIS
                 }
                 else
                 {
-                  if(electSums[x] == null || electSums[x] == 0.0)
+                  if(electSums[x] == null)
                   {
-                    electSums[x] = 1.0;
+                    electSums[x] = 100.0;
                   }
-                  electSums[x] *= pricelist[x];
+                  electSums[x] = Math.min(electSums[x], pricelist[x]);
                 }
               }
             }
@@ -475,18 +475,9 @@ public abstract class CIS
 
                   for(int x = 0; x < mechaSums.length; x++)
                   {
-                    /*if(pricelist[x] != null)
+                    if(pricelist[x] != null && pricelist[x] != 0)
                     {
-                      if(mechaSums[x] == null)
-                      {
-                        mechaSums[x] = 0.0;
-                      }
-                      mechaSums[x] += pricelist[x] * amount;
-                    }*/
-
-                    if(x < 4)
-                    {
-                      if(pricelist[x] != null)
+                      if(x < 4)
                       {
                         if(mechaSums[x] == null)
                         {
@@ -494,10 +485,7 @@ public abstract class CIS
                         }
                         mechaSums[x] += pricelist[x] * amount;
                       }
-                    }
-                    else
-                    {
-                      if(pricelist[x] != null)
+                      else
                       {
                         if(mechaSums[x] == null)
                         {
@@ -666,7 +654,7 @@ public abstract class CIS
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("internal light");
     String color = "";
 
-    if(getSpec("Color") == 3 || (getSpec("MXCIS") != null && getSpec("Color") == 4))
+    if(getSpec("Color") == 3 || ((getSpec("VDCIS") != null || getSpec("MXCIS") != null) && getSpec("Color") == 4))
     {
       color = "RGB";
     }
@@ -819,6 +807,18 @@ public abstract class CIS
         printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("alucase_mxcis_two") + "\n";
       }
     }
+    else if(getSpec("VDCIS") != null)
+    {
+      Double[] dof = new Double[]
+      {
+        10.0, 10.0, 10.0, 10.0, 10.0, 5.0, 2.5, 2.5
+      };
+      printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("scan distance") + ": ~ 55 - 70 mm " + ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("exactresolution") + "\n";
+      printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("DepthofField") + ": ~ " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("line width") + ": ~ 1 mm\n";
+      printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
+      printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
+      printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("glass pane, see drawing") + "\n";
+    }
     else
     {
       printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("scan distance") + ": 9-12 mm " + ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("exactseetypesign") + "\n";
@@ -919,7 +919,7 @@ public abstract class CIS
 
     String color = "";
 
-    if(getSpec("Color") == 3 || (getSpec("MXCIS") != null && getSpec("Color") == 4))
+    if(getSpec("Color") == 3 || ((getSpec("VDCIS") != null && getSpec("MXCIS") != null) && getSpec("Color") == 4))
     {
       color = "RGB";
     }
@@ -1158,10 +1158,9 @@ public abstract class CIS
             .append(String.format(getLocale(), "%.2f", electSums[0])).append("\t")
             .append(String.format(getLocale(), "%.2f", electSums[3])).append("\t")
             .append(String.format(getLocale(), "%.2f", electSums[1])).append("\t")
-            .append(String.format(getLocale(), "%.2f", electSums[2])).append("\n");
+            .append(String.format(getLocale(), "%.2f", electSums[2] == null ? 0.0 : electSums[2])).append("\n");
 
-    getMechaConfig().entrySet().stream().forEach((Map.Entry<Integer, Integer> e)
-            ->
+    getMechaConfig().entrySet().stream().forEach((Map.Entry<Integer, Integer> e) ->
     {
       int ID = e.getKey();
       String key = IDToKey.get(e.getKey());
@@ -1176,11 +1175,11 @@ public abstract class CIS
             .append(" \t")
             .append("0\t")
             .append(String.format(getLocale(), "%.2f", mechaSums[0])).append("\t")
-            .append(String.format(getLocale(), "%.2f", mechaSums[3])).append("\n");
+            .append(String.format(getLocale(), "%.2f", mechaSums[3] == null ? 0.0 : mechaSums[3])).append("\n");
 
     HashMap<String, Integer> calcMap = new HashMap<>();
 
-    String line = null;
+    String line;
     try
     {
       BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"), Charset.forName("UTF-8")));
@@ -1304,7 +1303,6 @@ public abstract class CIS
     }
     catch(NullPointerException | IndexOutOfBoundsException | NumberFormatException | IOException e)
     {
-      e.printStackTrace();
       throw new CISException(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("A fatal error occurred: Missing configuration tables.Please contact support@tichawa.de for further help."));
     }
 
@@ -1401,6 +1399,18 @@ public abstract class CIS
         case 600:
           return 1000;
         case 300:
+          return 1800;
+      }
+    }
+    else if(getSpec("VDCIS") != null)
+    {
+      switch(getSpec("res_cp"))
+      {
+        case 1000:
+          return 500;
+        case 500:
+          return 1000;
+        case 250:
           return 1800;
       }
     }
