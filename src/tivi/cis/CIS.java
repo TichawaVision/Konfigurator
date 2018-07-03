@@ -884,7 +884,12 @@ public abstract class CIS
       }
     }
     printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
-    printout += "Interface: " + (getSpec("Interface") == 0 ? "CameraLink (max. 5m)" : "GigE");
+    printout += "Interface: " + (getSpec("Interface") == 0 ? "CameraLink (max. 5m)" : "GigE") + "\n";
+    
+    if(getSpec("VDCIS") != null)
+    {
+      printout += ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("laser") + "\n";
+    }
 
     if(getSpec("MXCIS") != null)
     {
