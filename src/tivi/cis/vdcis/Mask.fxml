@@ -211,6 +211,7 @@
             <Button mnemonicParsing="false" text="Calculation" fx:id="Calculation" onAction="#handleCalculation" />
             <Button mnemonicParsing="false" text="Part list" fx:id="PartList" onAction="#handlePartList" />
             <Button mnemonicParsing="false" text="Data Sheet" fx:id="DataSheet" onAction="#handleDataSheet" />
+            <Button mnemonicParsing="false" text="Additional equipment" fx:id="Equip" onAction="#handleEquipment" />
           </children>
         </HBox>
         <Label text="For special options, please contact sales@tichawa.de" GridPane.columnSpan="3" GridPane.rowIndex="7" fx:id="Infotext" />

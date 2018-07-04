@@ -978,7 +978,7 @@ public abstract class CIS
 
     return printout;
   }
-
+  
   public Double[] getMechaSums()
   {
     return mechaSums;
@@ -1421,5 +1421,15 @@ public abstract class CIS
     }
 
     return 1;
+  }
+  
+  public static boolean isInteger(String s)
+  {  
+    return s != null && s.matches("[-+]?\\d+");  
+  }
+  
+  public static boolean isDouble(String s)
+  {
+    return s!= null && s.matches("[-+]?\\d+[.,]?\\d*");
   }
 }

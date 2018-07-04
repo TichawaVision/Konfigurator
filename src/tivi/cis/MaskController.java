@@ -5,16 +5,25 @@ import java.net.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
+import javafx.beans.property.*;
 import javafx.event.*;
 import javafx.fxml.*;
+import javafx.geometry.*;
+import javafx.print.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
+import javafx.scene.layout.*;
+import javafx.scene.transform.*;
 import javafx.stage.*;
 import tivi.cis.mxled.*;
 
+import static tivi.cis.CIS.isDouble;
+
 public abstract class MaskController implements Initializable
 {
+
   @FXML
   protected ComboBox<String> Color;
   @FXML
@@ -63,6 +72,8 @@ public abstract class MaskController implements Initializable
   protected Button DataSheet;
   @FXML
   protected Button OEMMode;
+  @FXML
+  protected Button Equip;
 
   protected CIS CIS_DATA;
   protected MXLED MXLED_DATA;
@@ -237,7 +248,7 @@ public abstract class MaskController implements Initializable
 
       }
     }
-    
+
     try
     {
       CIS_DATA.calculate();
@@ -280,5 +291,109 @@ public abstract class MaskController implements Initializable
   public void handleOEMMode(ActionEvent event)
   {
     handleDataSheet(event);
+  }
+
+  @FXML
+  public void handleEquipment(ActionEvent a)
+  {
+    try(BufferedReader preader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/tivi/cis/Prices.csv"), Charset.forName("UTF-8"))))
+    {
+      Map<String, Double> prices = preader.lines()
+              .skip(1)
+              .map(line -> line.split("\t"))
+              .filter(line -> isDouble(line[2]))
+              .collect(Collectors.toMap(line -> line[0], line -> Double.parseDouble(line[2].replace(',', '.')), (oldVal, newVal) -> oldVal));
+
+      Stage printStage = new Stage();
+      printStage.setTitle("Additional equipment list");
+      printStage.getIcons().add(new Image(getClass().getResourceAsStream("/tivi/cis/TiViCC.png")));
+      GridPane printPane = new GridPane();
+      printPane.getStylesheets().add("/tivi/cis/style.css");
+      printPane.getStyleClass().add("white");
+      ColumnConstraints c = new ColumnConstraints();
+      c.setHgrow(Priority.ALWAYS);
+      printPane.getColumnConstraints().addAll(c, c, c, c);
+      Scene printScene = new Scene(printPane);
+
+      try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/tivi/cis/Equip.csv"), Charset.forName("UTF-8"))))
+      {
+        SimpleBooleanProperty pale = new SimpleBooleanProperty(false);
+        System.out.println(CIS_DATA.getTiViKey());
+        reader.lines()
+                .skip(1)
+                .map(line -> line.split("\t"))
+                .filter(line -> line.length > 3 && Arrays.stream(line[2].split("&"))
+                .allMatch(pred -> pred.length() == 0 || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred))))
+                .map(line ->
+                {
+                  Label[] labels = new Label[4];
+
+                  for(int i = 0; i < labels.length; i++)
+                  {
+                    labels[i] = new Label();
+                    Label l = labels[i];
+                    l.setAlignment(Pos.CENTER_LEFT);
+                    l.setMaxWidth(1000);
+                    l.getStyleClass().add("bolder");
+                    if(pale.get())
+                    {
+                      l.getStyleClass().add("pale-blue");
+                    }
+                    else
+                    {
+                      l.getStyleClass().add("white");
+                    }
+                  }
+                  
+                  labels[0].setText(line[1]);
+                  labels[1].setText(line[0]);
+                  labels[2].setText(line[3]);
+                  labels[3].setText("" + Integer.parseInt(line[3]) * prices.get(line[1]));
+
+                  pale.set(!pale.get());
+                  return labels;
+                })
+                .forEach(labels -> printPane.addRow(printPane.getChildren().size() / 4, labels));
+      }
+      catch(IOException ex)
+      {
+      }
+
+      printStage.setScene(printScene);
+      printStage.show();
+    }
+    catch(IOException ex)
+    {
+    }
+
+    /*PrinterJob p = PrinterJob.createPrinterJob();
+    
+    if(p.showPrintDialog(null))
+    {
+      p.getJobSettings().setPageLayout(p.getPrinter().createPageLayout(Paper.A4, PageOrientation.PORTRAIT, Printer.MarginType.EQUAL_OPPOSITES));
+      double scaleX = p.getJobSettings().getPageLayout().getPrintableWidth() / printPane.getWidth();
+      double scaleY = p.getJobSettings().getPageLayout().getPrintableHeight() / (getRowCount(printPane) * 20.0);
+
+      printPane.getTransforms().add(new Scale(Math.min(scaleX, scaleY), Math.min(scaleX, scaleY)));
+      
+      if(p.printPage(printPane))
+      {
+        printPane.getTransforms().clear();
+        new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
+        p.endJob();
+      }
+      else
+      {
+        printPane.getTransforms().clear();
+        new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
+      }
+    }
+    
+    printStage.close();*/
+  }
+
+  private boolean isInt(String string)
+  {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 }
