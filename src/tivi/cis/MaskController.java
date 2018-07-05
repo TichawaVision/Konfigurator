@@ -323,7 +323,9 @@ public abstract class MaskController implements Initializable
                 .skip(1)
                 .map(line -> line.split("\t"))
                 .filter(line -> line.length > 3 && Arrays.stream(line[2].split("&"))
-                .allMatch(pred -> pred.length() == 0 || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred))))
+                .allMatch(pred -> pred.length() == 0
+                || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred.replace("!", "")))
+                || (CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
                 .map(line ->
                 {
                   Label[] labels = new Label[4];
@@ -344,7 +346,7 @@ public abstract class MaskController implements Initializable
                       l.getStyleClass().add("white");
                     }
                   }
-                  
+
                   labels[0].setText(line[1]);
                   labels[1].setText(line[0]);
                   labels[2].setText(line[3]);
@@ -390,10 +392,5 @@ public abstract class MaskController implements Initializable
     }
     
     printStage.close();*/
-  }
-
-  private boolean isInt(String string)
-  {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 }
