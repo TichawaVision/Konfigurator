@@ -1,8 +1,9 @@
 package de.tichawa.cis.config.vhcis;
 
-import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.*;
 import java.io.*;
 import java.nio.charset.*;
+import java.nio.file.*;
 import java.util.*;
 
 public class VHCIS extends CIS
@@ -54,20 +55,18 @@ public class VHCIS extends CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"), Charset.forName("UTF-8"))))
+    try
     {
-      String line;
-      Map<String, String> calcMap = new HashMap<>();
-      
-      while((line = reader.readLine()) != null)
-      {
-        String[] calc = line.split("\t");
-        calcMap.put(calc[0], calc[1]);
-      }
-      
-      key += calcMap.containsKey("VERSION") ? "_" + calcMap.get("VERSION") + "_" : "_2.0_";
+      String version = Files.lines(Launcher.tableHome.resolve("Calculation.csv"))
+              .map(line -> line.split("\t"))
+              .filter(line -> line[0].equals("VERSION"))
+              .map(line -> line[1])
+              .findAny().orElse("2.0");
+
+      key += "_" + version + "_";
     }
-    catch(IOException e) {
+    catch(IOException e)
+    {
       key += "_2.0_";
     }
 
@@ -122,9 +121,9 @@ public class VHCIS extends CIS
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 
-    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
-    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofcons")).append("%%%%%\n");
-    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofport")).append(taps * getSpec("Color")).append("\n");
+    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
+    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofcons")).append("%%%%%\n");
+    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofport")).append(taps * getSpec("Color")).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");
     printOut.append("Nominal pixel count: ").append(numOfPixNominal).append("\n");
     printOut.append("\n\nCamera Link 1:");

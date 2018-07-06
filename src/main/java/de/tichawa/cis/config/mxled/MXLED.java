@@ -1,8 +1,9 @@
 package de.tichawa.cis.config.mxled;
 
-import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.*;
 import java.io.*;
 import java.nio.charset.*;
+import java.nio.file.*;
 import java.util.*;
 
 public class MXLED extends CIS
@@ -82,18 +83,15 @@ public class MXLED extends CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"), Charset.forName("UTF-8"))))
+    try
     {
-      String line;
-      Map<String, String> calcMap = new HashMap<>();
+      String version = Files.lines(Launcher.tableHome.resolve("Calculation.csv"))
+              .map(line -> line.split("\t"))
+              .filter(line -> line[0].equals("VERSION"))
+              .map(line -> line[1])
+              .findAny().orElse("2.0");
 
-      while((line = reader.readLine()) != null)
-      {
-        String[] calc = line.split("\t");
-        calcMap.put(calc[0], calc[1]);
-      }
-
-      key += calcMap.containsKey("VERSION") ? "_" + calcMap.get("VERSION") + "_" : "_2.0_";
+      key += "_" + version + "_";
     }
     catch(IOException e)
     {

@@ -102,12 +102,12 @@ public abstract class MaskController implements Initializable
 
       try
       {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/tivi/cis/Calculation.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/Calculation.fxml"));
         Scene scene = new Scene(loader.load());
         Stage stage = new Stage();
         stage.setScene(scene);
         stage.setTitle("MXLED Calculation");
-        stage.getIcons().add(new Image(getClass().getResourceAsStream("/tivi/cis/TiViCC.png")));
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
         stage.centerOnScreen();
         stage.show();
         stage.setX(stage.getX() - 20);
@@ -134,12 +134,12 @@ public abstract class MaskController implements Initializable
 
     try
     {
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("/tivi/cis/Calculation.fxml"));
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/Calculation.fxml"));
       Scene scene = new Scene(loader.load());
       Stage stage = new Stage();
       stage.setScene(scene);
       stage.setTitle(CIS_DATA.CIS_NAME + " Calculation");
-      stage.getIcons().add(new Image(getClass().getResourceAsStream("/tivi/cis/TiViCC.png")));
+      stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
       stage.centerOnScreen();
       stage.show();
       CalculationController controller = loader.<CalculationController>getController();
@@ -195,11 +195,11 @@ public abstract class MaskController implements Initializable
 
         writer.close();
 
-        new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("File saved.")).show();
+        new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("File saved.")).show();
       }
       catch(IOException e)
       {
-        new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the save attempt.Please close the target file and try again.")).show();
+        new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the save attempt.Please close the target file and try again.")).show();
       }
     }
   }
@@ -221,12 +221,12 @@ public abstract class MaskController implements Initializable
 
       try
       {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/tivi/cis/DataSheet.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/DataSheet.fxml"));
         Scene scene = new Scene(loader.load());
         Stage stage = new Stage();
         stage.setScene(scene);
         stage.setTitle("MXLED Datasheet");
-        stage.getIcons().add(new Image(getClass().getResourceAsStream("/tivi/cis/TiViCC.png")));
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
         stage.centerOnScreen();
         stage.show();
         stage.setX(stage.getX() - 20);
@@ -240,7 +240,7 @@ public abstract class MaskController implements Initializable
           controller.getHeader().setEditable(true);
           controller.getSpecs().setEditable(true);
           controller.getCLConfig().setEditable(true);
-          controller.getProfilePic().setImage(new Image(getClass().getResourceAsStream("/tivi/cis/OEM_Profile.jpg")));
+          controller.getProfilePic().setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg")));
         }
       }
       catch(IOException e)
@@ -261,12 +261,12 @@ public abstract class MaskController implements Initializable
 
     try
     {
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("/tivi/cis/DataSheet.fxml"));
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/DataSheet.fxml"));
       Scene scene = new Scene(loader.load());
       Stage stage = new Stage();
       stage.setScene(scene);
       stage.setTitle(CIS_DATA.CIS_NAME + " Datasheet");
-      stage.getIcons().add(new Image(getClass().getResourceAsStream("/tivi/cis/TiViCC.png")));
+      stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
       stage.centerOnScreen();
       stage.show();
 
@@ -278,7 +278,7 @@ public abstract class MaskController implements Initializable
         controller.getHeader().setEditable(true);
         controller.getSpecs().setEditable(true);
         controller.getCLConfig().setEditable(true);
-        controller.getProfilePic().setImage(new Image(getClass().getResourceAsStream("/tivi/cis/OEM_Profile.jpg")));
+        controller.getProfilePic().setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg")));
       }
     }
     catch(IOException e)
@@ -296,9 +296,9 @@ public abstract class MaskController implements Initializable
   @FXML
   public void handleEquipment(ActionEvent a)
   {
-    try(BufferedReader preader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/tivi/cis/Prices.csv"), Charset.forName("UTF-8"))))
+    try
     {
-      Map<String, Double> prices = preader.lines()
+      Map<String, Double> prices = Files.lines(Launcher.tableHome.resolve("Prices.csv"))
               .skip(1)
               .map(line -> line.split("\t"))
               .filter(line -> isDouble(line[2]))
@@ -306,60 +306,53 @@ public abstract class MaskController implements Initializable
 
       Stage printStage = new Stage();
       printStage.setTitle("Additional equipment list");
-      printStage.getIcons().add(new Image(getClass().getResourceAsStream("/tivi/cis/TiViCC.png")));
+      printStage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
       GridPane printPane = new GridPane();
-      printPane.getStylesheets().add("/tivi/cis/style.css");
+      printPane.getStylesheets().add("/de/tichawa/cis/config/style.css");
       printPane.getStyleClass().add("white");
       ColumnConstraints c = new ColumnConstraints();
       c.setHgrow(Priority.ALWAYS);
       printPane.getColumnConstraints().addAll(c, c, c, c);
       Scene printScene = new Scene(printPane);
 
-      try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/tivi/cis/Equip.csv"), Charset.forName("UTF-8"))))
-      {
-        SimpleBooleanProperty pale = new SimpleBooleanProperty(false);
-        System.out.println(CIS_DATA.getTiViKey());
-        reader.lines()
-                .skip(1)
-                .map(line -> line.split("\t"))
-                .filter(line -> line.length > 3 && Arrays.stream(line[2].split("&"))
-                .allMatch(pred -> pred.length() == 0
-                || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred.replace("!", "")))
-                || (CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
-                .map(line ->
+      SimpleBooleanProperty pale = new SimpleBooleanProperty(false);
+      Files.lines(Launcher.tableHome.resolve("Equip.csv"))
+              .skip(1)
+              .map(line -> line.split("\t"))
+              .filter(line -> line.length > 3 && Arrays.stream(line[2].split("&"))
+              .allMatch(pred -> pred.length() == 0
+              || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred.replace("!", "")))
+              || (CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
+              .map(line ->
+              {
+                Label[] labels = new Label[4];
+
+                for(int i = 0; i < labels.length; i++)
                 {
-                  Label[] labels = new Label[4];
-
-                  for(int i = 0; i < labels.length; i++)
+                  labels[i] = new Label();
+                  Label l = labels[i];
+                  l.setAlignment(Pos.CENTER_LEFT);
+                  l.setMaxWidth(1000);
+                  l.getStyleClass().add("bolder");
+                  if(pale.get())
                   {
-                    labels[i] = new Label();
-                    Label l = labels[i];
-                    l.setAlignment(Pos.CENTER_LEFT);
-                    l.setMaxWidth(1000);
-                    l.getStyleClass().add("bolder");
-                    if(pale.get())
-                    {
-                      l.getStyleClass().add("pale-blue");
-                    }
-                    else
-                    {
-                      l.getStyleClass().add("white");
-                    }
+                    l.getStyleClass().add("pale-blue");
                   }
+                  else
+                  {
+                    l.getStyleClass().add("white");
+                  }
+                }
 
-                  labels[0].setText(line[1]);
-                  labels[1].setText(line[0]);
-                  labels[2].setText(line[3]);
-                  labels[3].setText("" + Integer.parseInt(line[3]) * prices.get(line[1]));
+                labels[0].setText(line[1]);
+                labels[1].setText(line[0]);
+                labels[2].setText(line[3]);
+                labels[3].setText("" + Integer.parseInt(line[3]) * prices.get(line[1]));
 
-                  pale.set(!pale.get());
-                  return labels;
-                })
-                .forEach(labels -> printPane.addRow(printPane.getChildren().size() / 4, labels));
-      }
-      catch(IOException ex)
-      {
-      }
+                pale.set(!pale.get());
+                return labels;
+              })
+              .forEach(labels -> printPane.addRow(printPane.getChildren().size() / 4, labels));
 
       printStage.setScene(printScene);
       printStage.show();
@@ -381,13 +374,13 @@ public abstract class MaskController implements Initializable
       if(p.printPage(printPane))
       {
         printPane.getTransforms().clear();
-        new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
+        new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
         p.endJob();
       }
       else
       {
         printPane.getTransforms().clear();
-        new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
+        new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
       }
     }
     

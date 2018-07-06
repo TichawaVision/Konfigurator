@@ -1,8 +1,9 @@
 package de.tichawa.cis.config.mxcis;
 
-import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.*;
 import java.io.*;
 import java.nio.charset.*;
+import java.nio.file.*;
 import java.util.*;
 
 public class MXCIS extends CIS
@@ -82,18 +83,15 @@ public class MXCIS extends CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("Calculation.csv"), Charset.forName("UTF-8"))))
+    try
     {
-      String line;
-      Map<String, String> calcMap = new HashMap<>();
+      String version = Files.lines(Launcher.tableHome.resolve("Calculation.csv"))
+              .map(line -> line.split("\t"))
+              .filter(line -> line[0].equals("VERSION"))
+              .map(line -> line[1])
+              .findAny().orElse("2.0");
 
-      while((line = reader.readLine()) != null)
-      {
-        String[] calc = line.split("\t");
-        calcMap.put(calc[0], calc[1]);
-      }
-
-      key += calcMap.containsKey("VERSION") ? "_" + calcMap.get("VERSION") + "_" : "_2.0_";
+      key += "_" + version + "_";
     }
     catch(IOException e)
     {
@@ -194,18 +192,18 @@ public class MXCIS extends CIS
 
     int portCount = getSpec("Color") == 1 ? (int) Math.ceil(numOfPix / (lval * 1.0)) : (int) Math.ceil(3 * Math.ceil(numOfPix / (lval * 1.0)));
 
-    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", getLocale()).getString("datarate")).append(Math.round(portCount * Math.min(lval, numOfPix) * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte/s\n");
-    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofpix")).append(numOfPix).append("\n");
+    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("datarate")).append(Math.round(portCount * Math.min(lval, numOfPix) * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte/s\n");
+    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofpix")).append(numOfPix).append("\n");
     
     if(getSpec("Color") == 1)
     {
-      printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 2.0))).append("\n");
+      printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 2.0))).append("\n");
     }
     else
     {
-      printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 1.0))).append("\n");
+      printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 1.0))).append("\n");
     }
-    printOut.append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("numofport")).append(portCount).append("\n");
+    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofport")).append(portCount).append("\n");
     printOut.append("Pixel Clock: 85MHz\n\n");
 
     switch(getSpec("Color"))
@@ -219,26 +217,26 @@ public class MXCIS extends CIS
             printOut.append("Camera Link ").append(x + 1).append(":\n");
             printOut.append("\tPort A:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
+                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Red")).append("\n");
             printOut.append("\tPort B:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
+                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Green")).append("\n");
             printOut.append("\tPort C:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
+                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Blue")).append("\n");
           }
           else
           {
             printOut.append("Camera Link ").append(x + 1).append(":\n");
             printOut.append("\tPort A:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Red")).append("\n");
+                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Red")).append("\n");
             printOut.append("\tPort B:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Green")).append("\n");
+                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Green")).append("\n");
             printOut.append("\tPort C:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("tivi.cis.Bundle", LANGUAGE).getString("Blue")).append("\n");
+                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Blue")).append("\n");
           }
         }
 

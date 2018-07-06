@@ -66,11 +66,11 @@ public class DataSheetController implements Initializable
   {
     try
     {
-      Lang.setText(ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("lang"));
-      SwitchLang.setText(ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("switchlang"));
+      Lang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("lang"));
+      SwitchLang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("switchlang"));
 
-      File.setText(ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("File"));
-      Print.setText(ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("Print"));
+      File.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("File"));
+      Print.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("Print"));
 
       String[] dataSheetText = CIS_DATA.createPrntOut().split("\n\t\n");
       String key = CIS_DATA.getTiViKey();
@@ -84,7 +84,7 @@ public class DataSheetController implements Initializable
       CLConfig.setEditable(false);
       CLConfig.setMinHeight((dataSheetText[2].length() - dataSheetText[2].replace("\n", "").length()) * 20);
 
-      ProductPic.setImage(new Image(getClass().getResourceAsStream("/tivi/cis/" + key.toLowerCase().split("_")[1] + "/Product.jpg")));
+      ProductPic.setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Product.jpg")));
 
       if(key.contains("MXCIS"))
       {
@@ -104,15 +104,15 @@ public class DataSheetController implements Initializable
           append += "_L1";
         }
 
-        ProfilePic.setImage(new Image(getClass().getResourceAsStream("/tivi/cis/" + key.toLowerCase().split("_")[1] + "/Profile" + append + ".jpg")));
+        ProfilePic.setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile" + append + ".jpg")));
       }
-      else if(key.split("_")[4].endsWith("C") && getClass().getResourceAsStream("/tivi/cis/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg") != null)
+      else if(key.split("_")[4].endsWith("C") && getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg") != null)
       {
-        ProfilePic.setImage(new Image(getClass().getResourceAsStream("/tivi/cis/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg")));
+        ProfilePic.setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg")));
       }
       else
       {
-        ProfilePic.setImage(new Image(getClass().getResourceAsStream("/tivi/cis/" + key.toLowerCase().split("_")[1] + "/Profile.jpg")));
+        ProfilePic.setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile.jpg")));
       }
     }
     catch(CISException e)
@@ -144,13 +144,13 @@ public class DataSheetController implements Initializable
       if(p.printPage(printable))
       {
         printable.getTransforms().clear();
-        new Alert(AlertType.INFORMATION, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
+        new Alert(AlertType.INFORMATION, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
         p.endJob();
       }
       else
       {
         printable.getTransforms().clear();
-        new Alert(AlertType.ERROR, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
+        new Alert(AlertType.ERROR, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
       }
     }
   }

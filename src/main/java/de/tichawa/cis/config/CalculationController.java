@@ -60,11 +60,11 @@ public class CalculationController implements Initializable
   {
     try
     {
-      Lang.setText(ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("lang"));
-      SwitchLang.setText(ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("switchlang"));
+      Lang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("lang"));
+      SwitchLang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("switchlang"));
       
-      File.setText(ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("File"));
-      Print.setText(ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("Print"));
+      File.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("File"));
+      Print.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("Print"));
       
       NumberFormat f = NumberFormat.getInstance(CIS_DATA.getLocale());
       String[] calcText = CIS_DATA.createCalculation().split("\n\t\n");
@@ -320,7 +320,7 @@ public class CalculationController implements Initializable
     String calc = CIS_DATA.getVersionHeader() + "\n\t\n" + CIS_DATA.createCalculation();
     Stage printStage = new Stage();
     GridPane printPane = new GridPane();
-    printPane.getStylesheets().add("/tivi/cis/style.css");
+    printPane.getStylesheets().add("/de/tichawa/cis/config/style.css");
     printPane.getStyleClass().add("white");
     Scene printScene = new Scene(printPane);
     
@@ -381,13 +381,13 @@ public class CalculationController implements Initializable
       if(p.printPage(printPane))
       {
         printPane.getTransforms().clear();
-        new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
+        new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
         p.endJob();
       }
       else
       {
         printPane.getTransforms().clear();
-        new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("tivi.cis.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
+        new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
       }
     }
     
