@@ -11,12 +11,10 @@ import javafx.beans.property.*;
 import javafx.event.*;
 import javafx.fxml.*;
 import javafx.geometry.*;
-import javafx.print.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
-import javafx.scene.transform.*;
 import javafx.stage.*;
 
 import static de.tichawa.cis.config.CIS.isDouble;
@@ -312,7 +310,7 @@ public abstract class MaskController implements Initializable
       printPane.getStyleClass().add("white");
       ColumnConstraints c = new ColumnConstraints();
       c.setHgrow(Priority.ALWAYS);
-      printPane.getColumnConstraints().addAll(c, c, c, c);
+      printPane.getColumnConstraints().addAll(c, c);
       Scene printScene = new Scene(printPane);
 
       SimpleBooleanProperty pale = new SimpleBooleanProperty(false);
@@ -325,7 +323,7 @@ public abstract class MaskController implements Initializable
               || (CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
               .map(line ->
               {
-                Label[] labels = new Label[4];
+                Label[] labels = new Label[2];
 
                 for(int i = 0; i < labels.length; i++)
                 {
@@ -346,13 +344,11 @@ public abstract class MaskController implements Initializable
 
                 labels[0].setText(line[1]);
                 labels[1].setText(line[0]);
-                labels[2].setText(line[3]);
-                labels[3].setText("" + Integer.parseInt(line[3]) * prices.get(line[1]));
 
                 pale.set(!pale.get());
                 return labels;
               })
-              .forEach(labels -> printPane.addRow(printPane.getChildren().size() / 4, labels));
+              .forEach(labels -> printPane.addRow(printPane.getChildren().size() / 2, labels));
 
       printStage.setScene(printScene);
       printStage.show();
@@ -360,30 +356,5 @@ public abstract class MaskController implements Initializable
     catch(IOException ex)
     {
     }
-
-    /*PrinterJob p = PrinterJob.createPrinterJob();
-    
-    if(p.showPrintDialog(null))
-    {
-      p.getJobSettings().setPageLayout(p.getPrinter().createPageLayout(Paper.A4, PageOrientation.PORTRAIT, Printer.MarginType.EQUAL_OPPOSITES));
-      double scaleX = p.getJobSettings().getPageLayout().getPrintableWidth() / printPane.getWidth();
-      double scaleY = p.getJobSettings().getPageLayout().getPrintableHeight() / (getRowCount(printPane) * 20.0);
-
-      printPane.getTransforms().add(new Scale(Math.min(scaleX, scaleY), Math.min(scaleX, scaleY)));
-      
-      if(p.printPage(printPane))
-      {
-        printPane.getTransforms().clear();
-        new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
-        p.endJob();
-      }
-      else
-      {
-        printPane.getTransforms().clear();
-        new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
-      }
-    }
-    
-    printStage.close();*/
   }
 }
