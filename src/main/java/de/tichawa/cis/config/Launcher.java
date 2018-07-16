@@ -12,14 +12,16 @@ import javafx.stage.*;
 public class Launcher extends Application
 {
 
-  public static final Properties prop = new Properties();
+  public static final Properties PROP = new Properties();
   public static Path tableHome;
+  public static Path ferixHome;
 
   @Override
   public void start(Stage stage) throws Exception
   {
-    prop.loadFromXML(Launcher.class.getResourceAsStream("properties.xml"));
-    tableHome = Paths.get(prop.getProperty("tableHome"));
+    PROP.loadFromXML(Launcher.class.getResourceAsStream("properties.xml"));
+    tableHome = Paths.get(PROP.getProperty("tableHome"));
+    ferixHome = Paths.get(PROP.getProperty("ferixHome"));
     stage.setOnCloseRequest((WindowEvent) ->
     {
       Platform.exit();

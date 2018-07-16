@@ -23,7 +23,8 @@
             </FXCollections>
           </items>
         </ComboBox>
-        <Button fx:id="button" onAction="#handleContinue" text="Continue" />
+        <Button fx:id="continueButton" onAction="#handleContinue" text="Continue" />
+        <Button fx:id="updateButton" onAction="#handleUpdate" text="Update Prices" />
       </children>
       <padding>
         <Insets />

@@ -432,6 +432,7 @@ public abstract class CIS
     return "Version: " + getVersion() + "; " + SimpleDateFormat.getInstance().format(new Date());
   }
 
+  @SuppressWarnings("fallthrough")
   public String createPrntOut()
   {
     if(getSpec("MXLED") != null)
@@ -1112,7 +1113,7 @@ public abstract class CIS
       totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0);
       totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Assembly")).append(":\t \t ")
               .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * ((int) getSpec("sw_cp") / getBaseLength())).append(" h\t")
-              .append(String.format(getLocale(), "%.2f", (double) (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ"))).append("\t \n");
+              .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ"))).append("\t \n");
       totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ");
 
       int surcharge = 0;
@@ -1317,5 +1318,19 @@ public abstract class CIS
   public static boolean isDouble(String s)
   {
     return s != null && s.matches("[-+]?\\d+[.,]?\\d*");
+  }
+
+  public static double decodeQuantity(String s)
+  {
+    switch(s)
+    {
+      case "2":
+        return 1000;
+      case "1":
+        return 100;
+      case "0":
+      default:
+        return 1;
+    }
   }
 }

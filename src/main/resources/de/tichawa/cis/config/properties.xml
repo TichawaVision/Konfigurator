@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE properties PUBLIC 'http://java.sun.com/dtd/properties.dtd' 'http://java.sun.com/dtd/properties.dtd'>
 <properties>
-  <entry key="tableHome" >H:/Appl/Konfigurator/Tabellen</entry>
+  <entry key="tableHome">H:/Appl/Konfigurator/Tabellen</entry>
+  <entry key="ferixHome">W:/Ferix</entry>
 </properties>

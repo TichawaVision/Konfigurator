@@ -56,6 +56,7 @@ public class CalculationController implements Initializable
     load();
   }
   
+  @SuppressWarnings("unchecked")
   private void load()
   {
     try
@@ -77,31 +78,31 @@ public class CalculationController implements Initializable
       electNameCol.setMinWidth(300.0);
       electNameCol.setMaxWidth(300.0);
       electNameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
-      TableColumn<CalcLine, String> electIdCol = new TableColumn(headers[1]);
+      TableColumn<CalcLine, String> electIdCol = new TableColumn<>(headers[1]);
       electIdCol.setCellValueFactory(cellData -> cellData.getValue().getId());
       electIdCol.setMinWidth(150.0);
       electIdCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Integer> electAmountCol = new TableColumn(headers[2]);
+      TableColumn<CalcLine, Integer> electAmountCol = new TableColumn<>(headers[2]);
       electAmountCol.setCellValueFactory(cellData -> cellData.getValue().getAmount().asObject());
       electAmountCol.setCellFactory(c -> new CustomIntCell());
       electAmountCol.setMinWidth(75.0);
       electAmountCol.setMaxWidth(75.0);
-      TableColumn<CalcLine, Double> electPriceCol = new TableColumn(headers[3]);
+      TableColumn<CalcLine, Double> electPriceCol = new TableColumn<>(headers[3]);
       electPriceCol.setCellValueFactory(cellData -> cellData.getValue().getPrice().asObject());
       electPriceCol.setCellFactory(c -> new CustomDoubleCell());
       electPriceCol.setMinWidth(150.0);
       electPriceCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Double> electWeightCol = new TableColumn(headers[4]);
+      TableColumn<CalcLine, Double> electWeightCol = new TableColumn<>(headers[4]);
       electWeightCol.setCellValueFactory(cellData -> cellData.getValue().getWeight().asObject());
       electWeightCol.setCellFactory(c -> new CustomDoubleCell());
       electWeightCol.setMinWidth(200.0);
       electWeightCol.setMaxWidth(200.0);
-      TableColumn<CalcLine, Double> electTimeCol = new TableColumn(headers[5]);
+      TableColumn<CalcLine, Double> electTimeCol = new TableColumn<>(headers[5]);
       electTimeCol.setCellValueFactory(cellData -> cellData.getValue().getTime().asObject());
       electTimeCol.setCellFactory(c -> new CustomDoubleCell());
       electTimeCol.setMinWidth(150.0);
       electTimeCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Double> electPowerCol = new TableColumn(headers[6]);
+      TableColumn<CalcLine, Double> electPowerCol = new TableColumn<>(headers[6]);
       electPowerCol.setCellValueFactory(cellData -> cellData.getValue().getPower().asObject());
       electPowerCol.setCellFactory(c -> new CustomDoubleCell());
       electPowerCol.setMinWidth(150.0);
@@ -125,30 +126,30 @@ public class CalculationController implements Initializable
       eTotalNameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
       eTotalNameCol.setMinWidth(300.0);
       eTotalNameCol.setMaxWidth(300.0);
-      TableColumn<CalcLine, String> eTotalIdCol = new TableColumn(headers[1]);
+      TableColumn<CalcLine, String> eTotalIdCol = new TableColumn<>(headers[1]);
       eTotalIdCol.setCellValueFactory(cellData -> cellData.getValue().getId());
       eTotalIdCol.setMinWidth(150.0);
       eTotalIdCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Integer> eTotalAmountCol = new TableColumn(headers[2]);
+      TableColumn<CalcLine, Integer> eTotalAmountCol = new TableColumn<>(headers[2]);
       eTotalAmountCol.setCellValueFactory(cellData -> cellData.getValue().getAmount().asObject());
       eTotalAmountCol.setMinWidth(75.0);
       eTotalAmountCol.setMaxWidth(75.0);
-      TableColumn<CalcLine, Double> eTotalPriceCol = new TableColumn(headers[3]);
+      TableColumn<CalcLine, Double> eTotalPriceCol = new TableColumn<>(headers[3]);
       eTotalPriceCol.setCellValueFactory(cellData -> cellData.getValue().getPrice().asObject());
       eTotalPriceCol.setCellFactory(c -> new CustomDoubleCell());
       eTotalPriceCol.setMinWidth(150.0);
       eTotalPriceCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Double> eTotalWeightCol = new TableColumn(headers[4]);
+      TableColumn<CalcLine, Double> eTotalWeightCol = new TableColumn<>(headers[4]);
       eTotalWeightCol.setCellValueFactory(cellData -> cellData.getValue().getWeight().asObject());
       eTotalWeightCol.setCellFactory(c -> new CustomDoubleCell());
       eTotalWeightCol.setMinWidth(200.0);
       eTotalWeightCol.setMaxWidth(200.0);
-      TableColumn<CalcLine, Double> eTotalTimeCol = new TableColumn(headers[5]);
+      TableColumn<CalcLine, Double> eTotalTimeCol = new TableColumn<>(headers[5]);
       eTotalTimeCol.setCellValueFactory(cellData -> cellData.getValue().getTime().asObject());
       eTotalTimeCol.setCellFactory(c -> new CustomDoubleCell());
       eTotalTimeCol.setMinWidth(150.0);
       eTotalTimeCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Double> eTotalPowerCol = new TableColumn(headers[6]);
+      TableColumn<CalcLine, Double> eTotalPowerCol = new TableColumn<>(headers[6]);
       eTotalPowerCol.setCellValueFactory(cellData -> cellData.getValue().getPower().asObject());
       eTotalPowerCol.setCellFactory(c -> new CustomDoubleCell());
       eTotalPowerCol.setMinWidth(150.0);
@@ -165,21 +166,21 @@ public class CalculationController implements Initializable
       mechaNameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
       mechaNameCol.setMinWidth(300.0);
       mechaNameCol.setMaxWidth(300.0);
-      TableColumn<CalcLine, String> mechaIdCol = new TableColumn(headers[1]);
+      TableColumn<CalcLine, String> mechaIdCol = new TableColumn<>(headers[1]);
       mechaIdCol.setCellValueFactory(cellData -> cellData.getValue().getId());
       mechaIdCol.setMinWidth(150.0);
       mechaIdCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Integer> mechaAmountCol = new TableColumn(headers[2]);
+      TableColumn<CalcLine, Integer> mechaAmountCol = new TableColumn<>(headers[2]);
       mechaAmountCol.setCellValueFactory(cellData -> cellData.getValue().getAmount().asObject());
       mechaAmountCol.setCellFactory(c -> new CustomIntCell());
       mechaAmountCol.setMinWidth(75.0);
       mechaAmountCol.setMaxWidth(75.0);
-      TableColumn<CalcLine, Double> mechaPriceCol = new TableColumn(headers[3]);
+      TableColumn<CalcLine, Double> mechaPriceCol = new TableColumn<>(headers[3]);
       mechaPriceCol.setCellValueFactory(cellData -> cellData.getValue().getPrice().asObject());
       mechaPriceCol.setCellFactory(c -> new CustomDoubleCell());
       mechaPriceCol.setMinWidth(150.0);
       mechaPriceCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Double> mechaWeightCol = new TableColumn(headers[4]);
+      TableColumn<CalcLine, Double> mechaWeightCol = new TableColumn<>(headers[4]);
       mechaWeightCol.setCellValueFactory(cellData -> cellData.getValue().getWeight().asObject());
       mechaWeightCol.setCellFactory(c -> new CustomDoubleCell());
       mechaWeightCol.setMinWidth(200.0);
@@ -203,20 +204,20 @@ public class CalculationController implements Initializable
       mTotalNameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
       mTotalNameCol.setMinWidth(300.0);
       mTotalNameCol.setMaxWidth(300.0);
-      TableColumn<CalcLine, String> mTotalIdCol = new TableColumn(headers[1]);
+      TableColumn<CalcLine, String> mTotalIdCol = new TableColumn<>(headers[1]);
       mTotalIdCol.setCellValueFactory(cellData -> cellData.getValue().getId());
       mTotalIdCol.setMinWidth(150.0);
       mTotalIdCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Integer> mTotalAmountCol = new TableColumn(headers[2]);
+      TableColumn<CalcLine, Integer> mTotalAmountCol = new TableColumn<>(headers[2]);
       mTotalAmountCol.setCellValueFactory(cellData -> cellData.getValue().getAmount().asObject());
       mTotalAmountCol.setMinWidth(75.0);
       mTotalAmountCol.setMaxWidth(75.0);
-      TableColumn<CalcLine, Double> mTotalPriceCol = new TableColumn(headers[3]);
+      TableColumn<CalcLine, Double> mTotalPriceCol = new TableColumn<>(headers[3]);
       mTotalPriceCol.setCellValueFactory(cellData -> cellData.getValue().getPrice().asObject());
       mTotalPriceCol.setCellFactory(c -> new CustomDoubleCell());
       mTotalPriceCol.setMinWidth(150.0);
       mTotalPriceCol.setMaxWidth(150.0);
-      TableColumn<CalcLine, Double> mTotalWeightCol = new TableColumn(headers[4]);
+      TableColumn<CalcLine, Double> mTotalWeightCol = new TableColumn<>(headers[4]);
       mTotalWeightCol.setCellValueFactory(cellData -> cellData.getValue().getWeight().asObject());
       mTotalWeightCol.setCellFactory(c -> new CustomDoubleCell());
       mTotalWeightCol.setMinWidth(200.0);
@@ -233,19 +234,19 @@ public class CalculationController implements Initializable
       totalNameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
       totalNameCol.setMinWidth(300.0);
       totalNameCol.setMaxWidth(300.0);
-      TableColumn<PriceLine, String> totalIdCol = new TableColumn(headers[1]);
+      TableColumn<PriceLine, String> totalIdCol = new TableColumn<>(headers[1]);
       totalIdCol.setCellValueFactory(cellData -> cellData.getValue().getId());
       totalIdCol.setMinWidth(150.0);
       totalIdCol.setMaxWidth(150.0);
-      TableColumn<PriceLine, String> totalAmountCol = new TableColumn(headers[2]);
+      TableColumn<PriceLine, String> totalAmountCol = new TableColumn<>(headers[2]);
       totalAmountCol.setCellValueFactory(cellData -> cellData.getValue().getAmount());
       totalAmountCol.setMinWidth(75.0);
       totalAmountCol.setMaxWidth(75.0);
-      TableColumn<PriceLine, String> totalPriceCol = new TableColumn(headers[3]);
+      TableColumn<PriceLine, String> totalPriceCol = new TableColumn<>(headers[3]);
       totalPriceCol.setCellValueFactory(cellData -> cellData.getValue().getPrice());
       totalPriceCol.setMinWidth(150.0);
       totalPriceCol.setMaxWidth(150.0);
-      TableColumn<PriceLine, String> totalWeightCol = new TableColumn(headers[4]);
+      TableColumn<PriceLine, String> totalWeightCol = new TableColumn<>(headers[4]);
       totalWeightCol.setCellValueFactory(cellData -> cellData.getValue().getWeight());
       totalWeightCol.setMinWidth(200.0);
       totalWeightCol.setMaxWidth(200.0);
@@ -311,7 +312,6 @@ public class CalculationController implements Initializable
     }
     catch(ParseException | NullPointerException e)
     {
-      e.printStackTrace();
     }
   }
   
