@@ -5,6 +5,8 @@ import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
+import java.time.*;
+import java.time.format.*;
 import java.util.*;
 import java.util.stream.*;
 import javafx.event.*;
@@ -52,16 +54,19 @@ public class LauncherController implements Initializable
     try
     {
       Desktop.getDesktop().open(Launcher.ferixHome.resolve("Priceexport.lnk").toFile());
-      if(new Alert(AlertType.CONFIRMATION, "Please wait until FERIX has finished the export, then press OK to continue.", ButtonType.OK, ButtonType.CANCEL).showAndWait()
+      if(new Alert(AlertType.CONFIRMATION, "Please wait until FERIX has finished the export to " + Launcher.ferixHome.resolve("Export/art.csv") + ", then press OK to continue.\nLast update: "
+              + DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm:ss").withZone(ZoneId.systemDefault()).format(Files.getLastModifiedTime(Launcher.tableHome.resolve("Back/Prices.csv")).toInstant()),
+              ButtonType.OK, ButtonType.CANCEL).showAndWait()
               .orElse(ButtonType.CANCEL) == ButtonType.OK)
       {
-        Map<Integer, Double> sourcePrices = Files.lines(Launcher.ferixHome.resolve("Export/art.csv"))
+        Map<Integer, Double> sourcePrices = Files.readAllLines(Launcher.ferixHome.resolve("Export/art.csv")).stream()
                 .map(line -> line.split("\t"))
                 .filter(line -> CIS.isInteger(line[0]) && CIS.isDouble(line[1]))
                 .map(line -> new Tuple<>(Integer.parseInt(line[0]), Double.parseDouble(line[1]) / CIS.decodeQuantity(line[2])))
                 .filter(t -> t.getV() > 0)
                 .collect(Collectors.toMap(Tuple::getU, Tuple::getV, (oldVal, newVal) -> newVal));
 
+        Files.copy(Launcher.tableHome.resolve("Prices.csv"), Launcher.tableHome.resolve("Back/Prices.csv"), StandardCopyOption.REPLACE_EXISTING);
         Files.write(Launcher.tableHome.resolve("Prices.csv"), (Iterable<String>) Files.readAllLines(Launcher.tableHome.resolve("Prices.csv")).stream()
                 .map(line -> line.split("\t"))
                 .filter(line -> CIS.isInteger(line[0]))
