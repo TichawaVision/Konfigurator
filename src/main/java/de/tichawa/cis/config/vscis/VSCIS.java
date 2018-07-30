@@ -2,9 +2,7 @@ package de.tichawa.cis.config.vscis;
 
 import de.tichawa.cis.config.*;
 import java.io.*;
-import java.nio.charset.*;
 import java.nio.file.*;
-import java.util.*;
 
 public class VSCIS extends CIS
 {
@@ -122,7 +120,7 @@ public class VSCIS extends CIS
   }
 
   @Override
-  public String getCLCalc(int numOfPix, Locale LANGUAGE)
+  public String getCLCalc(int numOfPix)
   {
     int numOfPixNominal;
     int taps;
@@ -153,9 +151,9 @@ public class VSCIS extends CIS
     lval = (int) (chipsPerTap * (ppsbin - (getSensBoard("SMARAGD")[7] * binning) / getSensBoard("SMARAGD")[0]));
     lval -= lval % 8;
 
-    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
-    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofcons")).append((taps * getSpec("Color") > 3) ? "2" : "1").append("\n");
-    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofport")).append(taps * getSpec("Color")).append("\n");
+    printOut.append(getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
+    printOut.append(getString("numofcons")).append((taps * getSpec("Color") > 3) ? "2" : "1").append("\n");
+    printOut.append(getString("numofport")).append(taps * getSpec("Color")).append("\n");
     printOut.append("Pixel Clock: 85 MHz").append("\n");
     printOut.append("Nominal pixel count: ").append(numOfPixNominal).append("\n");
 
@@ -174,26 +172,26 @@ public class VSCIS extends CIS
           printOut.append("Camera Link ").append(x + 1).append(":\n");
           printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                  .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Red")).append("\n");
+                  .append(getString("Red")).append("\n");
           printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                  .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Green")).append("\n");
+                  .append(getString("Green")).append("\n");
           printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
                   .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                  .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Blue")).append("\n");
+                  .append(getString("Blue")).append("\n");
         }
 
         if(taps == 3)
         {
           printOut.append("\tPort ").append(getPortName(3)).append(":\t")
                   .append(String.format("%05d", 2 * lval)).append("\t - ").append(String.format("%05d", 3 * lval - 1)).append("\t")
-                  .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Red")).append("\n");
+                  .append(getString("Red")).append("\n");
           printOut.append("\tPort ").append(getPortName(4)).append(":\t")
                   .append(String.format("%05d", 2 * lval)).append("\t - ").append(String.format("%05d", 3 * lval - 1)).append("\t")
-                  .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Green")).append("\n");
+                  .append(getString("Green")).append("\n");
           printOut.append("\tPort ").append(getPortName(5)).append(":\t")
                   .append(String.format("%05d", 2 * lval)).append("\t - ").append(String.format("%05d", 3 * lval - 1)).append("\t")
-                  .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Blue")).append("\n");
+                  .append(getString("Blue")).append("\n");
         }
 
         break;

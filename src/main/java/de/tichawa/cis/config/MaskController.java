@@ -281,8 +281,18 @@ public abstract class MaskController implements Initializable
     }
     catch(IOException e)
     {
-
     }
+    
+    /*FerixSynchronizer sync = new FerixSynchronizer().setCIS(CIS_DATA);
+    if(sync.insert())
+    {
+      System.out.println("Success");
+    }
+    else
+    {
+      System.out.println("Error");
+    }
+    sync.close();*/
   }
 
   @FXML

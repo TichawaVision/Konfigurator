@@ -2,7 +2,6 @@ package de.tichawa.cis.config.mxled;
 
 import de.tichawa.cis.config.*;
 import java.io.*;
-import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -107,7 +106,7 @@ public class MXLED extends CIS
   }
 
   @Override
-  public String getCLCalc(int numOfPix, Locale LANGUAGE)
+  public String getCLCalc(int numOfPix)
   {
     return " ";
   }

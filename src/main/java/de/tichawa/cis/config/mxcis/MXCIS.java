@@ -2,7 +2,6 @@ package de.tichawa.cis.config.mxcis;
 
 import de.tichawa.cis.config.*;
 import java.io.*;
-import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -140,7 +139,7 @@ public class MXCIS extends CIS
   }
 
   @Override
-  public String getCLCalc(int numOfPix, Locale LANGUAGE)
+  public String getCLCalc(int numOfPix)
   {
     HashMap<Integer, Integer> dpiToRate = new HashMap<>();
     dpiToRate.put(25, 27);
@@ -179,7 +178,7 @@ public class MXCIS extends CIS
       sensPerFpga = 2;
     }
 
-    pixPerFpga = (int) (sensPerFpga * getBoard(getSpec("res_cp"))[0] * getChip(getSpec("res_cp2"))[3] / getSpec("Binning"));
+    pixPerFpga = sensPerFpga * getBoard(getSpec("res_cp"))[0] * getChip(getSpec("res_cp2"))[3] / getSpec("Binning");
     FpgaDataRate = pixPerFpga * getSpec("Selected line rate") / 1000.0;
     tapsPerFpga = (int) Math.ceil(FpgaDataRate / (84 * 1000.0));
     if(getSpec("Color") == 1 && getNumFPGA() > 1 && tapsPerFpga % 2 == 1)
@@ -192,18 +191,18 @@ public class MXCIS extends CIS
 
     int portCount = getSpec("Color") == 1 ? (int) Math.ceil(numOfPix / (lval * 1.0)) : (int) Math.ceil(3 * Math.ceil(numOfPix / (lval * 1.0)));
 
-    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("datarate")).append(Math.round(portCount * Math.min(lval, numOfPix) * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte/s\n");
-    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofpix")).append(numOfPix).append("\n");
+    printOut.append(getString("datarate")).append(Math.round(portCount * Math.min(lval, numOfPix) * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte/s\n");
+    printOut.append(getString("numofpix")).append(numOfPix).append("\n");
     
     if(getSpec("Color") == 1)
     {
-      printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 2.0))).append("\n");
+      printOut.append(getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 2.0))).append("\n");
     }
     else
     {
-      printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 1.0))).append("\n");
+      printOut.append(getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 1.0))).append("\n");
     }
-    printOut.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("numofport")).append(portCount).append("\n");
+    printOut.append(getString("numofport")).append(portCount).append("\n");
     printOut.append("Pixel Clock: 85MHz\n\n");
 
     switch(getSpec("Color"))
@@ -217,26 +216,26 @@ public class MXCIS extends CIS
             printOut.append("Camera Link ").append(x + 1).append(":\n");
             printOut.append("\tPort A:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Red")).append("\n");
+                    .append(getString("Red")).append("\n");
             printOut.append("\tPort B:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Green")).append("\n");
+                    .append(getString("Green")).append("\n");
             printOut.append("\tPort C:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Blue")).append("\n");
+                    .append(getString("Blue")).append("\n");
           }
           else
           {
             printOut.append("Camera Link ").append(x + 1).append(":\n");
             printOut.append("\tPort A:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Red")).append("\n");
+                    .append(getString("Red")).append("\n");
             printOut.append("\tPort B:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Green")).append("\n");
+                    .append(getString("Green")).append("\n");
             printOut.append("\tPort C:\t")
                     .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
-                    .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", LANGUAGE).getString("Blue")).append("\n");
+                    .append(getString("Blue")).append("\n");
           }
         }
 

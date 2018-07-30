@@ -63,7 +63,7 @@ public abstract class CIS
     spec = new HashMap<>();
   }
 
-  public abstract String getCLCalc(int numOfPix, Locale LANGUAGE);
+  public abstract String getCLCalc(int numOfPix);
 
   public abstract String getTiViKey();
 
@@ -111,7 +111,25 @@ public abstract class CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    key += "_2.0";
+    try
+    {
+      String version = Files.lines(Launcher.tableHome.resolve("../mxled/Calculation.csv"))
+              .map(line -> line.split("\t"))
+              .filter(line -> line[0].equals("VERSION"))
+              .map(line -> line[1])
+              .findAny().orElse("2.0");
+
+      key += "_" + version + "_";
+    }
+    catch(IOException e)
+    {
+      key += "_2.0_";
+    }
+
+    if(key.endsWith("_"))
+    {
+      key = key.substring(0, key.length() - 1);
+    }
 
     return key;
   }
@@ -203,7 +221,7 @@ public abstract class CIS
     return null;
   }
 
-  public void setSpec(String key, int value)
+  public final void setSpec(String key, int value)
   {
     spec.put(key, value);
   }
@@ -474,7 +492,7 @@ public abstract class CIS
     {
       printout += ", max. " + getSpec("Maximum line rate") / 1000.0 + " kHz\n";
     }
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Resolution: ");
+    printout += getString("Resolution: ");
 
     switch(getSpec("Resolution"))
     {
@@ -482,7 +500,7 @@ public abstract class CIS
       {
         if(getSpec("VSCIS") != null || getSpec("VTCIS") != null || getSpec("VHCIS") != null)
         {
-          printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("binning200") + "\n";
+          printout += getString("binning200") + "\n";
           break;
         }
       }
@@ -491,7 +509,7 @@ public abstract class CIS
         printout += "~ " + getSpec("res_cp2") + "dpi\n";
       }
     }
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("internal light");
+    printout += getString("internal light");
     String color = "";
 
     if(getSpec("Color") == 3 || ((getSpec("VDCIS") != null || getSpec("MXCIS") != null) && getSpec("Color") == 4))
@@ -504,32 +522,32 @@ public abstract class CIS
       {
         case 0:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Amber (Red)");
+          color = getString("Amber (Red)");
           break;
         }
         case 1:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Green");
+          color = getString("Green");
           break;
         }
         case 2:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Blue");
+          color = getString("Blue");
           break;
         }
         case 3:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Infrared");
+          color = getString("Infrared");
           break;
         }
         case 4:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Yellow");
+          color = getString("Yellow");
           break;
         }
         case 5:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("White");
+          color = getString("White");
           break;
         }
       }
@@ -541,40 +559,40 @@ public abstract class CIS
       {
         case 0:
         {
-          printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("None");
+          printout += getString("None");
           break;
         }
         case 1:
         {
-          printout += color + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("onesided");
+          printout += color + getString("onesided");
           break;
         }
         case 2:
         {
-          printout += color + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("coax");
+          printout += color + getString("coax");
           break;
         }
         case 3:
         {
-          printout += color + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("twosided");
+          printout += color + getString("twosided");
           break;
         }
         case 4:
         {
-          printout += color + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("onepluscoax");
+          printout += color + getString("onepluscoax");
           break;
         }
       }
 
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("schipal");
+      printout += getString("schipal");
 
       if(getSpec("res_cp2") > 600)
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("staggered");
+        printout += getString("staggered");
       }
       else
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("inline");
+        printout += getString("inline");
       }
     }
     else
@@ -583,27 +601,27 @@ public abstract class CIS
       {
         case 0:
         {
-          printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("None");
+          printout += getString("None");
           break;
         }
         case 1:
         {
-          printout += color + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("onesided");
+          printout += color + getString("onesided");
           break;
         }
         case 2:
         {
-          printout += color + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("twosided");
+          printout += color + getString("twosided");
           break;
         }
         case 3:
         {
-          printout += color + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("twopluscoax");
+          printout += color + getString("twopluscoax");
           break;
         }
         case 4:
         {
-          printout += color + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("coax");
+          printout += color + getString("coax");
           break;
         }
       }
@@ -612,21 +630,21 @@ public abstract class CIS
     printout += "\n\n";
     int numOfPix = getSpec("numOfPix");
 
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("sellinerate") + Math.round(getSpec("Selected line rate") / 100.0) / 10.0 + " kHz\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("transport speed") + ": " + String.format("%.1f", getSpec("Speedmms") / 1000.0) + " mm/s\n";
+    printout += getString("sellinerate") + Math.round(getSpec("Selected line rate") / 100.0) / 10.0 + " kHz\n";
+    printout += getString("transport speed") + ": " + String.format("%.1f", getSpec("Speedmms") / 1000.0) + " mm/s\n";
 
     if(getSpec("MXCIS") != null)
     {
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("chpltol") + "\n";
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Geocor_opt") + "\n";
+      printout += getString("chpltol") + "\n";
+      printout += getString("Geocor_opt") + "\n";
     }
     else if(getSpec("Resolution") < 3)
     {
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Geometry correction: x and y") + "\n";
+      printout += getString("Geometry correction: x and y") + "\n";
     }
     else
     {
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Geometry correction: x") + "\n";
+      printout += getString("Geometry correction: x") + "\n";
     }
 
     if(getSpec("MXCIS") != null)
@@ -635,16 +653,16 @@ public abstract class CIS
       {
         16.0, 8.0, 6.0, 4.0, 3.0, 2.0, 1.5, 1.0, 1.0, 0.5, 0.5
       };
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("scan distance") + ": ~ 10 mm " + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("exactseetypesign") + "\n";
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("DepthofField") + ": ~ +/- " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("line width") + ": ~ 1 mm\n";
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("case length") + ": ~ " + (getSpec("sw_cp") + 288) + " mm\n";
+      printout += getString("scan distance") + ": ~ 10 mm " + getString("exactseetypesign") + "\n";
+      printout += getString("DepthofField") + ": ~ +/- " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1 mm\n";
+      printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 288) + " mm\n";
       if(getSpec("LEDLines") < 2)
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("alucase_mxcis") + "\n";
+        printout += getString("alucase_mxcis") + "\n";
       }
       else
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("alucase_mxcis_two") + "\n";
+        printout += getString("alucase_mxcis_two") + "\n";
       }
     }
     else if(getSpec("VDCIS") != null)
@@ -653,45 +671,45 @@ public abstract class CIS
       {
         10.0, 10.0, 10.0, 10.0, 10.0, 5.0, 2.5, 2.5
       };
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("scan distance") + ": ~ 55 - 70 mm " + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("exactresolution") + "\n";
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("DepthofField") + ": ~ " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("line width") + ": ~ 1 mm\n";
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("glass pane, see drawing") + "\n";
+      printout += getString("scan distance") + ": ~ 55 - 70 mm " + getString("exactresolution") + "\n";
+      printout += getString("DepthofField") + ": ~ " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1 mm\n";
+      printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
+      printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
+      printout += getString("glass pane, see drawing") + "\n";
     }
     else
     {
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("scan distance") + ": 9-12 mm " + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("exactseetypesign") + "\n";
+      printout += getString("scan distance") + ": 9-12 mm " + getString("exactseetypesign") + "\n";
       if(getSpec("VSCIS") != null || getSpec("VTCIS") != null || getSpec("VHCIS") != null)
       {
         String[] dof = new String[]
         {
           "+ 16.0 / -10.0", "+/- 8.0", "+/- 6.0", "+/- 4.0", "+/- 3.0", "+/- 2.0", "+/- 1.5", "+/- 1.0", "+/- 1.0", "+/- 0.5", "+/- 0.25"
         };
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("DepthofField") + ": ~ " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("line width") + ": ~ 1mm\n";
+        printout += getString("DepthofField") + ": ~ " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1mm\n";
       }
       else
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("DepthofField") + ": ~ +/- 0.50 mm\n" + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("line width") + ": ~ 1mm\n";
+        printout += getString("DepthofField") + ": ~ +/- 0.50 mm\n" + getString("line width") + ": ~ 1mm\n";
       }
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
+      printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
       if(getSpec("Internal Light Source") == 3 || getSpec("Internal Light Source") == 4)
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
+        printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
       }
       else if(getSpec("VTCIS") != null)
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
+        printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
       }
       else
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Aluminium case profile: 53x50mm (HxT) with bonded") + "\n";
+        printout += getString("Aluminium case profile: 53x50mm (HxT) with bonded") + "\n";
       }
     }
-    printout += "\t" + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("glass pane, see drawing") + "\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("shading") + "\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("powersource") + "(24 +/- 1) VDC\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
+    printout += "\t" + getString("glass pane, see drawing") + "\n";
+    printout += getString("shading") + "\n";
+    printout += getString("powersource") + "(24 +/- 1) VDC\n";
+    printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
     printout += "Grenzfrequenz: " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
 
     switch(getSpec("Cooling"))
@@ -700,45 +718,45 @@ public abstract class CIS
       {
         if(getSpec("VTCIS") != null)
         {
-          printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("lico") + "\n";
+          printout += getString("lico") + "\n";
           break;
         }
 
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("intforced") + "\n";
+        printout += getString("intforced") + "\n";
         break;
       }
       case 2:
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("extforced") + "\n";
+        printout += getString("extforced") + "\n";
         break;
       }
       case 3:
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("passair") + "\n";
+        printout += getString("passair") + "\n";
         break;
       }
       case 4:
       {
-        printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("lico") + "\n";
+        printout += getString("lico") + "\n";
         break;
       }
     }
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
+    printout += getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
     printout += "Interface: " + (getSpec("Interface") == 0 ? "CameraLink (max. 5m)" : "GigE") + "\n";
 
     if(getSpec("VDCIS") != null)
     {
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("laser") + "\n";
+      printout += getString("laser") + "\n";
     }
 
     if(getSpec("MXCIS") != null)
     {
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("clbase");
+      printout += getString("clbase");
     }
 
     if(getSpec("Interface") == 0)
     {
-      String clCalc = getCLCalc(numOfPix, getLocale());
+      String clCalc = getCLCalc(numOfPix);
       if(clCalc == null)
       {
         return null;
@@ -751,7 +769,7 @@ public abstract class CIS
     {
       printout += "\n\t\n";
       printout += "Pixel Clock: 40MHz\n";
-      printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("numofpix") + numOfPix + "\n";
+      printout += getString("numofpix") + numOfPix + "\n";
     }
     return printout;
   }
@@ -760,7 +778,7 @@ public abstract class CIS
   {
     String printout = getTiViKey();
     printout += "\n\t\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("suitedfor") + getSpec("sw_cp") + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("mm CIS scan width") + "\n";
+    printout += getString("suitedfor") + getSpec("sw_cp") + getString("mm CIS scan width") + "\n";
 
     String color = "";
 
@@ -774,47 +792,47 @@ public abstract class CIS
       {
         case 0:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Amber (Red)");
+          color = getString("Amber (Red)");
           break;
         }
         case 1:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Green");
+          color = getString("Green");
           break;
         }
         case 2:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Blue");
+          color = getString("Blue");
           break;
         }
         case 3:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Infrared");
+          color = getString("Infrared");
           break;
         }
         case 4:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Yellow");
+          color = getString("Yellow");
           break;
         }
         case 5:
         {
-          color = ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("White");
+          color = getString("White");
           break;
         }
       }
     }
 
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Color:") + color + "\n";
+    printout += getString("Color:") + color + "\n";
     printout += "\n\t\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("line width") + ": ~ 1 mm\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("case length") + ": ~ " + (getSpec("sw_cp") + 288) + " mm\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Aluminium case profile: 53x50mm (HxT) with bondedmxled") + "\n";
-    printout += "\t" + ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("glass pane, see drawing") + "\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("shading") + "\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("powersource") + "(24 +/- 1) VDC\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Needed power:") + (((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
-    printout += ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("weight") + ": ~ " + (Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
+    printout += getString("line width") + ": ~ 1 mm\n";
+    printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 288) + " mm\n";
+    printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedmxled") + "\n";
+    printout += "\t" + getString("glass pane, see drawing") + "\n";
+    printout += getString("shading") + "\n";
+    printout += getString("powersource") + "(24 +/- 1) VDC\n";
+    printout += getString("Needed power:") + (((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
+    printout += getString("weight") + ": ~ " + (Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
 
     return printout;
   }
@@ -1015,23 +1033,23 @@ public abstract class CIS
   public String createCalculation()
   {
     String printout = getTiViKey() + "\n\t\n";
-    StringBuilder electOutput = new StringBuilder(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Electronics")).append(":").append("\n\n");
-    StringBuilder mechaOutput = new StringBuilder(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Mechanics")).append(":").append("\n\n");
-    StringBuilder totalOutput = new StringBuilder(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Totals")).append(":").append("\n\n");
+    StringBuilder electOutput = new StringBuilder(getString("Electronics")).append(":").append("\n\n");
+    StringBuilder mechaOutput = new StringBuilder(getString("Mechanics")).append(":").append("\n\n");
+    StringBuilder totalOutput = new StringBuilder(getString("Totals")).append(":").append("\n\n");
 
-    electOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Component")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Item no.")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Amount")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Price/pc (EUR)")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Weight/pc (kg)")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Time/pc (h)")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Power/pc (A)")).append("\n");
+    electOutput.append(getString("Component")).append("\t")
+            .append(getString("Item no.")).append("\t")
+            .append(getString("Amount")).append("\t")
+            .append(getString("Price/pc (EUR)")).append("\t")
+            .append(getString("Weight/pc (kg)")).append("\t")
+            .append(getString("Time/pc (h)")).append("\t")
+            .append(getString("Power/pc (A)")).append("\n");
 
-    mechaOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Component")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Item no.")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Amount")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Price/pc (EUR)")).append("\t")
-            .append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Weight/pc (kg)")).append("\n");
+    mechaOutput.append(getString("Component")).append("\t")
+            .append(getString("Item no.")).append("\t")
+            .append(getString("Amount")).append("\t")
+            .append(getString("Price/pc (EUR)")).append("\t")
+            .append(getString("Weight/pc (kg)")).append("\n");
 
     getElectConfig().entrySet().stream().forEach((Map.Entry<Integer, Integer> e)
             ->
@@ -1047,7 +1065,7 @@ public abstract class CIS
               .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[1]))).append("\t")
               .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[2]))).append("\n");
     });
-    electOutput.append("\n\t\n").append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Totals")).append("\t")
+    electOutput.append("\n\t\n").append(getString("Totals")).append("\t")
             .append(" \t")
             .append("0\t")
             .append(String.format(getLocale(), "%.2f", electSums[0])).append("\t")
@@ -1066,7 +1084,7 @@ public abstract class CIS
               .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[0]))).append("\t")
               .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[3]))).append("\n");
     });
-    mechaOutput.append("\n\t\n").append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Totals")).append("\t")
+    mechaOutput.append("\n\t\n").append(getString("Totals")).append("\t")
             .append(" \t")
             .append("0\t")
             .append(String.format(getLocale(), "%.2f", mechaSums[0])).append("\t")
@@ -1089,29 +1107,29 @@ public abstract class CIS
                 }
               });
 
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("calcfor10")).append("\t \t \t \t ").append("\n");
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Electronics")).append(":\t \t \t")
+      totalOutput.append(getString("calcfor10")).append("\t \t \t \t ").append("\n");
+      totalOutput.append(getString("Electronics")).append(":\t \t \t")
               .append(String.format(getLocale(), "%.2f", electSums[0])).append("\t \n");
       totalPrices[2] = electSums[0];
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Overhead Electronics")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
+      totalOutput.append(getString("Overhead Electronics")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
               .append(String.format(getLocale(), "%.2f", electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100.0))).append("\t \n");
       totalPrices[2] += electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100.0);
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Testing")).append(":\t \t \t")
+      totalOutput.append(getString("Testing")).append(":\t \t \t")
               .append(String.format(getLocale(), "%.2f", electSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
       totalPrices[2] += electSums[1] * calcMap.get("STUNDENSATZ");
       if(getSpec("Interface") != null && getSpec("Interface") == 1)
       {
-        totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Overhead GigE")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
+        totalOutput.append(getString("Overhead GigE")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
                 .append(String.format(getLocale(), "%.2f", electSums[0] * calcMap.get("Z_GIGE") / 100.0)).append("\t \n");
         totalPrices[2] += electSums[0] * (calcMap.get("Z_GIGE") / 100.0);
       }
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Mechanics")).append(":\t \t \t")
+      totalOutput.append(getString("Mechanics")).append(":\t \t \t")
               .append(String.format(getLocale(), "%.2f", mechaSums[0])).append("\t \n");
       totalPrices[2] += mechaSums[0];
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Overhead Mechanics")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
+      totalOutput.append(getString("Overhead Mechanics")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
               .append(String.format(getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0))).append("\t \n");
       totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0);
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Assembly")).append(":\t \t ")
+      totalOutput.append(getString("Assembly")).append(":\t \t ")
               .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * ((int) getSpec("sw_cp") / getBaseLength())).append(" h\t")
               .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ"))).append("\t \n");
       totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ");
@@ -1123,16 +1141,16 @@ public abstract class CIS
       totalPrices[1] = totalPrices[2] * calcMap.get("F_5") / 100.0;
       totalPrices[2] = totalPrices[2] * calcMap.get("F_10") / 100.0;
       totalPrices[3] = totalPrices[2] * calcMap.get("F_25") / 100.0;
-      totalOutput.append(" \t(1 ").append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("pc")).append(")\t")
-              .append("(5 ").append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("pcs")).append(")\t")
-              .append("(10 ").append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("pcs")).append(")\t")
-              .append("(25 ").append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("pcs")).append(")\n");
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Price/pc")).append(":\t")
+      totalOutput.append(" \t(1 ").append(getString("pc")).append(")\t")
+              .append("(5 ").append(getString("pcs")).append(")\t")
+              .append("(10 ").append(getString("pcs")).append(")\t")
+              .append("(25 ").append(getString("pcs")).append(")\n");
+      totalOutput.append(getString("Price/pc")).append(":\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[0])).append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[1])).append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[2])).append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[3])).append("\n");
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Surcharge Transport")).append(" (").append(calcMap.get("Z_TRANSPORT")).append("%):\t")
+      totalOutput.append(getString("Surcharge Transport")).append(" (").append(calcMap.get("Z_TRANSPORT")).append("%):\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[0] * calcMap.get("Z_TRANSPORT") / 100.0)).append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[1] * calcMap.get("Z_TRANSPORT") / 100.0)).append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[2] * calcMap.get("Z_TRANSPORT") / 100.0)).append("\t")
@@ -1143,7 +1161,7 @@ public abstract class CIS
       {
         String dpiCode = getDpiCode();
 
-        totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(dpiCode)).append("%):\t")
+        totalOutput.append(getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(dpiCode)).append("%):\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[0] * calcMap.get(dpiCode) / 100.0)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[1] * calcMap.get(dpiCode) / 100.0)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[2] * calcMap.get(dpiCode) / 100.0)).append("\t")
@@ -1155,7 +1173,7 @@ public abstract class CIS
       {
         String cat = getTiViKey().split("_")[4];
 
-        totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
+        totalOutput.append(getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[0] * calcMap.get("Z_" + cat) / 100.0)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[1] * calcMap.get("Z_" + cat) / 100.0)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[2] * calcMap.get("Z_" + cat) / 100.0)).append("\t")
@@ -1163,14 +1181,14 @@ public abstract class CIS
         surcharge += calcMap.get("Z_" + cat);
       }
 
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Licence")).append(":\t")
+      totalOutput.append(getString("Licence")).append(":\t")
               .append(String.format(getLocale(), "%.2f", (double) calcMap.get("LIZENZ"))).append("\t")
               .append(String.format(getLocale(), "%.2f", (double) calcMap.get("LIZENZ"))).append("\t")
               .append(String.format(getLocale(), "%.2f", (double) calcMap.get("LIZENZ"))).append("\t")
               .append(String.format(getLocale(), "%.2f", (double) calcMap.get("LIZENZ"))).append("\n");
       addition += calcMap.get("LIZENZ");
 
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Discount Surcharge")).append(" (").append(calcMap.get("Z_DISCONT")).append("%):\t")
+      totalOutput.append(getString("Discount Surcharge")).append(" (").append(calcMap.get("Z_DISCONT")).append("%):\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[0] * calcMap.get("Z_DISCONT") / 100.0)).append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[1] * calcMap.get("Z_DISCONT") / 100.0)).append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[2] * calcMap.get("Z_DISCONT") / 100.0)).append("\t")
@@ -1187,7 +1205,7 @@ public abstract class CIS
       totalPrices[2] += addition;
       totalPrices[3] += addition;
 
-      totalOutput.append(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("Totals")).append(" (EUR):").append("\t")
+      totalOutput.append(getString("Totals")).append(" (EUR):").append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[0])).append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[1])).append("\t")
               .append(String.format(getLocale(), "%.2f", totalPrices[2])).append("\t")
@@ -1195,7 +1213,7 @@ public abstract class CIS
     }
     catch(NullPointerException | IndexOutOfBoundsException | NumberFormatException | IOException e)
     {
-      throw new CISException(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("A fatal error occurred: Missing configuration tables.Please contact support@tichawa.de for further help."));
+      throw new CISException(getString("A fatal error occurred: Missing configuration tables.Please contact support@tichawa.de for further help."));
     }
 
     printout += electOutput.toString();
@@ -1252,7 +1270,7 @@ public abstract class CIS
 
     if((getSpec("Color") * numOfPix * getSpec("Selected line rate") / 1000000 > 80 && getSpec("Interface") == 1))
     {
-      throw new CISException(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString("GIGEERROR") + (getSpec("Color") * numOfPix * getSpec("Selected line rate") / 1000000) + " MByte");
+      throw new CISException(getString("GIGEERROR") + (getSpec("Color") * numOfPix * getSpec("Selected line rate") / 1000000) + " MByte");
     }
 
     return numOfPix;
@@ -1332,5 +1350,10 @@ public abstract class CIS
       default:
         return 1;
     }
+  }
+
+  public String getString(String key)
+  {
+    return ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString(key);
   }
 }
