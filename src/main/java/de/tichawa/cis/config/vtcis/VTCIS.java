@@ -65,20 +65,7 @@ public class VTCIS extends CIS
       key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    try
-    {
-      String version = Files.lines(Launcher.tableHome.resolve("Calculation.csv"))
-              .map(line -> line.split("\t"))
-              .filter(line -> line[0].equals("VERSION"))
-              .map(line -> line[1])
-              .findAny().orElse("2.0");
-
-      key += "_" + version + "_";
-    }
-    catch(IOException e)
-    {
-      key += "_2.0_";
-    }
+    key += getMechaVersion();
 
     if(getSpec("Interface") == 1)
     {

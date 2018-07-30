@@ -113,7 +113,7 @@ public abstract class CIS
 
     try
     {
-      String version = Files.lines(Launcher.tableHome.resolve("../mxled/Calculation.csv"))
+      String version = Files.lines(Launcher.tableHome.resolve("mxled/Calculation.csv"))
               .map(line -> line.split("\t"))
               .filter(line -> line[0].equals("VERSION"))
               .map(line -> line[1])
@@ -123,6 +123,7 @@ public abstract class CIS
     }
     catch(IOException e)
     {
+      e.printStackTrace();
       key += "_2.0_";
     }
 
@@ -443,6 +444,23 @@ public abstract class CIS
   public String getVersion()
   {
     return ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version");
+  }
+  
+  public String getMechaVersion()
+  {
+    try
+    {
+      return "_" + Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Calculation.csv"))
+              .map(line -> line.split("\t"))
+              .filter(line -> line[0].equals("VERSION"))
+              .map(line -> line[1])
+              .findAny().orElse("2.0") + "_";
+    }
+    catch(IOException e)
+    {
+      e.printStackTrace();
+      return "_2.0_";
+    }
   }
 
   public String getVersionHeader()
