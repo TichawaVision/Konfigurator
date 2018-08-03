@@ -458,7 +458,6 @@ public abstract class CIS
     }
     catch(IOException e)
     {
-      e.printStackTrace();
       return "_2.0_";
     }
   }
