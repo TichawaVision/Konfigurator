@@ -10,6 +10,7 @@ import javafx.scene.control.*;
 
 public class MaskController extends de.tichawa.cis.config.MaskController
 {
+
   @FXML
   Label AllowedColors;
 
@@ -49,7 +50,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
     Color.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
-      if(newValue.equals("RGB") && CIS_DATA.getSpec("Internal Light Source") == 0)
+      if(newValue.equals("RGB") && (CIS_DATA.getSpec("Internal Light Source") == 0 || CIS_DATA.getSpec("sw_cp") > 1040))
       {
         Color.getSelectionModel().select(oldValue);
         return;
@@ -142,6 +143,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     ScanWidth.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
       int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim());
+
+      if(sw > 1040 && CIS_DATA.getSpec("Color") == 3)
+      {
+        ScanWidth.getSelectionModel().select(oldValue);
+        return;
+      }
 
       if(sw > 1040)
       {
