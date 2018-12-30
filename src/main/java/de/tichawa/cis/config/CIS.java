@@ -386,7 +386,11 @@ public abstract class CIS
               .map(line -> line.split("\t"))
               .filter(line -> line[0].length() > 0)
               .filter(line -> line[3 + getSpec("sw_index")].length() > 0)
-              .map(line -> new Tuple<>(line, getAmount(line) * getMechaFactor(line[3 + countNLs() + index])))
+              .map(line -> {
+                int amount = getAmount(line);
+                int mechaFactor = getMechaFactor(line[3 + countNLs() + index]);
+                return new Tuple<>(line, getAmount(line) * getMechaFactor(line[3 + countNLs() + index]));
+                        })
               .filter(data -> data.getV() > 0)
               .forEach(data ->
               {
@@ -648,7 +652,7 @@ public abstract class CIS
     int numOfPix = getSpec("numOfPix");
 
     printout += getString("sellinerate") + Math.round(getSpec("Selected line rate") / 100.0) / 10.0 + " kHz\n";
-    printout += getString("transport speed") + ": " + String.format("%.1f", getSpec("Speedmms") / 1000.0) + " mm/s\n";
+    printout += getString("transport speed") + ": " + String.format("%.1f", (getSpec("Speedmms") / 1000.0) * (1.0 * getSpec("Selected line rate") / getSpec("Maximum line rate"))) + " mm/s\n";
 
     if(getSpec("MXCIS") != null)
     {
@@ -995,7 +999,8 @@ public abstract class CIS
     }
     else
     {
-      return (int) MathEval.evaluate(factor.replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / getBaseLength()).replace("N", "" + getSpec("sw_cp")).replace(" ", "").replace("L", "" + getSpec("LEDLines")));
+      String ev = factor.replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / getBaseLength()).replace("N", "" + getSpec("sw_cp")).replace(" ", "").replace("L", "" + getSpec("LEDLines"));
+      return (int) MathEval.evaluate(ev);
     }
   }
 
@@ -1147,7 +1152,7 @@ public abstract class CIS
               .append(String.format(getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0))).append("\t \n");
       totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0);
       totalOutput.append(getString("Assembly")).append(":\t \t ")
-              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * ((int) getSpec("sw_cp") / getBaseLength())).append(" h\t")
+              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getSpec("sw_cp") / getBaseLength())).append(" h\t")
               .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ"))).append("\t \n");
       totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ");
 
@@ -1199,10 +1204,10 @@ public abstract class CIS
       }
 
       totalOutput.append(getString("Licence")).append(":\t")
-              .append(String.format(getLocale(), "%.2f", (double) calcMap.get("LIZENZ"))).append("\t")
-              .append(String.format(getLocale(), "%.2f", (double) calcMap.get("LIZENZ"))).append("\t")
-              .append(String.format(getLocale(), "%.2f", (double) calcMap.get("LIZENZ"))).append("\t")
-              .append(String.format(getLocale(), "%.2f", (double) calcMap.get("LIZENZ"))).append("\n");
+              .append(String.format(getLocale(), "%d,00", calcMap.get("LIZENZ"))).append("\t")
+              .append(String.format(getLocale(), "%d,00", calcMap.get("LIZENZ"))).append("\t")
+              .append(String.format(getLocale(), "%d,00", calcMap.get("LIZENZ"))).append("\t")
+              .append(String.format(getLocale(), "%d,00", calcMap.get("LIZENZ"))).append("\n");
       addition += calcMap.get("LIZENZ");
 
       totalOutput.append(getString("Discount Surcharge")).append(" (").append(calcMap.get("Z_DISCONT")).append("%):\t")

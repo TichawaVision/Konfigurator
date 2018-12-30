@@ -1,8 +1,6 @@
 package de.tichawa.cis.config.vdcis;
 
 import de.tichawa.cis.config.*;
-import java.io.*;
-import java.nio.file.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 
@@ -40,12 +38,12 @@ public class VDCIS extends CIS
       }
       case 1:
       {
-        key += "_1" + COLORCODE[getSpec("Internal Light Color")];
+        key += "_" + COLORCODE[getSpec("Internal Light Color")];
         break;
       }
       case 2:
       {
-        key += "_" + COLORCODE[getSpec("Internal Light Color")];
+        key += "_2" + COLORCODE[getSpec("Internal Light Color")];
         break;
       }
       case 3:
@@ -118,14 +116,14 @@ public class VDCIS extends CIS
     int tcounter = 0;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / getBaseLength()) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
+    numOfPixNominal = (int) Math.ceil(numOfPix - ((getSpec("sw_cp") / getBaseLength()) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
     taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSpec("Selected line rate") / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 
-    printOut.append(getString("datarate")).append(Math.round(getSpec("Color") * numOfPixNominal * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
+    printOut.append(getString("datarate")).append(Math.round((getSpec("Color") - 1) * numOfPixNominal * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(getString("numofcons")).append("%%%%%\n");
-    printOut.append(getString("numofport")).append(taps * getSpec("Color")).append("\n");
+    printOut.append(getString("numofport")).append(taps * (getSpec("Color") - 1)).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");
     printOut.append("Nominal pixel count: ").append(numOfPixNominal).append("\n");
 
@@ -135,7 +133,7 @@ public class VDCIS extends CIS
       {
         if(taps > 6)
         {
-          new Alert(AlertType.ERROR, "Please select a lower line rate. Currently required number of taps (" + taps * getSpec("Color") + ") is too high.").showAndWait();
+          new Alert(AlertType.ERROR, "Please select a lower line rate. Currently required number of taps (" + taps * (getSpec("Color") - 1) + ") is too high.").showAndWait();
           return null;
         }
         int x = 0;
@@ -245,7 +243,7 @@ public class VDCIS extends CIS
 
         if(taps > 20)
         {
-          new Alert(AlertType.ERROR, "Please select a lower line rate. Currently required number of taps (" + taps * getSpec("Color") + ") is too high.").showAndWait();
+          new Alert(AlertType.ERROR, "Please select a lower line rate. Currently required number of taps (" + taps * (getSpec("Color") - 1) + ") is too high.").showAndWait();
           return null;
         }
 
