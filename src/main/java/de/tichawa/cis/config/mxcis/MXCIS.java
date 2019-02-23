@@ -201,27 +201,27 @@ public class MXCIS extends CIS
           if(lval > numOfPix)
           {
             printOut.append("Camera Link ").append(x + 1).append(":\n");
-            printOut.append("\tPort A:\t")
-                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
+            printOut.append("   Port A:   ")
+                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", numOfPix - 1)).append("   ")
                     .append(getString("Red")).append("\n");
-            printOut.append("\tPort B:\t")
-                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
+            printOut.append("   Port B:   ")
+                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", numOfPix - 1)).append("   ")
                     .append(getString("Green")).append("\n");
-            printOut.append("\tPort C:\t")
-                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\t")
+            printOut.append("   Port C:   ")
+                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", numOfPix - 1)).append("   ")
                     .append(getString("Blue")).append("\n");
           }
           else
           {
             printOut.append("Camera Link ").append(x + 1).append(":\n");
-            printOut.append("\tPort A:\t")
-                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+            printOut.append("   Port A:   ")
+                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                     .append(getString("Red")).append("\n");
-            printOut.append("\tPort B:\t")
-                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+            printOut.append("   Port B:   ")
+                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                     .append(getString("Green")).append("\n");
-            printOut.append("\tPort C:\t")
-                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+            printOut.append("   Port C:   ")
+                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                     .append(getString("Blue")).append("\n");
           }
         }
@@ -239,13 +239,13 @@ public class MXCIS extends CIS
 
           if(lval > numOfPix)
           {
-            printOut.append("\tPort ").append(getPortName((x + 1) % 2)).append(":\t")
-                    .append(String.format("%05d", (x - 1) * lval)).append("\t - ").append(String.format("%05d", numOfPix - 1)).append("\n");
+            printOut.append("   Port ").append(getPortName((x + 1) % 2)).append(":   ")
+                    .append(String.format("%05d", (x - 1) * lval)).append("   - ").append(String.format("%05d", numOfPix - 1)).append("\n");
           }
           else
           {
-            printOut.append("\tPort ").append(getPortName((x + 1) % 2)).append(":\t")
-                    .append(String.format("%05d", (x - 1) * lval)).append("\t - ").append(String.format("%05d", x * lval - 1)).append("\n");
+            printOut.append("   Port ").append(getPortName((x + 1) % 2)).append(":   ")
+                    .append(String.format("%05d", (x - 1) * lval)).append("   - ").append(String.format("%05d", x * lval - 1)).append("\n");
           }
         }
       }

@@ -141,14 +141,14 @@ public class VDCIS extends CIS
 
         tcounter = 1;
         printOut.append("Camera Link ").append(tcounter).append(":\n");
-        printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
-                .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+        printOut.append("   Port ").append(getPortName(x * 3)).append(":   ")
+                .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                 .append(getString("Red")).append("\n");
-        printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
-                .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+        printOut.append("   Port ").append(getPortName(x * 3 + 1)).append(":   ")
+                .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                 .append(getString("Green")).append("\n");
-        printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
-                .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+        printOut.append("   Port ").append(getPortName(x * 3 + 2)).append(":   ")
+                .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                 .append(getString("Blue")).append("\n");
         x++;
         y++;
@@ -157,14 +157,14 @@ public class VDCIS extends CIS
         {
           tcounter = 2;
           printOut.append("Camera Link ").append(tcounter).append(":\n");
-          printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(x * 3)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(x * 3 + 1)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(x * 3 + 2)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Blue")).append("\n");
           x++;
           y++;
@@ -172,14 +172,14 @@ public class VDCIS extends CIS
         
         if(taps > 4 || taps == 3)
         {
-          printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(x * 3)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(x * 3 + 1)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(x * 3 + 2)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Blue")).append("\n");
           x++;
           y++;
@@ -190,14 +190,14 @@ public class VDCIS extends CIS
           y = 0;
           tcounter = 3;
           printOut.append("Camera Link ").append(tcounter).append(":\n");
-          printOut.append("\tPort ").append(getPortName(y * 3)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(y * 3)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName(y * 3 + 1)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(y * 3 + 1)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName(y * 3 + 2)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(y * 3 + 2)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Blue")).append("\n");
           x++;
           y++;
@@ -207,14 +207,14 @@ public class VDCIS extends CIS
         {
           tcounter = 4;
           printOut.append("Camera Link ").append(tcounter).append(":\n");
-          printOut.append("\tPort ").append(getPortName(y * 3)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(y * 3)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName(y * 3 + 1)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(y * 3 + 1)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName(y * 3 + 2)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(y * 3 + 2)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Blue")).append("\n");
           x++;
           y++;
@@ -222,14 +222,14 @@ public class VDCIS extends CIS
 
         if(taps > 5)
         {
-          printOut.append("\tPort ").append(getPortName(y * 3)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(y * 3)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName(y * 3 + 1)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(y * 3 + 1)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName(y * 3 + 2)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(y * 3 + 2)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Blue")).append("\n");
           x++;
           y++;
@@ -262,8 +262,8 @@ public class VDCIS extends CIS
           {
             for(int x = 0; x < Math.min(3, taps); x++)
             {
-              printOut.append("\tPort ").append(getPortName(x)).append(":\t")
-                      .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+              printOut.append("   Port ").append(getPortName(x)).append(":   ")
+                      .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
             }
 
             if(taps > 3)
@@ -272,8 +272,8 @@ public class VDCIS extends CIS
               printOut.append("Camera Link ").append(tcounter).append(":\n");
               for(int x = 3; x < taps; x++)
               {
-                printOut.append("\tPort ").append(getPortName(x)).append(":\t")
-                        .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+                printOut.append("   Port ").append(getPortName(x)).append(":   ")
+                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
               }
             }
             break;
@@ -288,8 +288,8 @@ public class VDCIS extends CIS
 
             for(int x = 0; x < Math.min(3, taps); x++)
             {
-              printOut.append("\tPort ").append(getPortName(x)).append(":\t")
-                      .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+              printOut.append("   Port ").append(getPortName(x)).append(":   ")
+                      .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
             }
 
             if(taps > 3)
@@ -298,8 +298,8 @@ public class VDCIS extends CIS
               printOut.append("Camera Link ").append(tcounter).append(":\n");
               for(int x = 3; x < Math.min(8, taps); x++)
               {
-                printOut.append("\tPort ").append(getPortName(x)).append(":\t")
-                        .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+                printOut.append("   Port ").append(getPortName(x)).append(":   ")
+                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
               }
 
               if(taps > 8)
@@ -308,8 +308,8 @@ public class VDCIS extends CIS
                 printOut.append("Camera Link ").append(tcounter).append(":\n");
                 for(int x = 8; x < Math.min(11, taps); x++)
                 {
-                  printOut.append("\tPort ").append(getPortName(x - 8)).append(":\t")
-                          .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+                  printOut.append("   Port ").append(getPortName(x - 8)).append(":   ")
+                          .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
                 }
 
                 if(taps > 11)
@@ -318,8 +318,8 @@ public class VDCIS extends CIS
                   printOut.append("Camera Link ").append(tcounter).append(":\n");
                   for(int x = 11; x < taps; x++)
                   {
-                    printOut.append("\tPort ").append(getPortName(x - 8)).append(":\t")
-                            .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+                    printOut.append("   Port ").append(getPortName(x - 8)).append(":   ")
+                            .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
                   }
                 }
               }
@@ -334,8 +334,8 @@ public class VDCIS extends CIS
 
             for(int x = 0; x < Math.min(3, taps); x++)
             {
-              printOut.append("\tPort ").append(getPortName(x)).append(":\t")
-                      .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+              printOut.append("   Port ").append(getPortName(x)).append(":   ")
+                      .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
             }
 
             if(taps > 3)
@@ -344,8 +344,8 @@ public class VDCIS extends CIS
               printOut.append("Camera Link ").append(tcounter).append(":\n");
               for(int x = 3; x < Math.min(10, taps); x++)
               {
-                printOut.append("\tPort ").append(getPortName(x)).append(":\t")
-                        .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+                printOut.append("   Port ").append(getPortName(x)).append(":   ")
+                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
               }
 
               if(taps > 10)
@@ -354,8 +354,8 @@ public class VDCIS extends CIS
                 printOut.append("Camera Link ").append(tcounter).append(":\n");
                 for(int x = 10; x < Math.min(13, taps); x++)
                 {
-                  printOut.append("\tPort ").append(getPortName(x - 10)).append(":\t")
-                          .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+                  printOut.append("   Port ").append(getPortName(x - 10)).append(":   ")
+                          .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
                 }
 
                 if(taps > 13)
@@ -364,8 +364,8 @@ public class VDCIS extends CIS
                   printOut.append("Camera Link ").append(tcounter).append(":\n");
                   for(int x = 13; x < taps; x++)
                   {
-                    printOut.append("\tPort ").append(getPortName(x - 10)).append(":\t")
-                            .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+                    printOut.append("   Port ").append(getPortName(x - 10)).append(":   ")
+                            .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
                   }
                 }
               }

@@ -157,27 +157,27 @@ public class VSCIS extends CIS
         for(int x = 0; x < Math.min(2, taps); x++)
         {
           printOut.append("Camera Link ").append(x + 1).append(":\n");
-          printOut.append("\tPort ").append(getPortName(x * 3)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(x * 3)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName(x * 3 + 1)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(x * 3 + 1)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName(x * 3 + 2)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(x * 3 + 2)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
                   .append(getString("Blue")).append("\n");
         }
 
         if(taps == 3)
         {
-          printOut.append("\tPort ").append(getPortName(3)).append(":\t")
-                  .append(String.format("%05d", 2 * lval)).append("\t - ").append(String.format("%05d", 3 * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(3)).append(":   ")
+                  .append(String.format("%05d", 2 * lval)).append("   - ").append(String.format("%05d", 3 * lval - 1)).append("   ")
                   .append(getString("Red")).append("\n");
-          printOut.append("\tPort ").append(getPortName(4)).append(":\t")
-                  .append(String.format("%05d", 2 * lval)).append("\t - ").append(String.format("%05d", 3 * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(4)).append(":   ")
+                  .append(String.format("%05d", 2 * lval)).append("   - ").append(String.format("%05d", 3 * lval - 1)).append("   ")
                   .append(getString("Green")).append("\n");
-          printOut.append("\tPort ").append(getPortName(5)).append(":\t")
-                  .append(String.format("%05d", 2 * lval)).append("\t - ").append(String.format("%05d", 3 * lval - 1)).append("\t")
+          printOut.append("   Port ").append(getPortName(5)).append(":   ")
+                  .append(String.format("%05d", 2 * lval)).append("   - ").append(String.format("%05d", 3 * lval - 1)).append("   ")
                   .append(getString("Blue")).append("\n");
         }
 
@@ -194,8 +194,8 @@ public class VSCIS extends CIS
         printOut.append("Camera Link 1:\n");
         for(int x = 0; x < Math.min(3, taps); x++)
         {
-          printOut.append("\tPort ").append(getPortName(x)).append(":\t")
-                  .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+          printOut.append("   Port ").append(getPortName(x)).append(":   ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
         }
 
         if(taps > 3)
@@ -203,8 +203,8 @@ public class VSCIS extends CIS
           printOut.append("Camera Link 2:\n");
           for(int x = 3; x < taps; x++)
           {
-            printOut.append("\tPort ").append(getPortName(x)).append(":\t")
-                    .append(String.format("%05d", x * lval)).append("\t - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
+            printOut.append("   Port ").append(getPortName(x)).append(":   ")
+                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
           }
         }
         break;

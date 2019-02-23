@@ -278,6 +278,7 @@ public abstract class CIS
     }
     catch(IOException ex)
     {
+      ex.printStackTrace();
       throw new CISException("Error in Prices.csv");
     }
 
@@ -727,7 +728,7 @@ public abstract class CIS
         printout += getString("Aluminium case profile: 53x50mm (HxT) with bonded") + "\n";
       }
     }
-    printout += "\t" + getString("glass pane, see drawing") + "\n";
+    printout += getString("glass pane, see drawing") + "\n";
     printout += getString("shading") + "\n";
     printout += getString("powersource") + "(24 +/- 1) VDC\n";
     printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
@@ -849,7 +850,7 @@ public abstract class CIS
     printout += getString("line width") + ": ~ 1 mm\n";
     printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 288) + " mm\n";
     printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedmxled") + "\n";
-    printout += "\t" + getString("glass pane, see drawing") + "\n";
+    printout += getString("glass pane, see drawing") + "\n";
     printout += getString("shading") + "\n";
     printout += getString("powersource") + "(24 +/- 1) VDC\n";
     printout += getString("Needed power:") + (((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
