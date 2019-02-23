@@ -697,7 +697,6 @@ public abstract class CIS
       printout += getString("DepthofField") + ": ~ " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1 mm\n";
       printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
       printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
-      printout += getString("glass pane, see drawing") + "\n";
     }
     else
     {
