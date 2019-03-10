@@ -720,7 +720,7 @@ public abstract class CIS
       }
       else if(getSpec("VTCIS") != null)
       {
-        printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
+        printout += getString("Aluminium case profile: 86x80mm (HxT) with bonded") + "\n";
       }
       else
       {
@@ -847,7 +847,7 @@ public abstract class CIS
     printout += getString("Color:") + color + "\n";
     printout += "\n\t\n";
     printout += getString("line width") + ": ~ 1 mm\n";
-    printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 288) + " mm\n";
+    printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 388) + " mm\n";
     printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedmxled") + "\n";
     printout += getString("glass pane, see drawing") + "\n";
     printout += getString("shading") + "\n";
