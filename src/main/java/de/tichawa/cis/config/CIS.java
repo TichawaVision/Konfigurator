@@ -10,6 +10,7 @@ import java.text.*;
 import java.util.*;
 import java.util.regex.*;
 
+// Alle allgemeine CIS Funktionen
 public abstract class CIS
 {
 
@@ -313,6 +314,7 @@ public abstract class CIS
 
     try
     {
+      // Einlesen der Elektronik-Tabelle
       Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Electronics.csv"))
               .skip(1)
               .map(line -> line.split("\t"))
@@ -653,7 +655,16 @@ public abstract class CIS
     int numOfPix = getSpec("numOfPix");
 
     printout += getString("sellinerate") + Math.round(getSpec("Selected line rate") / 100.0) / 10.0 + " kHz\n";
-    printout += getString("transport speed") + ": " + String.format("%.1f", (getSpec("Speedmms") / 1000.0) * (1.0 * getSpec("Selected line rate") / getSpec("Maximum line rate"))) + " mm/s\n";
+    
+//  Korr CTi. 04.11.2019
+    if(getSpec("MXCIS") != null)
+    {
+       printout += getString("transport speed") + ": " + String.format("%.1f", (getSpec("Speedmms") / 1000.0))  + " mm/s\n";   
+    }
+    else
+    {
+      printout += getString("transport speed") + ": " + String.format("%.1f", (getSpec("Speedmms") / 1000.0) * (1.0 * getSpec("Selected line rate") / getSpec("Maximum line rate"))) + " mm/s\n";       
+    }
 
     if(getSpec("MXCIS") != null)
     {
@@ -731,7 +742,9 @@ public abstract class CIS
     printout += getString("shading") + "\n";
     printout += getString("powersource") + "(24 +/- 1) VDC\n";
     printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
-    printout += "Grenzfrequenz: " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
+    // CTi 11.11.19
+//    printout += "Grenzfrequenz: " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
+    printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
 
     switch(getSpec("Cooling"))
     {
@@ -1374,6 +1387,7 @@ public abstract class CIS
     }
   }
 
+  // Laden von statischen Texten aus dem Bundle (de/en)
   public String getString(String key)
   {
     return ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString(key);

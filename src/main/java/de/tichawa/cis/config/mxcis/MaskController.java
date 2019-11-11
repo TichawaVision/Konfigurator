@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.util.*;
 
+// Funktionen der Maske
 public class MaskController extends de.tichawa.cis.config.MaskController
 {
   public MaskController()
@@ -18,6 +19,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
   }
 
   @Override
+  // Initialisiert die graphische Oberfläche
   public void initialize(URL url, ResourceBundle rb)
   {
     ArrayList<Double> pixelSize = new ArrayList<>();
@@ -257,6 +259,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       MXLED_DATA.setSpec("sw_cp", CIS_DATA.getSpec("sw_cp"));
       MXLED_DATA.setSpec("sw_index", MXLED.getSWIndex(sw));
     });
+    
+    //Wird jedes Mal ausgeführt, wenn sich der Wert des "Selected line rate" Sliders ändert
     SelLineRate.valueProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) ->
     {
       if(newValue.intValue() < 100)
@@ -267,6 +271,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       CIS_DATA.setSpec("Selected line rate", newValue.intValue());
       CIS_DATA.setSpec("Speedmms", (int) (pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate")) * 1000);
 
+      // Maskenfelder updaten
       CurrLineRate.setText(newValue.intValue() / 1000.0 + " kHz");
 
       Speedmms.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate"), 3) + " mm/s");
@@ -274,6 +279,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       Speedmmin.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.06, 3) + " m/min");
       Speedips.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.03937, 3) + " ips");
     });
+    
+    
     InternalLightSource.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
       if(newValue.contains("Coax") && CIS_DATA.getSpec("sw_cp") > 1820)
@@ -326,10 +333,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
       InternalLightColor.setDisable(CIS_DATA.getSpec("Color") == 4 || CIS_DATA.getSpec("LEDLines") == 0);
     });
+    
     InternalLightColor.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
       CIS_DATA.setSpec("Internal Light Color", InternalLightColor.getSelectionModel().getSelectedIndex());
     });
+    
     ExternalLightSource.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
       CIS_DATA.setSpec("External Light Source", ExternalLightSource.getSelectionModel().getSelectedIndex());
@@ -338,11 +347,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
       MXLED_DATA.setSpec("Internal Light Source", CIS_DATA.getSpec("External Light Source"));
     });
+    
     ExternalLightColor.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
       CIS_DATA.setSpec("External Light Color", ExternalLightColor.getSelectionModel().getSelectedIndex());
       MXLED_DATA.setSpec("Internal Light Color", CIS_DATA.getSpec("External Light Color"));
     });
+    
     Interface.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
       CIS_DATA.setSpec("Interface", Interface.getSelectionModel().getSelectedIndex());
@@ -356,6 +367,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       CIS_DATA.setSpec("External Trigger", newValue ? 1 : 0);
     });
 
+    // Standardwerte setzen - Lisener werden das erste Mal aufgerufen
     Color.getSelectionModel().selectFirst();
     Resolution.getSelectionModel().selectFirst();
     ScanWidth.getSelectionModel().selectFirst();
