@@ -282,7 +282,7 @@ public abstract class CIS
       throw new CISException("Error in Prices.csv");
     }
 
-    //Elektronics
+    //Electronics
     int sensPerFpga;
 
     if(getSpec("res_cp2") != null && getSpec("res_cp2") > 600)
@@ -318,7 +318,12 @@ public abstract class CIS
               .map(line -> line.split("\t"))
               .filter(line -> line[0].length() > 0)
               .map(line -> new Tuple<>(line, (int) (getAmount(line) * getElectFactor(line[3])
-              * MathEval.evaluate(line[4 + getSpec("sw_index")].replace(" ", "").replace("L", "" + getSpec("LEDLines")).replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / getBaseLength()).replace("N", "" + getSpec("sw_cp"))))))
+              * MathEval.evaluate(line[4 + getSpec("sw_index")]
+                  .replace(" ", "")
+                  .replace("L", "" + getSpec("LEDLines"))
+                  .replace("F", "" + numFPGA)
+                  .replace("S", "" + getSpec("sw_cp") / getBaseLength())
+                  .replace("N", "" + getSpec("sw_cp"))))))
               .filter(data -> data.getV() > 0)
               .forEach(data ->
               {
@@ -1235,7 +1240,7 @@ public abstract class CIS
     }
     catch(NullPointerException | IndexOutOfBoundsException | NumberFormatException | IOException e)
     {
-      throw new CISException(getString("A fatal error occurred: Missing configuration tables.Please contact support@tichawa.de for further help."));
+      throw new CISException(getString("A fatal error occurred: Missing configuration tables. Please contact support@tichawa.de for further help."));
     }
 
     printout += electOutput.toString();
