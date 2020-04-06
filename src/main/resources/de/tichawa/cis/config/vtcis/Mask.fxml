@@ -30,11 +30,15 @@
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3">
           <children>
             <Label text="Color:" />
-            <ComboBox promptText="Monochrome" fx:id="Color">
+            <ComboBox promptText="One phase (Monochrome)" fx:id="Color">
               <items>
                 <FXCollections fx:factory="observableArrayList">
-                  <String fx:value="Monochrome" />
-                  <String fx:value="RGB" />
+                  <String fx:value="One phase (Monochrome)" />
+                  <String fx:value="Two phases" />
+                  <String fx:value="Three phases (RGB)" />
+                  <String fx:value="Four phases" />
+                  <String fx:value="Five phases" />
+                  <String fx:value="Six phases" />
                 </FXCollections>
               </items>
             </ComboBox>
@@ -210,6 +214,15 @@
                 <FXCollections fx:factory="observableArrayList">
                   <String fx:value="CameraLink" />
                   <String fx:value="GigE" />
+                </FXCollections>
+              </items>
+            </ComboBox>
+            <Label text="CameraLink Mode:" />
+            <ComboBox promptText="Full" fx:id="CameraLinkMode">
+              <items>
+                <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="Full" />
+                  <String fx:value="Medium" />
                 </FXCollections>
               </items>
             </ComboBox>

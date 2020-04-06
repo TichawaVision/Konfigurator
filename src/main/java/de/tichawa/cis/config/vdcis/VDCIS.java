@@ -1,8 +1,11 @@
 package de.tichawa.cis.config.vdcis;
 
 import de.tichawa.cis.config.*;
+import gnu.trove.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+
+import java.util.*;
 
 public class VDCIS extends CIS
 {
@@ -127,259 +130,45 @@ public class VDCIS extends CIS
     printOut.append("Pixel Clock: 85 MHz\n");
     printOut.append("Nominal pixel count: ").append(numOfPixNominal).append("\n");
 
-    switch(getSpec("Color"))
+    boolean mediumMode = getSpec("CLMode") == 1;
+    Map<Integer, List<Integer>> mediumMap = new THashMap<>();
+    mediumMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 7, 8, 9, 10, 11, 12, 0, 0, 0, 0));
+    mediumMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 4, 4, 0, 0, 0, 0, 0));
+    mediumMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 3, 3, 3, 4, 4, 4, 0, 0, 0, 0));
+    mediumMap.put(4, Arrays.asList(1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0));
+    mediumMap.put(5, Arrays.asList(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0));
+    mediumMap.put(6, Arrays.asList(1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0));
+
+    Map<Integer, List<Integer>> highMap = new THashMap<>();
+    highMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 0));
+    highMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 3, 3, 0, 0, 4, 4, 0, 5, 5, 0, 6, 6, 0, 0));
+    highMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 4, 4, 4, 5, 5, 5, 6, 6, 6, 0));
+    highMap.put(4, mediumMap.get(4));
+    highMap.put(5, mediumMap.get(5));
+    highMap.put(6, mediumMap.get(6));
+
+    List<Integer> tapConfig = (mediumMode ? mediumMap : highMap).get(getSpec("Color") - 1);
+    if(taps > tapConfig.stream().mapToInt(x -> x).max().orElse(0))
     {
-      case 4:
+      throw new CISException("Number of required taps (" + taps * (getSpec("Color") - 1) + ") is too high");
+    }
+
+    for(int x = 0; x < tapConfig.size(); x++)
+    {
+      int currentTap = tapConfig.get(x);
+      if(currentTap > 0 && taps >= currentTap)
       {
-        if(taps > 6)
+        if(x % 10 == 0)
         {
-          new Alert(AlertType.ERROR, "Please select a lower line rate. Currently required number of taps (" + taps * (getSpec("Color") - 1) + ") is too high.").showAndWait();
-          return null;
+          printOut.append("Camera Link ").append((x / 10) + 1).append(":\n");
         }
-        int x = 0;
-        int y = 0;
-
-        tcounter = 1;
-        printOut.append("Camera Link ").append(tcounter).append(":\n");
-        printOut.append("   Port ").append(getPortName(x * 3)).append(":   ")
-                .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                .append(getString("Red")).append("\n");
-        printOut.append("   Port ").append(getPortName(x * 3 + 1)).append(":   ")
-                .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                .append(getString("Green")).append("\n");
-        printOut.append("   Port ").append(getPortName(x * 3 + 2)).append(":   ")
-                .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                .append(getString("Blue")).append("\n");
-        x++;
-        y++;
-
-        if(taps > 1)
-        {
-          tcounter = 2;
-          printOut.append("Camera Link ").append(tcounter).append(":\n");
-          printOut.append("   Port ").append(getPortName(x * 3)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Red")).append("\n");
-          printOut.append("   Port ").append(getPortName(x * 3 + 1)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Green")).append("\n");
-          printOut.append("   Port ").append(getPortName(x * 3 + 2)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Blue")).append("\n");
-          x++;
-          y++;
-        }
-        
-        if(taps > 4 || taps == 3)
-        {
-          printOut.append("   Port ").append(getPortName(x * 3)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Red")).append("\n");
-          printOut.append("   Port ").append(getPortName(x * 3 + 1)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Green")).append("\n");
-          printOut.append("   Port ").append(getPortName(x * 3 + 2)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Blue")).append("\n");
-          x++;
-          y++;
-        }
-
-        if(taps > 2 && taps != 3)
-        {
-          y = 0;
-          tcounter = 3;
-          printOut.append("Camera Link ").append(tcounter).append(":\n");
-          printOut.append("   Port ").append(getPortName(y * 3)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Red")).append("\n");
-          printOut.append("   Port ").append(getPortName(y * 3 + 1)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Green")).append("\n");
-          printOut.append("   Port ").append(getPortName(y * 3 + 2)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Blue")).append("\n");
-          x++;
-          y++;
-        }
-
-        if(taps > 3)
-        {
-          tcounter = 4;
-          printOut.append("Camera Link ").append(tcounter).append(":\n");
-          printOut.append("   Port ").append(getPortName(y * 3)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Red")).append("\n");
-          printOut.append("   Port ").append(getPortName(y * 3 + 1)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Green")).append("\n");
-          printOut.append("   Port ").append(getPortName(y * 3 + 2)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Blue")).append("\n");
-          x++;
-          y++;
-        }
-
-        if(taps > 5)
-        {
-          printOut.append("   Port ").append(getPortName(y * 3)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Red")).append("\n");
-          printOut.append("   Port ").append(getPortName(y * 3 + 1)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Green")).append("\n");
-          printOut.append("   Port ").append(getPortName(y * 3 + 2)).append(":   ")
-                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                  .append(getString("Blue")).append("\n");
-          x++;
-          y++;
-        }
-        break;
-      }
-      case 2:
-      {
-        tcounter = 1;
-        printOut.append("Camera Link ").append(tcounter).append(":\n");
-
-        if(taps > 20)
-        {
-          new Alert(AlertType.ERROR, "Please select a lower line rate. Currently required number of taps (" + taps * (getSpec("Color") - 1) + ") is too high.").showAndWait();
-          return null;
-        }
-
-        switch(taps)
-        {
-          case 1:
-          case 2:
-          case 3:
-          case 4:
-          case 5:
-          case 6:
-          case 7:
-          case 8:
-          case 9:
-          case 10:
-          {
-            for(int x = 0; x < Math.min(3, taps); x++)
-            {
-              printOut.append("   Port ").append(getPortName(x)).append(":   ")
-                      .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-            }
-
-            if(taps > 3)
-            {
-              tcounter = 2;
-              printOut.append("Camera Link ").append(tcounter).append(":\n");
-              for(int x = 3; x < taps; x++)
-              {
-                printOut.append("   Port ").append(getPortName(x)).append(":   ")
-                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-              }
-            }
-            break;
-          }
-          case 11:
-          case 12:
-          case 13:
-          case 14:
-          case 15:
-          case 16:
-          {
-
-            for(int x = 0; x < Math.min(3, taps); x++)
-            {
-              printOut.append("   Port ").append(getPortName(x)).append(":   ")
-                      .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-            }
-
-            if(taps > 3)
-            {
-              tcounter = 2;
-              printOut.append("Camera Link ").append(tcounter).append(":\n");
-              for(int x = 3; x < Math.min(8, taps); x++)
-              {
-                printOut.append("   Port ").append(getPortName(x)).append(":   ")
-                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-              }
-
-              if(taps > 8)
-              {
-                tcounter = 3;
-                printOut.append("Camera Link ").append(tcounter).append(":\n");
-                for(int x = 8; x < Math.min(11, taps); x++)
-                {
-                  printOut.append("   Port ").append(getPortName(x - 8)).append(":   ")
-                          .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-                }
-
-                if(taps > 11)
-                {
-                  tcounter = 4;
-                  printOut.append("Camera Link ").append(tcounter).append(":\n");
-                  for(int x = 11; x < taps; x++)
-                  {
-                    printOut.append("   Port ").append(getPortName(x - 8)).append(":   ")
-                            .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-                  }
-                }
-              }
-            }
-            break;
-          }
-          case 17:
-          case 18:
-          case 19:
-          case 20:
-          {
-
-            for(int x = 0; x < Math.min(3, taps); x++)
-            {
-              printOut.append("   Port ").append(getPortName(x)).append(":   ")
-                      .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-            }
-
-            if(taps > 3)
-            {
-              tcounter = 2;
-              printOut.append("Camera Link ").append(tcounter).append(":\n");
-              for(int x = 3; x < Math.min(10, taps); x++)
-              {
-                printOut.append("   Port ").append(getPortName(x)).append(":   ")
-                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-              }
-
-              if(taps > 10)
-              {
-                tcounter = 3;
-                printOut.append("Camera Link ").append(tcounter).append(":\n");
-                for(int x = 10; x < Math.min(13, taps); x++)
-                {
-                  printOut.append("   Port ").append(getPortName(x - 10)).append(":   ")
-                          .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-                }
-
-                if(taps > 13)
-                {
-                  tcounter = 4;
-                  printOut.append("Camera Link ").append(tcounter).append(":\n");
-                  for(int x = 13; x < taps; x++)
-                  {
-                    printOut.append("   Port ").append(getPortName(x - 10)).append(":   ")
-                            .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("\n");
-                  }
-                }
-              }
-            }
-            break;
-          }
-        }
-
-        break;
+        printOut.append("   Port ").append(getPortName(x % 10)).append(":   ")
+            .append(String.format("%05d", (currentTap - 1) * lval)).append("   - ")
+            .append(String.format("%05d", currentTap * lval - 1)).append("\n");
       }
     }
 
     printOut = printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, tcounter + "");
-
     return printOut.toString();
   }
 

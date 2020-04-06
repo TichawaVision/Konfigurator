@@ -1,6 +1,6 @@
 package de.tichawa.cis.config;
 
-class CISException extends NullPointerException
+public class CISException extends NullPointerException
 {
   private final String message;
   

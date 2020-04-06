@@ -4,9 +4,14 @@ import de.tichawa.cis.config.CIS;
 import java.net.*;
 import java.util.*;
 import javafx.beans.value.*;
+import javafx.fxml.*;
+import javafx.scene.control.*;
 
 public class MaskController extends de.tichawa.cis.config.MaskController
 {
+
+  @FXML
+  ComboBox<String> CameraLinkMode;
 
   public MaskController()
   {
@@ -40,14 +45,34 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     {
       switch(newValue)
       {
-        case "Monochrome":
+        case "One phase (Monochrome)":
         {
           CIS_DATA.setSpec("Color", 2);
           break;
         }
-        case "RGB":
+        case "Two phases":
+        {
+          CIS_DATA.setSpec("Color", 3);
+          break;
+        }
+        case "Three phases (RGB)":
         {
           CIS_DATA.setSpec("Color", 4);
+          break;
+        }
+        case "Four phases":
+        {
+          CIS_DATA.setSpec("Color", 5);
+          break;
+        }
+        case "Five phases":
+        {
+          CIS_DATA.setSpec("Color", 6);
+          break;
+        }
+        case "Six phases":
+        {
+          CIS_DATA.setSpec("Color", 7);
           break;
         }
       }
@@ -177,6 +202,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     {
       CIS_DATA.setSpec("External Trigger", newValue ? 1 : 0);
     });
+    CameraLinkMode.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
+    {
+      CIS_DATA.setSpec("CLMode", CameraLinkMode.getSelectionModel().getSelectedIndex());
+    });
 
     Color.getSelectionModel().selectFirst();
     Resolution.getSelectionModel().selectFirst();
@@ -186,5 +215,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     Interface.getSelectionModel().selectFirst();
     Cooling.getSelectionModel().select(1);
     Trigger.setSelected(false);
+    CameraLinkMode.getSelectionModel().selectFirst();
   }
 }
