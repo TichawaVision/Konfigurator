@@ -1,7 +1,6 @@
 package de.tichawa.cis.config.vdcis;
 
 import de.tichawa.cis.config.*;
-import gnu.trove.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 
@@ -131,7 +130,7 @@ public class VDCIS extends CIS
     printOut.append("Nominal pixel count: ").append(numOfPixNominal).append("\n");
 
     boolean mediumMode = getSpec("CLMode") == 1;
-    Map<Integer, List<Integer>> mediumMap = new THashMap<>();
+    Map<Integer, List<Integer>> mediumMap = new HashMap<>();
     mediumMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 7, 8, 9, 10, 11, 12, 0, 0, 0, 0));
     mediumMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 4, 4, 0, 0, 0, 0, 0));
     mediumMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 3, 3, 3, 4, 4, 4, 0, 0, 0, 0));
@@ -139,7 +138,7 @@ public class VDCIS extends CIS
     mediumMap.put(5, Arrays.asList(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0));
     mediumMap.put(6, Arrays.asList(1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0));
 
-    Map<Integer, List<Integer>> highMap = new THashMap<>();
+    Map<Integer, List<Integer>> highMap = new HashMap<>();
     highMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 0));
     highMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 3, 3, 0, 0, 4, 4, 0, 5, 5, 0, 6, 6, 0, 0));
     highMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 4, 4, 4, 5, 5, 5, 6, 6, 6, 0));
