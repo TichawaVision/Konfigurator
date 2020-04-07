@@ -13,4 +13,5 @@ nb-configuration.xml
 nbactions-release-profile.xml
 .idea
 *.iml
+Thumbs.db
 Tabellen

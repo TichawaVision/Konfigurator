@@ -5,6 +5,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
+// Alle MXCIS spezifische Funktionen 
 public class MXCIS extends CIS
 {
   private static HashMap<Integer, String> resToSens;
