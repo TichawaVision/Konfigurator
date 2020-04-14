@@ -100,7 +100,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getSpec("LEDLines") == 0);
       ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
-      double maxLR = Math.round(1000 * CIS_DATA.getSensBoard("SMARAGD")[2] / (CIS_DATA.getSpec("Color") * (CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[3] + 3 + CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[2]) * 1.0 / Math.min(CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[4], CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
+      double maxLR = Math.round(1000 * CIS_DATA.getSensBoard("SMARAGD")[2] / (CIS_DATA.getSpec("Color") * (CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[3] + 100) * 1.0 / Math.min(CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[4], CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);
@@ -158,7 +158,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
         return;
       }
 
-      double maxLR = Math.round(1000 * CIS_DATA.getSensBoard("SMARAGD")[2] / (CIS_DATA.getSpec("Color") * (CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[3] + 3 + CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[2]) * 1.0 / Math.min(CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[4], CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
+      double maxLR = Math.round(1000 * CIS_DATA.getSensBoard("SMARAGD")[2] / (CIS_DATA.getSpec("Color") * (CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[3] + 100) * 1.0 / Math.min(CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[4], CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);
@@ -287,6 +287,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     Interface.getSelectionModel().selectFirst();
     Cooling.getSelectionModel().select(1);
     Trigger.setSelected(false);
-    CameraLinkMode.getSelectionModel().selectFirst();
+    CameraLinkMode.getSelectionModel().selectLast();
   }
 }

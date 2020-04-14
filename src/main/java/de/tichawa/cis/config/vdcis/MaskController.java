@@ -227,6 +227,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     Interface.getSelectionModel().selectFirst();
     Cooling.getSelectionModel().select(1);
     Trigger.setSelected(false);
-    CameraLinkMode.getSelectionModel().selectFirst();
+    CameraLinkMode.getSelectionModel().selectLast();
   }
 }

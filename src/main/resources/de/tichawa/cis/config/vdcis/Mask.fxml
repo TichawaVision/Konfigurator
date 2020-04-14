@@ -192,11 +192,11 @@
               </items>
             </ComboBox>
             <Label text="CameraLink Mode:" />
-            <ComboBox promptText="Full" fx:id="CameraLinkMode">
+            <ComboBox promptText="Base/Medium/Full" fx:id="CameraLinkMode">
               <items>
                 <FXCollections fx:factory="observableArrayList">
-                  <String fx:value="Full" />
-                  <String fx:value="Medium" />
+                  <String fx:value="Full80" />
+                  <String fx:value="Base/Medium/Full" />
                 </FXCollections>
               </items>
             </ComboBox>
