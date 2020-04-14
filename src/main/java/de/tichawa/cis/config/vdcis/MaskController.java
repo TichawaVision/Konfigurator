@@ -118,6 +118,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController
         }
       }
 
+      if(CIS_DATA.getSpec("Color") >= 4 && CIS_DATA.getSpec("res_cp2") > 600)
+      {
+        Color.getSelectionModel().select(oldValue);
+        return;
+      }
+
       if(res.equals("1000/500/250"))
       {
         CIS_DATA.setSpec("res_cp2", 1000);
@@ -125,6 +131,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       else
       {
         CIS_DATA.setSpec("res_cp2", Integer.parseInt(res));
+      }
+
+      if(CIS_DATA.getSpec("Color") >= 4 && CIS_DATA.getSpec("res_cp2") > 600)
+      {
+        Resolution.getSelectionModel().select(oldValue);
+        return;
       }
 
       double maxLR = Math.round(1000 * CIS_DATA.getSensBoard("SMARAGD_INLINE")[2] / (CIS_DATA.getSpec("Color") * (CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[3] + 3 + CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[2]) * 1.0 / Math.min(CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[4], CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
@@ -209,7 +221,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
     Color.getSelectionModel().selectFirst();
     Resolution.getSelectionModel().selectFirst();
-    ScanWidth.getSelectionModel().select(2);
+    ScanWidth.getSelectionModel().selectLast();
     InternalLightSource.getSelectionModel().select(2);
     InternalLightColor.getSelectionModel().selectFirst();
     Interface.getSelectionModel().selectFirst();

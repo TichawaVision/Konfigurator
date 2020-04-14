@@ -118,7 +118,7 @@ public class VTCIS extends CIS
     int taps;
     int pixPerTap;
     int lval;
-    int tcounter = 0;
+    int tapCount;
     StringBuilder printOut = new StringBuilder();
 
     numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / getBaseLength()) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
@@ -126,13 +126,17 @@ public class VTCIS extends CIS
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 
+    boolean mediumMode = getSpec("CLMode") == 1;
+
     printOut.append(getString("datarate")).append(Math.round(getSpec("Color") * numOfPixNominal * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(getString("numofcons")).append("%%%%%\n");
     printOut.append(getString("numofport")).append(taps * getSpec("Color")).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");
     printOut.append("Nominal pixel count: ").append(numOfPixNominal).append("\n");
+    printOut.append("LVAL: ").append(lval).append("\n");
+    printOut.append("Camera Link mode: ").append(mediumMode ? "Medium" : "Full").append("\n");
+    printOut.append("Phases: ").append(getSpec("Color")).append("\n");
 
-    boolean mediumMode = getSpec("CLMode") == 1;
     Map<Integer, List<Integer>> mediumMap = new HashMap<>();
     mediumMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 7, 8, 9, 10, 11, 12, 0, 0, 0, 0));
     mediumMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 4, 4, 0, 0, 0, 0, 0));
@@ -152,25 +156,31 @@ public class VTCIS extends CIS
     List<Integer> tapConfig = (mediumMode ? mediumMap : highMap).get(getSpec("Color"));
     if(taps > tapConfig.stream().mapToInt(x -> x).max().orElse(0))
     {
-      throw new CISException("Number of required taps (" + taps * getSpec("Color") + ") is too high");
+      throw new CISException("Number of required taps (" + taps * getSpec("Color") + ") is too high. Please reduce the data rate.");
+    }
+    if(numOfPix * getSpec("Color") * 2 > 327680
+    || (getSpec("res_cp2") >= 1200) && (numOfPix - 16 * 6 * 2) * getSpec("Color") * 2 > 327680)
+    {
+      throw new CISException("Out of Flash memory. Please reduce the scan width or resolution.");
     }
 
-    for(int x = 0; x < tapConfig.size(); x++)
+    for(tapCount = 0; tapCount < tapConfig.size(); tapCount++)
     {
-      int currentTap = tapConfig.get(x);
+      int currentTap = tapConfig.get(tapCount);
       if(currentTap > 0 && taps >= currentTap)
       {
-        if(x % 10 == 0)
+        if(tapCount % 10 == 0)
         {
-          printOut.append("Camera Link ").append((x / 10) + 1).append(":\n");
+          printOut.append("Camera Link ").append((tapCount / 10) + 1).append(":\n");
         }
-        printOut.append("   Port ").append(getPortName(x % 10)).append(":   ")
+        printOut.append("   Port ").append(getPortName(tapCount % 10)).append(":   ")
             .append(String.format("%05d", (currentTap - 1) * lval)).append("   - ")
             .append(String.format("%05d", currentTap * lval - 1)).append("\n");
       }
     }
 
-    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, tcounter + "");
+    printOut.append("\nDifferent Camera Link configurations available on request.\n");
+    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, ((tapCount - 1) / 10) + 1 + "");
     return printOut.toString();
   }
 

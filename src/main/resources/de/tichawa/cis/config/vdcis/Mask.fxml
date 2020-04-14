@@ -64,7 +64,7 @@
                   </items>
                 </ComboBox>
                 <Label text="Scan Width:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                <ComboBox promptText="1200 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="ScanWidth">
+                <ComboBox promptText="300 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="ScanWidth">
                   <items>
                     <FXCollections fx:factory="observableArrayList">
                       <String fx:value="1800 mm" />

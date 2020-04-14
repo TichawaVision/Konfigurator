@@ -12,8 +12,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 {
 
   @FXML
-  Label AllowedColors;
-  @FXML
   ComboBox<String> CameraLinkMode;
 
   public MaskController()
@@ -93,6 +91,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController
         }
       }
 
+      if(CIS_DATA.getSpec("Color") >= 4 && CIS_DATA.getSpec("res_cp2") > 600)
+      {
+        Color.getSelectionModel().select(oldValue);
+        return;
+      }
+
       InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getSpec("LEDLines") == 0);
       ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
@@ -148,6 +152,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController
         CIS_DATA.setSpec("res_cp2", Integer.parseInt(res));
       }
 
+      if(CIS_DATA.getSpec("Color") >= 4 && CIS_DATA.getSpec("res_cp2") > 600)
+      {
+        Resolution.getSelectionModel().select(oldValue);
+        return;
+      }
+
       double maxLR = Math.round(1000 * CIS_DATA.getSensBoard("SMARAGD")[2] / (CIS_DATA.getSpec("Color") * (CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[3] + 3 + CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[2]) * 1.0 / Math.min(CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp"))[4], CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
@@ -165,21 +175,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     });
     ScanWidth.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
-      int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim());
+      int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(' ')).trim());
 
       if(sw > 1040 && CIS_DATA.getSpec("Color") == 3)
       {
         ScanWidth.getSelectionModel().select(oldValue);
         return;
-      }
-
-      if(sw > 1040)
-      {
-        AllowedColors.setText("1");
-      }
-      else
-      {
-        AllowedColors.setText("3");
       }
 
       CIS_DATA.setSpec("Scan Width", ScanWidth.getSelectionModel().getSelectedIndex());
@@ -190,8 +191,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       MXLED_DATA.setSpec("sw_cp", CIS_DATA.getSpec("sw_cp"));
       MXLED_DATA.setSpec("sw_index", MXLED.getSWIndex(sw));
     });
-    SelLineRate.valueProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue)
-            ->
+    SelLineRate.valueProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) ->
     {
       CIS_DATA.setSpec("Selected line rate", newValue.intValue());
 
@@ -204,12 +204,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     });
     InternalLightSource.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
-      if(CIS_DATA.getSpec("Color") == 3 && newValue.equals("None") && CIS_DATA.getSpec("External Light Source") == 0)
-      {
-        InternalLightSource.getSelectionModel().select(oldValue);
-        return;
-      }
-
       CIS_DATA.setSpec("Internal Light Source", InternalLightSource.getSelectionModel().getSelectedIndex());
 
       switch(newValue)
@@ -285,7 +279,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
     Color.getSelectionModel().selectFirst();
     Resolution.getSelectionModel().selectFirst();
-    ScanWidth.getSelectionModel().selectFirst();
+    ScanWidth.getSelectionModel().selectLast();
     InternalLightSource.getSelectionModel().select(1);
     ExternalLightSource.getSelectionModel().selectFirst();
     InternalLightColor.getSelectionModel().selectFirst();

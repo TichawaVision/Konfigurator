@@ -67,10 +67,9 @@
                   </items>
                 </ComboBox>
                 <Label text="Scan Width:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                <ComboBox promptText="1560 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="ScanWidth">
+                <ComboBox promptText="260 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="ScanWidth">
                   <items>
                     <FXCollections fx:factory="observableArrayList">
-                      <String fx:value="1560 mm" />
                       <String fx:value="1300 mm" />
                       <String fx:value="1040 mm" />
                       <String fx:value="780 mm" />
@@ -245,12 +244,6 @@
           </children>
         </HBox>
         <CheckBox mnemonicParsing="false" text="External Trigger over RS422 / Free running with programmable line rate (Default: CC1)" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" fx:id="Trigger" />
-        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="6">
-          <children>
-            <Label text="Maximum allowed colors: " />
-            <Label text="1" fx:id="AllowedColors" />
-          </children>
-        </HBox>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="7">
           <children>
             <Button mnemonicParsing="false" text="Calculation" fx:id="Calculation" onAction="#handleCalculation" />
