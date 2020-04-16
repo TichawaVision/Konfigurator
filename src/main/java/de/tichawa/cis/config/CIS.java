@@ -3,18 +3,20 @@ package de.tichawa.cis.config;
 import de.tichawa.util.MathEval;
 import de.tichawa.cis.config.mxcis.MXCIS;
 import de.tichawa.util.*;
+
 import java.io.*;
 import java.nio.charset.*;
 import java.nio.file.*;
+import java.sql.*;
 import java.text.*;
 import java.util.*;
-import java.util.regex.*;
+import java.util.Date;
 
 // Alle allgemeine CIS Funktionen
 public abstract class CIS
 {
 
-  public final String CIS_NAME;
+  public final String cisName;
 
   protected HashMap<String, Integer> spec;
   protected HashMap<String, Integer[]> sensChipTab;
@@ -23,15 +25,17 @@ public abstract class CIS
   protected HashMap<Integer, Integer> electConfig;
   protected HashMap<Integer, Integer> mechaConfig;
   protected HashMap<Integer, Double[]> prices;
-  protected HashMap<Integer, String> IDToKey;
+  protected HashMap<Integer, String> idToKey;
   protected Double[] electSums;
   protected Double[] mechaSums;
   protected Double[] totalPrices;
   protected final HashMap<Integer, Integer> maxRateForHalfMode;
+  protected static final int BASE_LENGTH = 260;
   protected int numFPGA;
-  protected static Locale LANGUAGE = Locale.getDefault();
+  protected static Locale locale = Locale.getDefault();
+  private DSLContext context;
 
-  public static final String[] COLORCODE = new String[]
+  protected static final String[] COLOR_CODE = new String[]
   {
     "AM", "GR", "BL", "IR", "YE", "WH"
   };
@@ -55,7 +59,7 @@ public abstract class CIS
     maxRateForHalfMode.put(600, 10);
 
     String fullName = this.getClass().getName();
-    CIS_NAME = fullName.substring(fullName.lastIndexOf(".") + 1);
+    cisName = fullName.substring(fullName.lastIndexOf('.') + 1);
 
     sensChipTab = readConfigTable("/de/tichawa/cis/config/sensChips.csv");
     sensBoardTab = readConfigTable("/de/tichawa/cis/config/sensBoards.csv");
@@ -68,11 +72,6 @@ public abstract class CIS
 
   public abstract String getTiViKey();
 
-  public double getBaseLength()
-  {
-    return 260;
-  }
-
   public String getBlKey()
   {
     String key = "G_MXLED";
@@ -81,35 +80,27 @@ public abstract class CIS
     switch(getSpec("Internal Light Source"))
     {
       case 0:
-      {
         key += "_NO";
         break;
-      }
       case 1:
-      {
-        key += "_" + COLORCODE[getSpec("Internal Light Color")];
+        key += "_" + COLOR_CODE[getSpec("Internal Light Color")];
         break;
-      }
       case 2:
-      {
-        key += "_2" + COLORCODE[getSpec("Internal Light Color")];
+        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
         break;
-      }
       case 3:
-      {
-        key += "_2" + COLORCODE[getSpec("Internal Light Color")] + "C";
+        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
         break;
-      }
       case 4:
-      {
-        key += "_" + COLORCODE[getSpec("Internal Light Color")] + "C";
+        key += "_" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
         break;
-      }
+      default:
+        key += "_UNKNOWN";
     }
 
     if(getSpec("Color") == 4)
     {
-      key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
+      key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
     }
 
     try
@@ -159,16 +150,16 @@ public abstract class CIS
     }
   }
 
-  public void setLocale(Locale l)
+  public static void setLocale(Locale l)
   {
-    LANGUAGE = l;
+    locale = l;
   }
 
   protected final HashMap<String, Integer[]> readConfigTable(String path)
   {
     HashMap<String, Integer[]> map = new HashMap<>();
 
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(path), Charset.forName("UTF-8"))))
+    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(path), StandardCharsets.UTF_8)))
     {
       String line;
 
@@ -251,7 +242,7 @@ public abstract class CIS
     mechaConfig = new HashMap<>();
     electConfig = new HashMap<>();
     prices = new HashMap<>();
-    IDToKey = new HashMap<>();
+    idToKey = new HashMap<>();
 
     try
     {
@@ -273,13 +264,12 @@ public abstract class CIS
                     values[x - 2] = null;
                   }
                 }
-                IDToKey.put(artnum, line[1]);
+                idToKey.put(artnum, line[1]);
                 prices.put(artnum, values);
               });
     }
     catch(IOException ex)
     {
-      ex.printStackTrace();
       throw new CISException("Error in Prices.csv");
     }
 
@@ -308,8 +298,7 @@ public abstract class CIS
 
     setSpec("MODE", sensPerFpga);
 
-    Pattern p = Pattern.compile("^\\d+dpi$");
-    double lengthPerSens = getBaseLength() * sensPerFpga;
+    double lengthPerSens = BASE_LENGTH * sensPerFpga;
     numFPGA = (int) Math.ceil(getSpec("sw_cp") / lengthPerSens);
 
     try
@@ -324,7 +313,7 @@ public abstract class CIS
                   .replace(" ", "")
                   .replace("L", "" + getSpec("LEDLines"))
                   .replace("F", "" + numFPGA)
-                  .replace("S", "" + getSpec("sw_cp") / getBaseLength())
+                  .replace("S", "" + getSpec("sw_cp") / BASE_LENGTH)
                   .replace("N", "" + getSpec("sw_cp"))))))
               .filter(data -> data.getV() > 0)
               .forEach(data ->
@@ -338,7 +327,6 @@ public abstract class CIS
                   Double[] pricelist = prices.get(Integer.parseInt(line[1]));
                   if(pricelist.length < 4)
                   {
-                    System.out.println("Error, missing values");
                     pricelist = new Double[]
                     {
                       0.0, 0.0, 0.0, 0.0, 1.0
@@ -395,8 +383,6 @@ public abstract class CIS
               .filter(line -> line[0].length() > 0)
               .filter(line -> line[3 + getSpec("sw_index")].length() > 0)
               .map(line -> {
-                int amount = getAmount(line);
-                int mechaFactor = getMechaFactor(line[3 + countNLs() + index]);
                 return new Tuple<>(line, getAmount(line) * getMechaFactor(line[3 + countNLs() + index]));
                         })
               .filter(data -> data.getV() > 0)
@@ -523,21 +509,16 @@ public abstract class CIS
     }
     printout += getString("Resolution: ");
 
-    switch(getSpec("Resolution"))
+    if(getSpec("Resolution") == 0
+        && (getSpec("VSCIS") != null || getSpec("VTCIS") != null || getSpec("VHCIS") != null))
     {
-      case 0:
-      {
-        if(getSpec("VSCIS") != null || getSpec("VTCIS") != null || getSpec("VHCIS") != null)
-        {
-          printout += getString("binning200") + "\n";
-          break;
-        }
-      }
-      default:
-      {
-        printout += "~ " + getSpec("res_cp2") + "dpi\n";
-      }
+      printout += getString("binning200") + "\n";
     }
+    else
+    {
+      printout += "~ " + getSpec("res_cp2") + "dpi\n";
+    }
+
     printout += getString("internal light");
     String color = "";
 
@@ -550,35 +531,25 @@ public abstract class CIS
       switch(getSpec("Internal Light Color"))
       {
         case 0:
-        {
           color = getString("Amber (Red)");
           break;
-        }
         case 1:
-        {
           color = getString("Green");
           break;
-        }
         case 2:
-        {
           color = getString("Blue");
           break;
-        }
         case 3:
-        {
           color = getString("Infrared");
           break;
-        }
         case 4:
-        {
           color = getString("Yellow");
           break;
-        }
         case 5:
-        {
           color = getString("White");
           break;
-        }
+        default:
+          color = "Unknown";
       }
     }
 
@@ -587,30 +558,22 @@ public abstract class CIS
       switch(getSpec("Internal Light Source"))
       {
         case 0:
-        {
           printout += getString("None");
           break;
-        }
         case 1:
-        {
           printout += color + getString("onesided");
           break;
-        }
         case 2:
-        {
           printout += color + getString("coax");
           break;
-        }
         case 3:
-        {
           printout += color + getString("twosided");
           break;
-        }
         case 4:
-        {
           printout += color + getString("onepluscoax");
           break;
-        }
+        default:
+          printout += "Unknown";
       }
 
       printout += getString("schipal");
@@ -629,30 +592,22 @@ public abstract class CIS
       switch(getSpec("Internal Light Source"))
       {
         case 0:
-        {
           printout += getString("None");
           break;
-        }
         case 1:
-        {
           printout += color + getString("onesided");
           break;
-        }
         case 2:
-        {
           printout += color + getString("twosided");
           break;
-        }
         case 3:
-        {
           printout += color + getString("twopluscoax");
           break;
-        }
         case 4:
-        {
           printout += color + getString("coax");
           break;
-        }
+        default:
+          printout += "Unknown";
       }
     }
 
@@ -747,14 +702,11 @@ public abstract class CIS
     printout += getString("shading") + "\n";
     printout += getString("powersource") + "(24 +/- 1) VDC\n";
     printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
-    // CTi 11.11.19
-//    printout += "Grenzfrequenz: " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
     printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
 
     switch(getSpec("Cooling"))
     {
       case 1:
-      {
         if(getSpec("VTCIS") != null)
         {
           printout += getString("lico") + "\n";
@@ -763,22 +715,17 @@ public abstract class CIS
 
         printout += getString("intforced") + "\n";
         break;
-      }
       case 2:
-      {
         printout += getString("extforced") + "\n";
         break;
-      }
       case 3:
-      {
         printout += getString("passair") + "\n";
         break;
-      }
       case 4:
-      {
         printout += getString("lico") + "\n";
         break;
-      }
+      default:
+        printout += "Unknown\n";
     }
     printout += getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
     printout += "Interface: " + (getSpec("Interface") == 0 ? "CameraLink (max. 5m)" : "GigE") + "\n";
@@ -830,35 +777,25 @@ public abstract class CIS
       switch(getSpec("Internal Light Color"))
       {
         case 0:
-        {
           color = getString("Amber (Red)");
           break;
-        }
         case 1:
-        {
           color = getString("Green");
           break;
-        }
         case 2:
-        {
           color = getString("Blue");
           break;
-        }
         case 3:
-        {
           color = getString("Infrared");
           break;
-        }
         case 4:
-        {
           color = getString("Yellow");
           break;
-        }
         case 5:
-        {
           color = getString("White");
           break;
-        }
+        default:
+          color = "Unknown";
       }
     }
 
@@ -902,10 +839,8 @@ public abstract class CIS
       {
         case "": //No code
         case "FPGA": //Notifier for FPGA parts, ignore and proceed
-        {
           proceed = !invert; //!invert ^ invert == true
           break;
-        }
         case "RGB": //Color coding
         case "AM":
         case "BL":
@@ -913,15 +848,11 @@ public abstract class CIS
         case "IR":
         case "YE":
         case "WH":
-        {
           proceed = getSpec("Internal Light Source") > 0 && (key.split("_")[4].contains(m) || (getSpec("MXCIS") != null && key.split("_")[5].contains(m)));
           break;
-        }
         case "MONO": //Monochrome only
-        {
           proceed = !getTiViKey().contains("RGB");
           break;
-        }
         case "25dpi": //Specific resolution
         case "50dpi":
         case "75dpi":
@@ -933,69 +864,45 @@ public abstract class CIS
         case "600dpi":
         case "1200dpi":
         case "2400dpi":
-        {
           proceed = m.equals(getSpec("res_cp") + "dpi");
           break;
-        }
         case "GIGE": //GigE only
-        {
           proceed = getSpec("Interface") != null && getSpec("Interface") == 1;
           break;
-        }
         case "CL": //CameraLink only
-        {
           proceed = getSpec("Interface") != null && spec.get("Interface") == 0;
           break;
-        }
         case "COAX": //At least one coaxial light
-        {
           proceed = key.split("_")[4].endsWith("C") || (getSpec("MXCIS") != null && key.split("_")[5].endsWith("C"));
           break;
-        }
         case "DIFF":
-        {
           proceed = !(key.split("_")[4].endsWith("C") || (getSpec("MXCIS") != null && key.split("_")[5].endsWith("C"))) //No coaxial light
                   || (key.split("_")[4].startsWith("2") || (getSpec("MXCIS") != null && key.split("_")[5].startsWith("2"))); //Twosided => at least one diffuse (2XX oder 2XXC)
           break;
-        }
         case "NOCO": //Specific cooling
         case "FAIR":
         case "PAIR":
         case "LICO":
-        {
           proceed = key.contains(m);
           break;
-        }
         case "default": //Default cooling
-        {
           proceed = !key.contains("NOCO") && !key.contains("FAIR") && !key.contains("PAIR") && !key.contains("LICO");
           break;
-        }
         case "NOEXT": //No external trigger
-        {
           proceed = getSpec("External Trigger") == 0;
           break;
-        }
         case "EXT": //With external trigger
-        {
           proceed = getSpec("External Trigger") == 1;
           break;
-        }
         case "L": //MODE: LOW (MXCIS only)
-        {
           proceed = getSpec("MXCIS") != null && getSpec("MODE") == 4;
           break;
-        }
         case "H": //Mode: HIGH (MXCIS only)
-        {
           proceed = getSpec("MXCIS") != null && getSpec("MODE") == 2;
           break;
-        }
         default: //Unknown modifier
-        {
           proceed = invert; //invert ^ invert == false
           break;
-        }
       }
 
       proceed = invert ^ proceed;
@@ -1017,7 +924,7 @@ public abstract class CIS
     }
     else
     {
-      String ev = factor.replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / getBaseLength()).replace("N", "" + getSpec("sw_cp")).replace(" ", "").replace("L", "" + getSpec("LEDLines"));
+      String ev = factor.replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / BASE_LENGTH).replace("N", "" + getSpec("sw_cp")).replace(" ", "").replace("L", "" + getSpec("LEDLines"));
       return (int) MathEval.evaluate(ev);
     }
   }
@@ -1060,12 +967,12 @@ public abstract class CIS
     return -1;
   }
 
-  public HashMap<Integer, Integer> getMechaConfig()
+  public Map<Integer, Integer> getMechaConfig()
   {
     return mechaConfig;
   }
 
-  public HashMap<Integer, Integer> getElectConfig()
+  public Map<Integer, Integer> getElectConfig()
   {
     return electConfig;
   }
@@ -1091,19 +998,17 @@ public abstract class CIS
             .append(getString("Price/pc (EUR)")).append("\t")
             .append(getString("Weight/pc (kg)")).append("\n");
 
-    getElectConfig().entrySet().stream().forEach((Map.Entry<Integer, Integer> e)
-            ->
+    getElectConfig().forEach((id, value) ->
     {
-      int ID = e.getKey();
-      String key = IDToKey.get(e.getKey());
+      String key = idToKey.get(id);
 
       electOutput.append(key).append("\t")
-              .append(String.format("%05d", ID)).append("\t")
-              .append(e.getValue()).append("\t")
-              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[0]))).append("\t")
-              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[3]))).append("\t")
-              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[1]))).append("\t")
-              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[2]))).append("\n");
+          .append(String.format("%05d", id)).append("\t")
+          .append(value).append("\t")
+          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[0]))).append("\t")
+          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[3]))).append("\t")
+          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[1]))).append("\t")
+          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[2]))).append("\n");
     });
     electOutput.append("\n\t\n").append(getString("Totals")).append("\t")
             .append(" \t")
@@ -1113,16 +1018,15 @@ public abstract class CIS
             .append(String.format(getLocale(), "%.2f", electSums[1])).append("\t")
             .append(String.format(getLocale(), "%.2f", electSums[2] == null ? 0.0 : electSums[2])).append("\n");
 
-    getMechaConfig().entrySet().stream().forEach((Map.Entry<Integer, Integer> e) ->
+    getMechaConfig().forEach((id, value) ->
     {
-      int ID = e.getKey();
-      String key = IDToKey.get(e.getKey());
+      String key = idToKey.get(id);
 
       mechaOutput.append(key).append("\t")
-              .append(String.format("%05d", ID)).append("\t")
-              .append(e.getValue()).append("\t")
-              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[0]))).append("\t")
-              .append(String.format(getLocale(), "%.2f", (prices.get(ID) == null ? 0.0 : prices.get(ID)[3]))).append("\n");
+          .append(String.format("%05d", id)).append("\t")
+          .append(value).append("\t")
+          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[0]))).append("\t")
+          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[3]))).append("\n");
     });
     mechaOutput.append("\n\t\n").append(getString("Totals")).append("\t")
             .append(" \t")
@@ -1142,7 +1046,7 @@ public abstract class CIS
                 {
                   calcMap.put(line[0], Integer.parseInt(line[1]));
                 }
-                catch(NumberFormatException e)
+                catch(NumberFormatException ignored)
                 {
                 }
               });
@@ -1170,9 +1074,9 @@ public abstract class CIS
               .append(String.format(getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0))).append("\t \n");
       totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0);
       totalOutput.append(getString("Assembly")).append(":\t \t ")
-              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getSpec("sw_cp") / getBaseLength())).append(" h\t")
-              .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ"))).append("\t \n");
-      totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / getBaseLength())) * calcMap.get("STUNDENSATZ");
+              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getSpec("sw_cp") / BASE_LENGTH)).append(" h\t")
+              .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ"))).append("\t \n");
+      totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ");
 
       int surcharge = 0;
       int addition = 0;
@@ -1185,60 +1089,66 @@ public abstract class CIS
               .append("(5 ").append(getString("pcs")).append(")\t")
               .append("(10 ").append(getString("pcs")).append(")\t")
               .append("(25 ").append(getString("pcs")).append(")\n");
+
+      String format = "%.2f";
+      double value = calcMap.get("Z_TRANSPORT") / 100.0;
       totalOutput.append(getString("Price/pc")).append(":\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[0])).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[1])).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[2])).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[3])).append("\n");
-      totalOutput.append(getString("Surcharge Transport")).append(" (").append(calcMap.get("Z_TRANSPORT")).append("%):\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[0] * calcMap.get("Z_TRANSPORT") / 100.0)).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[1] * calcMap.get("Z_TRANSPORT") / 100.0)).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[2] * calcMap.get("Z_TRANSPORT") / 100.0)).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[3] * calcMap.get("Z_TRANSPORT") / 100.0)).append("\n");
-      surcharge += calcMap.get("Z_TRANSPORT");
+              .append(String.format(getLocale(), format, totalPrices[0])).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[1])).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[2])).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[3])).append("\n");
+      totalOutput.append(getString("Surcharge Transport")).append(" (").append(value).append("%):\t")
+              .append(String.format(getLocale(), format, totalPrices[0] * value)).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
+      surcharge += value;
 
       if(getSpec("MXLED") == null)
       {
-        String dpiCode = getDpiCode();
-
-        totalOutput.append(getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(dpiCode)).append("%):\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[0] * calcMap.get(dpiCode) / 100.0)).append("\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[1] * calcMap.get(dpiCode) / 100.0)).append("\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[2] * calcMap.get(dpiCode) / 100.0)).append("\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[3] * calcMap.get(dpiCode) / 100.0)).append("\n");
-        surcharge += calcMap.get(dpiCode);
+        value = calcMap.get(getDpiCode()) / 100.0;
+        totalOutput.append(getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
+                .append(String.format(getLocale(), format, totalPrices[0] * value)).append("\t")
+                .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
+                .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
+                .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
+        surcharge += value;
       }
 
       if(getSpec("MXCIS") != null)
       {
         String cat = getTiViKey().split("_")[4];
-
+        value = calcMap.get("Z_" + cat) / 100.0;
         totalOutput.append(getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[0] * calcMap.get("Z_" + cat) / 100.0)).append("\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[1] * calcMap.get("Z_" + cat) / 100.0)).append("\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[2] * calcMap.get("Z_" + cat) / 100.0)).append("\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[3] * calcMap.get("Z_" + cat) / 100.0)).append("\n");
-        surcharge += calcMap.get("Z_" + cat);
+                .append(String.format(getLocale(), "%.2f", totalPrices[0] * value)).append("\t")
+                .append(String.format(getLocale(), "%.2f", totalPrices[1] * value)).append("\t")
+                .append(String.format(getLocale(), "%.2f", totalPrices[2] * value)).append("\t")
+                .append(String.format(getLocale(), "%.2f", totalPrices[3] * value)).append("\n");
+        surcharge += value;
       }
 
+      format = "%d,00";
+      value = calcMap.get("LIZENZ");
       totalOutput.append(getString("Licence")).append(":\t")
-              .append(String.format(getLocale(), "%d,00", calcMap.get("LIZENZ"))).append("\t")
-              .append(String.format(getLocale(), "%d,00", calcMap.get("LIZENZ"))).append("\t")
-              .append(String.format(getLocale(), "%d,00", calcMap.get("LIZENZ"))).append("\t")
-              .append(String.format(getLocale(), "%d,00", calcMap.get("LIZENZ"))).append("\n");
-      addition += calcMap.get("LIZENZ");
+              .append(String.format(getLocale(), format, value)).append("\t")
+              .append(String.format(getLocale(), format, value)).append("\t")
+              .append(String.format(getLocale(), format, value)).append("\t")
+              .append(String.format(getLocale(), format, value)).append("\n");
+      addition += value;
 
-      totalOutput.append(getString("Discount Surcharge")).append(" (").append(calcMap.get("Z_DISCONT")).append("%):\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[0] * calcMap.get("Z_DISCONT") / 100.0)).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[1] * calcMap.get("Z_DISCONT") / 100.0)).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[2] * calcMap.get("Z_DISCONT") / 100.0)).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[3] * calcMap.get("Z_DISCONT") / 100.0)).append("\n");
-      surcharge += calcMap.get("Z_DISCONT");
+      format = "%.2f";
+      value = calcMap.get("Z_DISCONT") / 100.0;
+      totalOutput.append(getString("Discount Surcharge")).append(" (").append(value).append("%):\t")
+              .append(String.format(getLocale(), format, totalPrices[0] * value)).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
+      surcharge += value;
 
-      totalPrices[0] *= (surcharge + 100) / 100.0;
-      totalPrices[1] *= (surcharge + 100) / 100.0;
-      totalPrices[2] *= (surcharge + 100) / 100.0;
-      totalPrices[3] *= (surcharge + 100) / 100.0;
+      totalPrices[0] *= 1 + surcharge;
+      totalPrices[1] *= 1 + surcharge;
+      totalPrices[2] *= 1 + surcharge;
+      totalPrices[3] *= 1 + surcharge;
 
       totalPrices[0] += addition;
       totalPrices[1] += addition;
@@ -1246,10 +1156,10 @@ public abstract class CIS
       totalPrices[3] += addition;
 
       totalOutput.append(getString("Totals")).append(" (EUR):").append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[0])).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[1])).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[2])).append("\t")
-              .append(String.format(getLocale(), "%.2f", totalPrices[3])).append("\n");
+              .append(String.format(getLocale(), format, totalPrices[0])).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[1])).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[2])).append("\t")
+              .append(String.format(getLocale(), format, totalPrices[3])).append("\n");
     }
     catch(NullPointerException | IndexOutOfBoundsException | NumberFormatException | IOException e)
     {
@@ -1267,7 +1177,7 @@ public abstract class CIS
 
   public Locale getLocale()
   {
-    return LANGUAGE;
+    return locale;
   }
 
   private String getDpiCode()
@@ -1282,30 +1192,31 @@ public abstract class CIS
     return "Z_" + key.split("_")[3] + "_DPI";
   }
 
-  public String getKey(int ID)
+  public String getKey(int id)
   {
-    return IDToKey.get(ID);
+    return idToKey.get(id);
   }
 
   private int calcNumOfPix()
   {
     int numOfPix;
+    int sensBoards = getSpec("sw_cp") / BASE_LENGTH;
 
     if(getSpec("MXCIS") != null)
     {
-      numOfPix = (int) (((MXCIS) this).getBoard(getSpec("res_cp"))[0] * (getSpec("sw_cp") / getBaseLength()) * ((MXCIS) this).getChip(getSpec("res_cp2"))[3] / getSpec("Binning"));
+      numOfPix = ((MXCIS) this).getBoard(getSpec("res_cp"))[0] * (getSpec("sw_cp") / BASE_LENGTH) * ((MXCIS) this).getChip(getSpec("res_cp2"))[3] / getSpec("Binning");
     }
     else if(getSpec("VHCIS") != null)
     {
-      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * (getSpec("sw_cp") / getBaseLength()) * 0.72 * getSpec("res_cp2"));
+      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * sensBoards * 0.72 * getSpec("res_cp2"));
     }
     else if(getSpec("VTCIS") != null)
     {
-      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * (getSpec("sw_cp") / getBaseLength()) * 0.72 * getSpec("res_cp2"));
+      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * sensBoards * 0.72 * getSpec("res_cp2"));
     }
     else
     {
-      numOfPix = (int) (getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / getBaseLength()) * 0.72 * getSpec("res_cp2"));
+      numOfPix = (int) (getSensBoard("SMARAGD")[0] * sensBoards * 0.72 * getSpec("res_cp2"));
     }
 
     if((getSpec("Color") * numOfPix * getSpec("Selected line rate") / 1000000 > 80 && getSpec("Interface") == 1))
@@ -1324,7 +1235,6 @@ public abstract class CIS
   public double getMinFreq(String key)
   {
     boolean coax = key.contains("C_");
-    System.out.println(100 + " gamma " + getGeometry(coax) + " n " + (coax ? 1 : getSpec("LEDLines")) + " I " + electSums[4] + " t " + mechaSums[4] + " Sv " + getSensitivity() + " / m " + 1.5);
     return 100 * electSums[4]
             * mechaSums[4]
             * (coax ? 1 : getSpec("LEDLines"))
@@ -1350,6 +1260,8 @@ public abstract class CIS
           return 1000;
         case 300:
           return 1800;
+        default:
+          throw new UnsupportedOperationException();
       }
     }
     else if(getSpec("VDCIS") != null)
@@ -1362,6 +1274,8 @@ public abstract class CIS
           return 1000;
         case 250:
           return 1800;
+        default:
+          throw new UnsupportedOperationException();
       }
     }
 

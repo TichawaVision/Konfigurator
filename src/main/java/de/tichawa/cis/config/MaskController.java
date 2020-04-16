@@ -136,7 +136,7 @@ public abstract class MaskController implements Initializable
       Scene scene = new Scene(loader.load());
       Stage stage = new Stage();
       stage.setScene(scene);
-      stage.setTitle(CIS_DATA.CIS_NAME + " Calculation");
+      stage.setTitle(CIS_DATA.cisName + " Calculation");
       stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
       stage.centerOnScreen();
       stage.show();
@@ -263,7 +263,7 @@ public abstract class MaskController implements Initializable
       Scene scene = new Scene(loader.load());
       Stage stage = new Stage();
       stage.setScene(scene);
-      stage.setTitle(CIS_DATA.CIS_NAME + " Datasheet");
+      stage.setTitle(CIS_DATA.cisName + " Datasheet");
       stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
       stage.centerOnScreen();
       stage.show();

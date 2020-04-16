@@ -1,8 +1,6 @@
 package de.tichawa.cis.config.vhcis;
 
 import de.tichawa.cis.config.*;
-import java.io.*;
-import java.nio.file.*;
 
 public class VHCIS extends CIS
 {
@@ -38,19 +36,19 @@ public class VHCIS extends CIS
       }
       case 1:
       {
-        key += "_" + COLORCODE[getSpec("Internal Light Color")];
+        key += "_" + COLOR_CODE[getSpec("Internal Light Color")];
         break;
       }
       case 2:
       {
-        key += "_2" + COLORCODE[getSpec("Internal Light Color")];
+        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
         break;
       }
     }
 
     if(getSpec("Color") == 3)
     {
-      key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
+      key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
     }
 
     key += getMechaVersion();

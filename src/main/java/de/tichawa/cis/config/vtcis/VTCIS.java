@@ -1,13 +1,8 @@
 package de.tichawa.cis.config.vtcis;
 
 import de.tichawa.cis.config.*;
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.function.*;
 
-import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
+import java.util.*;
 
 public class VTCIS extends CIS
 {
@@ -43,29 +38,29 @@ public class VTCIS extends CIS
       }
       case 1:
       {
-        key += "_" + COLORCODE[getSpec("Internal Light Color")];
+        key += "_" + COLOR_CODE[getSpec("Internal Light Color")];
         break;
       }
       case 2:
       {
-        key += "_2" + COLORCODE[getSpec("Internal Light Color")];
+        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
         break;
       }
       case 3:
       {
-        key += "_3" + COLORCODE[getSpec("Internal Light Color")] + "C";
+        key += "_3" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
         break;
       }
       case 4:
       {
-        key += "_" + COLORCODE[getSpec("Internal Light Color")] + "C";
+        key += "_" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
         break;
       }
     }
 
     if(getSpec("Color") == 3)
     {
-      key = key.replace(COLORCODE[getSpec("Internal Light Color")], "RGB");
+      key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
     }
 
     key += getMechaVersion();
