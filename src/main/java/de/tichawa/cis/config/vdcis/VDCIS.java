@@ -116,7 +116,7 @@ public class VDCIS extends CIS
     int tapCount;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) Math.ceil(numOfPix - ((getSpec("sw_cp") / getBaseLength()) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
+    numOfPixNominal = (int) Math.ceil(numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
     taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSpec("Selected line rate") / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
@@ -127,13 +127,13 @@ public class VDCIS extends CIS
     printOut.append(getString("numofcons")).append("%%%%%\n");
     printOut.append(getString("numofport")).append(taps * (getSpec("Color") - 1)).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");
-    printOut.append("Nominal pixel count: ").append(numOfPixNominal).append("\n");
+    printOut.append(getString("nomPix")).append(numOfPixNominal).append("\n");
     printOut.append("LVAL: ").append(lval).append("\n");
-    printOut.append("Camera Link mode: ").append(mediumMode ? "Medium" : "Full").append("\n");
-    printOut.append("Phases: ").append(getSpec("Color")).append("\n");
+    printOut.append(getString("clMode")).append(mediumMode ? "Base/Medium/Full" : "Full80").append("\n");
+    printOut.append(getString("numPhases")).append(getSpec("Color")).append("\n");
 
     Map<Integer, List<Integer>> mediumMap = new HashMap<>();
-    mediumMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 7, 8, 9, 10, 11, 12, 0, 0, 0, 0));
+    mediumMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 9, 10, 11, 12, 13, 14, 15, 16, 0, 0));
     mediumMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 4, 4, 0, 0, 0, 0, 0));
     mediumMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 3, 3, 3, 4, 4, 4, 0, 0, 0, 0));
     mediumMap.put(4, Arrays.asList(1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0));
@@ -174,8 +174,8 @@ public class VDCIS extends CIS
       }
     }
 
-    printOut.append("\nDifferent Camera Link configurations available on request.\n");
-    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, ((tapCount - 1) / 10) + 1 + "");
+    printOut.append(getString("configOnRequest"));
+    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, taps <= 3 ? "1" : taps <= 10 ? "2" : taps <= 13 ? "3" : "4");
     return printOut.toString();
   }
 

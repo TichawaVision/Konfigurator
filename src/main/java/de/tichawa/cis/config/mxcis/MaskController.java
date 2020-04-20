@@ -253,7 +253,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
       CIS_DATA.setSpec("Scan Width", ScanWidth.getSelectionModel().getSelectedIndex());
       CIS_DATA.setSpec("sw_cp", sw);
-      CIS_DATA.setSpec("sw_index", (int) (sw / CIS_DATA.getBaseLength()) - 2);
+      CIS_DATA.setSpec("sw_index", (int) (sw / CIS.BASE_LENGTH) - 2);
 
       MXLED_DATA.setSpec("Scan Width", CIS_DATA.getSpec("Scan Width"));
       MXLED_DATA.setSpec("sw_cp", CIS_DATA.getSpec("sw_cp"));

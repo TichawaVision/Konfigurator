@@ -18,6 +18,10 @@ public class DataSheetController implements Initializable
   protected CIS CIS_DATA;
 
   @FXML
+  private ScrollPane Scroller;
+  @FXML
+  private GridPane Grid;
+  @FXML
   private TextArea Header;
   @FXML
   private TextArea Specs;
@@ -85,6 +89,8 @@ public class DataSheetController implements Initializable
       CLConfig.setText(dataSheetText[2]);
       CLConfig.setEditable(false);
       CLConfig.setMinHeight((dataSheetText[2].length() - dataSheetText[2].replace("\n", "").length()) * 20);
+      Scroller.setStyle("-fx-background-color: #FFFFFF;");
+      Grid.setStyle("-fx-background-color: #FFFFFF;");
 
       ProductPic.setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Product.jpg")));
 

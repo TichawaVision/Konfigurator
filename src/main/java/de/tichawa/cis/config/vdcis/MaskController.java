@@ -120,7 +120,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
       if(CIS_DATA.getSpec("Color") >= 4 && CIS_DATA.getSpec("res_cp2") > 600)
       {
-        Color.getSelectionModel().select(oldValue);
+        Resolution.getSelectionModel().select(oldValue);
         return;
       }
 
@@ -139,7 +139,15 @@ public class MaskController extends de.tichawa.cis.config.MaskController
         return;
       }
 
-      double maxLR = Math.round(1000 * CIS_DATA.getSensBoard("SMARAGD_INLINE")[2] / (CIS_DATA.getSpec("Color") * (CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[3] + 3 + CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[2]) * 1.0 / Math.min(CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[4], CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
+      double maxLR = Math.round(1000 *
+          CIS_DATA.getSensBoard("SMARAGD_INLINE")[2] /
+          (CIS_DATA.getSpec("Color")
+              * (CIS_DATA.getSensChip("SMARAGD"
+              + CIS_DATA.getSpec("res_cp") + "_VD")[3] + 3 +
+              CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[2]) * 1.0
+              / Math.min(CIS_DATA.getSensChip("SMARAGD" +
+              CIS_DATA.getSpec("res_cp") + "_VD")[4],
+              CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);
@@ -166,7 +174,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       
       CIS_DATA.setSpec("Scan Width", ScanWidth.getSelectionModel().getSelectedIndex());
       CIS_DATA.setSpec("sw_cp", sw);
-      CIS_DATA.setSpec("sw_index", (int) (sw / CIS_DATA.getBaseLength()) - 1);
+      CIS_DATA.setSpec("sw_index", (int) (sw / CIS.BASE_LENGTH) - 1);
     });
     SelLineRate.valueProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) ->
     {

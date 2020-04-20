@@ -7,7 +7,6 @@ import de.tichawa.util.*;
 import java.io.*;
 import java.nio.charset.*;
 import java.nio.file.*;
-import java.sql.*;
 import java.text.*;
 import java.util.*;
 import java.util.Date;
@@ -30,10 +29,9 @@ public abstract class CIS
   protected Double[] mechaSums;
   protected Double[] totalPrices;
   protected final HashMap<Integer, Integer> maxRateForHalfMode;
-  protected static final int BASE_LENGTH = 260;
+  public static final int BASE_LENGTH = 260;
   protected int numFPGA;
   protected static Locale locale = Locale.getDefault();
-  private DSLContext context;
 
   protected static final String[] COLOR_CODE = new String[]
   {

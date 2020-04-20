@@ -94,7 +94,9 @@ public abstract class MaskController implements Initializable
       }
       catch(CISException e)
       {
-        new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText(e.getMessage());
+        alert.show();
         return;
       }
 
@@ -126,7 +128,9 @@ public abstract class MaskController implements Initializable
     }
     catch(CISException e)
     {
-      new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+      Alert alert = new Alert(Alert.AlertType.ERROR);
+      alert.setHeaderText(e.getMessage());
+      alert.show();
       return;
     }
 
@@ -158,7 +162,9 @@ public abstract class MaskController implements Initializable
     }
     catch(CISException e)
     {
-      new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+      Alert alert = new Alert(Alert.AlertType.ERROR);
+      alert.setHeaderText(e.getMessage());
+      alert.show();
       return;
     }
 
@@ -213,7 +219,9 @@ public abstract class MaskController implements Initializable
       }
       catch(CISException e)
       {
-        new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText(e.getMessage());
+        alert.show();
         return;
       }
 
@@ -253,7 +261,9 @@ public abstract class MaskController implements Initializable
     }
     catch(CISException e)
     {
-      new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+      Alert alert = new Alert(Alert.AlertType.ERROR);
+      alert.setHeaderText(e.getMessage());
+      alert.show();
       return;
     }
 

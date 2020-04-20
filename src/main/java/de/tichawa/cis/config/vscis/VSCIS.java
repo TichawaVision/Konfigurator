@@ -117,9 +117,9 @@ public class VSCIS extends CIS
     double binning;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / getBaseLength()) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
+    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
     taps = (int) Math.ceil((numOfPix * getSpec("Selected line rate") / 1000000.0) / 85.0);
-    chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / getBaseLength())) / (double) taps);
+    chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / BASE_LENGTH)) / (double) taps);
     ppsbin = getSensChip("SMARAGD" + getSpec("res_cp") + "_VS")[3] / ((double) getSpec("res_cp") / (double) getSpec("res_cp2"));
     pixPerTap = (int) (chipsPerTap * ppsbin);
     portDataRate = pixPerTap * getSpec("Selected line rate") / 1000000.0;
@@ -127,7 +127,7 @@ public class VSCIS extends CIS
     while(portDataRate > 85.0)
     {
       taps++;
-      chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / getBaseLength())) / (double) taps);
+      chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / BASE_LENGTH)) / (double) taps);
       ppsbin = getSensChip("SMARAGD" + getSpec("res_cp") + "_VS")[3] / ((double) getSpec("res_cp") / (double) getSpec("res_cp2"));
       pixPerTap = (int) (chipsPerTap * ppsbin);
       portDataRate = pixPerTap * getSpec("Selected line rate") / 1000000.0;
