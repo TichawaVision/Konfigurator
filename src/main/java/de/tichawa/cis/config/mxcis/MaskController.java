@@ -49,7 +49,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     {
       if(newValue.equals("RGB") && CIS_DATA.getSpec("Internal Light Source") != 2 && CIS_DATA.getSpec("Internal Light Source") != 3)
       {
-        new Alert(AlertType.WARNING, "RGB only usable with Two Sided or One Sided plus Coax").show();
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setHeaderText("RGB only usable with Two Sided or One Sided plus Coax");
+        alert.show();
         Color.getSelectionModel().select(oldValue);
         return;
       }
@@ -297,7 +299,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       
       if(newValue.contains("Coax"))
       {
-        new Alert(AlertType.WARNING, "Coax selected.\nPlease check line rate.").show();
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setHeaderText("Coax selected.\nPlease check line rate.");
+        alert.show();
       }
 
       CIS_DATA.setSpec("Internal Light Source", InternalLightSource.getSelectionModel().getSelectedIndex());

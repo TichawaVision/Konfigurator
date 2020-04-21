@@ -127,8 +127,9 @@ public class DataSheetController implements Initializable
     {
       ((Stage) Header.getScene().getWindow()).close();
 
-      Alert a = new Alert(AlertType.ERROR, e.getMessage());
-      a.show();
+      Alert alert = new Alert(Alert.AlertType.ERROR);
+      alert.setHeaderText(e.getMessage());
+      alert.show();
     }
     catch(NullPointerException e)
     {
@@ -152,13 +153,17 @@ public class DataSheetController implements Initializable
       if(p.printPage(printable))
       {
         printable.getTransforms().clear();
-        new Alert(AlertType.INFORMATION, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess"));
+        alert.show();
         p.endJob();
       }
       else
       {
         printable.getTransforms().clear();
-        new Alert(AlertType.ERROR, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings."));
+        alert.show();
       }
     }
   }
