@@ -139,7 +139,7 @@ public class DataSheetController implements Initializable
   public void print()
   {
     PrinterJob p = PrinterJob.createPrinterJob();
-    Pane printable = (Pane) Header.getScene().getRoot();
+    Pane printable = Grid;
 
     if(p.showPrintDialog(null))
     {

@@ -148,7 +148,7 @@ public class VDCIS extends CIS
     highMap.put(5, mediumMap.get(5));
     highMap.put(6, mediumMap.get(6));
 
-    List<Integer> tapConfig = (mediumMode ? mediumMap : highMap).get(getSpec("Color"));
+    List<Integer> tapConfig = (mediumMode ? mediumMap : highMap).get(getSpec("Color") - 1);
     if(taps > tapConfig.stream().mapToInt(x -> x).max().orElse(0))
     {
       throw new CISException("Number of required taps (" + taps * getSpec("Color") + ") is too high. Please reduce the data rate.");
@@ -175,7 +175,8 @@ public class VDCIS extends CIS
     }
 
     printOut.append(getString("configOnRequest"));
-    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, taps <= 3 ? "1" : taps <= 10 ? "2" : taps <= 13 ? "3" : "4");
+    int realTapCount = taps * getSpec("Color") - 1;
+    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, realTapCount <= 3 ? "1" : realTapCount <= 10 ? "2" : realTapCount <= 13 ? "3" : "4");
     return printOut.toString();
   }
 

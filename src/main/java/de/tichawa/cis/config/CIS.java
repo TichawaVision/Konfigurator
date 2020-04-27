@@ -1073,7 +1073,7 @@ public abstract class CIS
       totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0);
       totalOutput.append(getString("Assembly")).append(":\t \t ")
               .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getSpec("sw_cp") / BASE_LENGTH)).append(" h\t")
-              .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ"))).append("\t \n");
+              .append(String.format(getLocale(), "%.2f", (double) (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ"))).append("\t \n");
       totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ");
 
       int surcharge = 0;
@@ -1125,7 +1125,7 @@ public abstract class CIS
         surcharge += value;
       }
 
-      format = "%d,00";
+      format = "%f,00";
       value = calcMap.get("LIZENZ");
       totalOutput.append(getString("Licence")).append(":\t")
               .append(String.format(getLocale(), format, value)).append("\t")
