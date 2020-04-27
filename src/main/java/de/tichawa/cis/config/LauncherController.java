@@ -83,7 +83,9 @@ public class LauncherController implements Initializable
                 })
                 .map(Tuple::getV)
                 .map(line -> String.join("\t", line))::iterator, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        new Alert(AlertType.CONFIRMATION, "Update successful. New price table written to " + Launcher.tableHome.resolve("Prices.csv"), ButtonType.OK).showAndWait();
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setHeaderText("Update successful. New price table written to " + Launcher.tableHome.resolve("Prices.csv"));
+        alert.showAndWait();
       }
     }
     catch(IOException ex)

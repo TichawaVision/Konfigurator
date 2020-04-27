@@ -307,8 +307,9 @@ public class CalculationController implements Initializable
     }
     catch(CISException e)
     {
-      Alert a = new Alert(Alert.AlertType.ERROR, e.getMessage());
-      a.show();
+      Alert alert = new Alert(Alert.AlertType.ERROR);
+      alert.setHeaderText(e.getMessage());
+      alert.show();
     }
     catch(ParseException | NullPointerException e)
     {
@@ -381,13 +382,17 @@ public class CalculationController implements Initializable
       if(p.printPage(printPane))
       {
         printPane.getTransforms().clear();
-        new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess")).show();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess"));
+        alert.show();
         p.endJob();
       }
       else
       {
         printPane.getTransforms().clear();
-        new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings.")).show();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings."));
+        alert.show();
       }
     }
     
