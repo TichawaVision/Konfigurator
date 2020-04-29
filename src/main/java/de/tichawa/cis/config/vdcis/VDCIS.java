@@ -153,8 +153,7 @@ public class VDCIS extends CIS
     {
       throw new CISException("Number of required taps (" + taps * getSpec("Color") + ") is too high. Please reduce the data rate.");
     }
-    if(numOfPix * getSpec("Color") * 2 > 327680
-        || (getSpec("res_cp2") >= 1200) && (numOfPix - 16 * 6 * 2) * getSpec("Color") * 2 > 327680)
+    if(getSpec("res_cp2") >= 1200 && (numOfPix - 16 * getSpec("sw_cp") / BASE_LENGTH * 6 * 2) * getSpec("Color") * 2 > 327680)
     {
       throw new CISException("Out of Flash memory. Please reduce the scan width or resolution.");
     }
