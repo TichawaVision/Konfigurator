@@ -116,7 +116,7 @@ public class VDCIS extends CIS
     int tapCount;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) Math.ceil(numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
+    numOfPixNominal = (int) Math.ceil(numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2")))) + 1;
     taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSpec("Selected line rate") / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
@@ -159,6 +159,7 @@ public class VDCIS extends CIS
       throw new CISException("Out of Flash memory. Please reduce the scan width or resolution.");
     }
 
+    int cableCount = 0;
     for(tapCount = 0; tapCount < tapConfig.size(); tapCount++)
     {
       int currentTap = tapConfig.get(tapCount);
@@ -171,12 +172,16 @@ public class VDCIS extends CIS
         printOut.append("   Port ").append(getPortName(tapCount % 10)).append(":   ")
             .append(String.format("%05d", (currentTap - 1) * lval)).append("   - ")
             .append(String.format("%05d", currentTap * lval - 1)).append("\n");
+
+        if(tapCount % 10 == 0 || tapCount % 10 == 3)
+        {
+          cableCount++;
+        }
       }
     }
 
     printOut.append(getString("configOnRequest"));
-    int realTapCount = taps * getSpec("Color") - 1;
-    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, realTapCount <= 3 ? "1" : realTapCount <= 10 ? "2" : realTapCount <= 13 ? "3" : "4");
+    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, cableCount + "");
     return printOut.toString();
   }
 
