@@ -1076,8 +1076,8 @@ public abstract class CIS
               .append(String.format(getLocale(), "%.2f", (double) (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ"))).append("\t \n");
       totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ");
 
-      int surcharge = 0;
       int addition = 0;
+      double surcharge = 0.0;
 
       totalPrices[0] = totalPrices[2] * calcMap.get("F_1") / 100.0;
       totalPrices[1] = totalPrices[2] * calcMap.get("F_5") / 100.0;
@@ -1112,8 +1112,7 @@ public abstract class CIS
                 .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
         surcharge += value;
       }
-
-      if(getSpec("MXCIS") != null)
+      else
       {
         String cat = getTiViKey().split("_")[4];
         value = calcMap.get("Z_" + cat) / 100.0;
@@ -1125,7 +1124,7 @@ public abstract class CIS
         surcharge += value;
       }
 
-      format = "%f,00";
+      format = "%.2f";
       value = calcMap.get("LIZENZ");
       totalOutput.append(getString("Licence")).append(":\t")
               .append(String.format(getLocale(), format, value)).append("\t")
