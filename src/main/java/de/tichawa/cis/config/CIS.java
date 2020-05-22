@@ -1114,7 +1114,7 @@ public abstract class CIS
       }
       else
       {
-        String cat = getTiViKey().split("_")[4];
+        String cat = getTiViKey().split("_")[3];
         value = calcMap.get("Z_" + cat) / 100.0;
         totalOutput.append(getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[0] * value)).append("\t")
@@ -1160,7 +1160,7 @@ public abstract class CIS
     }
     catch(NullPointerException | IndexOutOfBoundsException | NumberFormatException | IOException e)
     {
-      throw new CISException(getString("A fatal error occurred: Missing configuration tables. Please contact support@tichawa.de for further help."));
+      throw new CISException(getString("MissingConfigTables"));
     }
 
     printout += electOutput.toString();
