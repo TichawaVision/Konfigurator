@@ -51,7 +51,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     Color.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
       if(newValue.contains("Three phases (RGB)") &&
-          (CIS_DATA.getSpec("Internal Light Source") == 0 || CIS_DATA.getSpec("sw_cp") > 1040))
+          (CIS_DATA.getSpec("Internal Light Source") == 0 || CIS_DATA.getSpec("sw_cp") > 1300))
       {
         Color.getSelectionModel().select(oldValue);
         return;
@@ -177,7 +177,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     {
       int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(' ')).trim());
 
-      if(sw > 1040 && CIS_DATA.getSpec("Color") == 3)
+      if(sw > 1300 && CIS_DATA.getSpec("Color") == 3)
       {
         ScanWidth.getSelectionModel().select(oldValue);
         return;

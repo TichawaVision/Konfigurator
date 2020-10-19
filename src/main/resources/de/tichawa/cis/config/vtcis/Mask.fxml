@@ -70,6 +70,7 @@
                 <ComboBox promptText="260 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="ScanWidth">
                   <items>
                     <FXCollections fx:factory="observableArrayList">
+                      <String fx:value="1560 mm" />
                       <String fx:value="1300 mm" />
                       <String fx:value="1040 mm" />
                       <String fx:value="780 mm" />
