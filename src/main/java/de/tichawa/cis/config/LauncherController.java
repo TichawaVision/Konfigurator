@@ -55,9 +55,14 @@ public class LauncherController implements Initializable
     try
     {
       Desktop.getDesktop().open(Launcher.ferixHome.resolve("Priceexport.lnk").toFile());
+      
+      String lastUpdated = "Never";
+      if(Files.exists(Launcher.tableHome.resolve("Back/Prices.csv")))
+      {
+        lastUpdated = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm:ss").withZone(ZoneId.systemDefault()).format(Files.getLastModifiedTime(Launcher.tableHome.resolve("Back/Prices.csv")).toInstant());
+      }
       if(new Alert(AlertType.CONFIRMATION, "Please wait until FERIX has finished the export to " + Launcher.ferixHome.resolve("Export/art.csv") + ", then press OK to continue.\nLast update: "
-              + DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm:ss").withZone(ZoneId.systemDefault()).format(Files.getLastModifiedTime(Launcher.tableHome.resolve("Back/Prices.csv")).toInstant()),
-              ButtonType.OK, ButtonType.CANCEL).showAndWait()
+              + lastUpdated, ButtonType.OK, ButtonType.CANCEL).showAndWait()
               .orElse(ButtonType.CANCEL) == ButtonType.OK)
       {
         Map<Integer, Tuple<Double, Boolean>> sourcePrices = Files.readAllLines(Launcher.ferixHome.resolve("Export/art.csv")).stream()
