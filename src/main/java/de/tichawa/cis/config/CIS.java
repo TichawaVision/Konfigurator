@@ -1,15 +1,23 @@
 package de.tichawa.cis.config;
 
+import de.tichawa.cis.config.model.tables.records.*;
 import de.tichawa.util.MathEval;
 import de.tichawa.cis.config.mxcis.MXCIS;
-import de.tichawa.util.*;
+import org.apache.commons.dbcp2.*;
+import org.jooq.*;
+import org.jooq.exception.*;
+import org.jooq.impl.*;
+import org.jooq.types.*;
 
 import java.io.*;
+import java.io.IOException;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.text.*;
 import java.util.*;
 import java.util.Date;
+
+import static de.tichawa.cis.config.model.Tables.*;
 
 // Alle allgemeine CIS Funktionen
 public abstract class CIS
@@ -21,10 +29,8 @@ public abstract class CIS
   protected HashMap<String, Integer[]> sensChipTab;
   protected HashMap<String, Integer[]> sensBoardTab;
   protected HashMap<String, Integer[]> adcBoardTab;
-  protected HashMap<Integer, Integer> electConfig;
-  protected HashMap<Integer, Integer> mechaConfig;
-  protected HashMap<Integer, Double[]> prices;
-  protected HashMap<Integer, String> idToKey;
+  protected HashMap<PriceRecord, Integer> electConfig;
+  protected HashMap<PriceRecord, Integer> mechaConfig;
   protected Double[] electSums;
   protected Double[] mechaSums;
   protected Double[] totalPrices;
@@ -69,6 +75,8 @@ public abstract class CIS
   public abstract String getCLCalc(int numOfPix);
 
   public abstract String getTiViKey();
+
+  public abstract int[] getLightSources();
 
   public String getBlKey()
   {
@@ -132,7 +140,7 @@ public abstract class CIS
       int x = (int) Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Mechanics.csv"))
               .limit(1)
               .map(line -> line.split("\t"))
-              .flatMap(line -> Arrays.stream(line))
+              .flatMap(Arrays::stream)
               .filter(field -> field.startsWith("NL"))
               .count();
 
@@ -234,41 +242,33 @@ public abstract class CIS
 
   public boolean calculate()
   {
-    mechaSums = new Double[5];
-    electSums = new Double[5];
-    totalPrices = new Double[4];
+    DSLContext context;
+    Map<UInteger, PriceRecord> priceRecords = new HashMap<>();
+    mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 100.0};
+    electSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
+    totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
     mechaConfig = new HashMap<>();
     electConfig = new HashMap<>();
-    prices = new HashMap<>();
-    idToKey = new HashMap<>();
 
     try
     {
-      Files.lines(Launcher.tableHome.resolve("Prices.csv"))
-              .map(line -> line.split("\t"))
-              .filter(line -> isInteger(line[0]))
-              .forEach(line ->
-              {
-                int artnum = Integer.parseInt(line[0].replace("X", ""));
-                Double[] values = new Double[Math.max(line.length - 2, 5)];
-                for(int x = 2; x < Math.max(line.length, 6); x++)
-                {
-                  try
-                  {
-                    values[x - 2] = Double.parseDouble(line[x]);
-                  }
-                  catch(NumberFormatException | ArrayIndexOutOfBoundsException ex)
-                  {
-                    values[x - 2] = null;
-                  }
-                }
-                idToKey.put(artnum, line[1]);
-                prices.put(artnum, values);
-              });
+      Properties dbProperties = new Properties();
+      dbProperties.loadFromXML(new FileInputStream("connection.xml"));
+      BasicDataSource dataSource = new BasicDataSource();
+      dataSource.setUrl("jdbc:mariadb:" + dbProperties.getProperty("dbHost") + ":" + dbProperties.getProperty("dbPort")
+          + "/" + dbProperties.getProperty("dbName"));
+      dataSource.setUsername(dbProperties.getProperty("dbUser"));
+      dataSource.setPassword(dbProperties.getProperty("dbPwd"));
+      context = DSL.using(dataSource, SQLDialect.MARIADB);
+
+      context.selectFrom(PRICE)
+          .fetchStream()
+          .forEach(priceRecord -> priceRecords.put(priceRecord.getArtNo(), priceRecord));
     }
     catch(IOException ex)
     {
-      throw new CISException("Error in Prices.csv");
+      ex.printStackTrace();
+      throw new CISException("Error in Prices");
     }
 
     //Electronics
@@ -302,131 +302,86 @@ public abstract class CIS
     try
     {
       // Einlesen der Elektronik-Tabelle
-      Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Electronics.csv"))
-              .skip(1)
-              .map(line -> line.split("\t"))
-              .filter(line -> line[0].length() > 0)
-              .map(line -> new Tuple<>(line, (int) (getAmount(line) * getElectFactor(line[3])
-              * MathEval.evaluate(line[4 + getSpec("sw_index")]
-                  .replace(" ", "")
-                  .replace("L", "" + getSpec("LEDLines"))
-                  .replace("F", "" + numFPGA)
-                  .replace("S", "" + getSpec("sw_cp") / BASE_LENGTH)
-                  .replace("N", "" + getSpec("sw_cp"))))))
-              .filter(data -> data.getV() > 0)
-              .forEach(data ->
-              {
-                String[] line = data.getU();
-                int amount = data.getV();
-                electConfig.put(Integer.parseInt(line[1]), amount);
+      context.selectFrom(ELECTRONIC)
+          .where(ELECTRONIC.CIS_TYPE.eq(getClass().getSimpleName()))
+          .and(ELECTRONIC.CIS_LENGTH.eq(getSpec("sw_cp")))
+          .stream()
+          .filter(electronicRecord -> isApplicable(electronicRecord.getSelectCode()))
+          .forEach(electronicRecord ->
+          {
+            int amount = (int) (getElectFactor(electronicRecord.getMultiplier())
+                * MathEval.evaluate(electronicRecord.getAmount()
+                .replace(" ", "")
+                .replace("L", "" + getSpec("LEDLines"))
+                .replace("F", "" + numFPGA)
+                .replace("S", "" + getSpec("sw_cp") / BASE_LENGTH)
+                .replace("N", "" + getSpec("sw_cp"))));
 
-                if(prices.containsKey(Integer.parseInt(line[1])))
-                {
-                  Double[] pricelist = prices.get(Integer.parseInt(line[1]));
-                  if(pricelist.length < 4)
+            if(amount > 0)
+            {
+              Optional.ofNullable(priceRecords.get(electronicRecord.getArtNo()))
+                  .ifPresent(priceRecord ->
                   {
-                    pricelist = new Double[]
-                    {
-                      0.0, 0.0, 0.0, 0.0, 1.0
-                    };
-                  }
+                    electConfig.put(priceRecord, amount);
+                    electSums[0] += priceRecord.getPrice() * amount;
+                    electSums[1] += priceRecord.getAssemblyTime() * amount;
+                    electSums[2] += priceRecord.getPowerConsumption() * amount;
+                    electSums[3] += priceRecord.getWeight() * amount;
 
-                  for(int x = 0; x < electSums.length; x++)
-                  {
-                    if(pricelist[x] != null && pricelist[x] != 0)
+                    if(priceRecord.getPhotoValue() != null)
                     {
-                      if(x < 4)
-                      {
-                        if(electSums[x] == null)
-                        {
-                          electSums[x] = 0.0;
-                        }
-                        electSums[x] += pricelist[x] * amount;
-                      }
-                      else
-                      {
-                        if(electSums[x] == null)
-                        {
-                          electSums[x] = 100.0;
-                        }
-                        electSums[x] = Math.min(electSums[x], pricelist[x]);
-                      }
+                      electSums[4] = Math.min(priceRecord.getPhotoValue(), electSums[4]);
                     }
-                  }
-                }
+                  });
 
-                if(line[2].contains("FPGA"))
-                {
-                  numFPGA += amount;
-                }
-              });
+              if(electronicRecord.getSelectCode().contains("FPGA"))
+              {
+                numFPGA += amount;
+              }
+            }
+          });
     }
-    catch(IOException e)
+    catch(DataAccessException e)
     {
-      throw new CISException("Error in Electronics.csv");
-    }
-
-    if(electSums[4] == null)
-    {
-      electSums[4] = 1.0;
+      throw new CISException("Error in Electronics");
     }
 
     //Mechanics
     try
     {
-      int index = getSpec("MXLED") == null ? getSpec("Internal Light Source") : getSpec("sw_index");
-      Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Mechanics.csv"))
-              .skip(1)
-              .map(line -> line.split("\t"))
-              .filter(line -> line[0].length() > 0)
-              .filter(line -> line[3 + getSpec("sw_index")].length() > 0)
-              .map(line -> {
-                return new Tuple<>(line, getAmount(line) * getMechaFactor(line[3 + countNLs() + index]));
-                        })
-              .filter(data -> data.getV() > 0)
-              .forEach(data ->
-              {
-                String[] line = data.getU();
-                int amount = data.getV();
-                mechaConfig.put(Integer.parseInt(line[3 + getSpec("sw_index")].replace("X", "")), amount);
+      context.selectFrom(MECHANIC)
+          .where(MECHANIC.CIS_TYPE.eq(getClass().getSimpleName()))
+          .and(MECHANIC.CIS_LENGTH.eq(getSpec("sw_cp")))
+          .and(MECHANIC.DIFFUSE_LIGHTS.eq(getLightSources()[0]))
+          .and(MECHANIC.COAX_LIGHTS.eq(getLightSources()[1]))
+          .stream()
+          .filter(mechanicRecord -> isApplicable(mechanicRecord.getSelectCode()))
+          .forEach(mechanicRecord ->
+          {
+            int amount = getMechaFactor(mechanicRecord.getAmount());
 
-                if(prices.containsKey(Integer.parseInt(line[3 + getSpec("sw_index")].replace("X", ""))))
-                {
-                  Double[] pricelist = prices.get(Integer.parseInt(line[3 + getSpec("sw_index")]));
-
-                  for(int x = 0; x < mechaSums.length; x++)
+            if(amount > 0)
+            {
+              Optional.ofNullable(priceRecords.get(mechanicRecord.getArtNo()))
+                  .ifPresent(priceRecord ->
                   {
-                    if(pricelist[x] != null && pricelist[x] != 0)
-                    {
-                      if(x < 4)
-                      {
-                        if(mechaSums[x] == null)
-                        {
-                          mechaSums[x] = 0.0;
-                        }
-                        mechaSums[x] += pricelist[x] * amount;
-                      }
-                      else
-                      {
-                        if(mechaSums[x] == null)
-                        {
-                          mechaSums[x] = 1.0;
-                        }
-                        mechaSums[x] *= pricelist[x];
-                      }
-                    }
-                  }
-                }
-              });
-    }
-    catch(IOException e)
-    {
-      throw new CISException("Error in Mechanics.csv");
-    }
+                    mechaConfig.put(priceRecord, amount);
+                    mechaSums[0] += priceRecord.getPrice() * amount;
+                    mechaSums[1] += priceRecord.getAssemblyTime() * amount;
+                    mechaSums[2] += priceRecord.getPowerConsumption() * amount;
+                    mechaSums[3] += priceRecord.getWeight() * amount;
 
-    if(mechaSums[4] == null)
+                    if(priceRecord.getPhotoValue() != null)
+                    {
+                      mechaSums[4] *= priceRecord.getPhotoValue();
+                    }
+                  });
+            }
+          });
+    }
+    catch(DataAccessException e)
     {
-      mechaSums[4] = 1.0;
+      throw new CISException("Error in Mechanics");
     }
 
     if(getSpec("MXLED") == null)
@@ -435,6 +390,18 @@ public abstract class CIS
     }
 
     return true;
+  }
+
+  private Optional<UInteger> parseUInt(String s)
+  {
+    try
+    {
+      return Optional.of(UInteger.valueOf(s));
+    }
+    catch(NullPointerException | NumberFormatException ex)
+    {
+      return Optional.empty();
+    }
   }
 
   public String getVersion()
@@ -821,11 +788,11 @@ public abstract class CIS
     return electSums;
   }
 
-  private int getAmount(String[] row)
+  private boolean isApplicable(String selectCode)
   {
     boolean proceed;
     String key = getTiViKey();
-    String[] multiplier = row[2].split("&");
+    String[] multiplier = selectCode.split("&");
 
     boolean invert;
     for(String m : multiplier)
@@ -875,7 +842,7 @@ public abstract class CIS
           break;
         case "DIFF":
           proceed = !(key.split("_")[4].endsWith("C") || (getSpec("MXCIS") != null && key.split("_")[5].endsWith("C"))) //No coaxial light
-                  || (key.split("_")[4].startsWith("2") || (getSpec("MXCIS") != null && key.split("_")[5].startsWith("2"))); //Twosided => at least one diffuse (2XX oder 2XXC)
+              || (key.split("_")[4].startsWith("2") || (getSpec("MXCIS") != null && key.split("_")[5].startsWith("2"))); //Twosided => at least one diffuse (2XX oder 2XXC)
           break;
         case "NOCO": //Specific cooling
         case "FAIR":
@@ -907,11 +874,11 @@ public abstract class CIS
 
       if(!proceed)
       {
-        return 0;
+        return false;
       }
     }
 
-    return 1;
+    return true;
   }
 
   private int getMechaFactor(String factor)
@@ -965,12 +932,12 @@ public abstract class CIS
     return -1;
   }
 
-  public Map<Integer, Integer> getMechaConfig()
+  public Map<PriceRecord, Integer> getMechaConfig()
   {
     return mechaConfig;
   }
 
-  public Map<Integer, Integer> getElectConfig()
+  public Map<PriceRecord, Integer> getElectConfig()
   {
     return electConfig;
   }
@@ -996,46 +963,37 @@ public abstract class CIS
             .append(getString("Price/pc (EUR)")).append("\t")
             .append(getString("Weight/pc (kg)")).append("\n");
 
-    getElectConfig().forEach((id, value) ->
-    {
-      String key = idToKey.get(id);
+    getElectConfig().forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
+        .append(String.format("%05d", priceRecord.getArtNo().intValue())).append("\t")
+        .append(amount).append("\t")
+        .append(String.format(getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
+        .append(String.format(getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\t")
+        .append(String.format(getLocale(), "%.2f", priceRecord.getAssemblyTime() * amount)).append("\t")
+        .append(String.format(getLocale(), "%.2f", priceRecord.getPowerConsumption() * amount)).append("\n"));
 
-      electOutput.append(key).append("\t")
-          .append(String.format("%05d", id)).append("\t")
-          .append(value).append("\t")
-          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[0]))).append("\t")
-          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[3]))).append("\t")
-          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[1]))).append("\t")
-          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[2]))).append("\n");
-    });
     electOutput.append("\n\t\n").append(getString("Totals")).append("\t")
-            .append(" \t")
-            .append("0\t")
-            .append(String.format(getLocale(), "%.2f", electSums[0])).append("\t")
-            .append(String.format(getLocale(), "%.2f", electSums[3])).append("\t")
-            .append(String.format(getLocale(), "%.2f", electSums[1])).append("\t")
-            .append(String.format(getLocale(), "%.2f", electSums[2] == null ? 0.0 : electSums[2])).append("\n");
+        .append(" \t")
+        .append("0\t")
+        .append(String.format(getLocale(), "%.2f", electSums[0])).append("\t")
+        .append(String.format(getLocale(), "%.2f", electSums[3])).append("\t")
+        .append(String.format(getLocale(), "%.2f", electSums[1])).append("\t")
+        .append(String.format(getLocale(), "%.2f", electSums[2])).append("\n");
 
-    getMechaConfig().forEach((id, value) ->
-    {
-      String key = idToKey.get(id);
+    getMechaConfig().forEach((priceRecord, amount) -> mechaOutput.append(priceRecord.getFerixKey()).append("\t")
+        .append(String.format("%05d", priceRecord.getArtNo().intValue())).append("\t")
+        .append(amount).append("\t")
+        .append(String.format(getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
+        .append(String.format(getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\n"));
 
-      mechaOutput.append(key).append("\t")
-          .append(String.format("%05d", id)).append("\t")
-          .append(value).append("\t")
-          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[0]))).append("\t")
-          .append(String.format(getLocale(), "%.2f", (prices.get(id) == null ? 0.0 : prices.get(id)[3]))).append("\n");
-    });
     mechaOutput.append("\n\t\n").append(getString("Totals")).append("\t")
             .append(" \t")
             .append("0\t")
             .append(String.format(getLocale(), "%.2f", mechaSums[0])).append("\t")
-            .append(String.format(getLocale(), "%.2f", mechaSums[3] == null ? 0.0 : mechaSums[3])).append("\n");
-
-    HashMap<String, Integer> calcMap = new HashMap<>();
+            .append(String.format(getLocale(), "%.2f", mechaSums[3])).append("\n");
 
     try
     {
+      HashMap<String, Integer> calcMap = new HashMap<>();
       Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Calculation.csv"))
               .map(line -> line.split("\t"))
               .forEach(line ->
@@ -1045,8 +1003,7 @@ public abstract class CIS
                   calcMap.put(line[0], Integer.parseInt(line[1]));
                 }
                 catch(NumberFormatException ignored)
-                {
-                }
+                {}
               });
 
       totalOutput.append(getString("calcfor10")).append("\t \t \t \t ").append("\n");
@@ -1187,11 +1144,6 @@ public abstract class CIS
     }
 
     return "Z_" + key.split("_")[3] + "_DPI";
-  }
-
-  public String getKey(int id)
-  {
-    return idToKey.get(id);
   }
 
   private int calcNumOfPix()

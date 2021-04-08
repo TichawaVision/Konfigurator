@@ -254,6 +254,20 @@ public class MXCIS extends CIS
     return printOut.toString();
   }
 
+  @Override
+  public int[] getLightSources()
+  {
+    switch(getSpec("Internal Light Source"))
+    {
+      case 0: return new int[]{0, 0};
+      case 1: return new int[]{1, 0};
+      case 2: return new int[]{0, 1};
+      case 3: return new int[]{2, 0};
+      case 4: return new int[]{1, 1};
+      default: return new int[0];
+    }
+  }
+
   public Integer[] getBoard(int res)
   {
     while(getSensBoard("SENS_" + res) == null)

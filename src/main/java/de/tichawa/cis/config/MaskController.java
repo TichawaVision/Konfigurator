@@ -1,11 +1,13 @@
 package de.tichawa.cis.config;
 
+import de.tichawa.cis.config.model.tables.records.*;
 import de.tichawa.cis.config.mxled.MXLED;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.Map.*;
 import java.util.stream.*;
 import javafx.beans.property.*;
 import javafx.event.*;
@@ -175,7 +177,7 @@ public abstract class MaskController implements Initializable
 
     if(file != null)
     {
-      try(BufferedWriter writer = Files.newBufferedWriter(file.toPath(), Charset.forName("UTF-8")))
+      try(BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8))
       {
         writer.write("Quantity,TiViKey");
         writer.newLine();
@@ -183,22 +185,19 @@ public abstract class MaskController implements Initializable
         writer.newLine();
         writer.flush();
 
-        for(Map.Entry<Integer, Integer> entry : CIS_DATA.getElectConfig().entrySet())
+        for(Entry<PriceRecord, Integer> entry : CIS_DATA.getElectConfig().entrySet())
         {
-          writer.write("\"" + entry.getValue() + "\",\"" + CIS_DATA.getKey(entry.getKey()) + "\",\" \"");
+          writer.write("\"" + entry.getValue() + "\",\"" + entry.getKey().getFerixKey() + "\",\" \"");
           writer.newLine();
-          writer.flush();
         }
 
-        for(Map.Entry<Integer, Integer> entry : CIS_DATA.getMechaConfig().entrySet())
+        for(Entry<PriceRecord, Integer> entry : CIS_DATA.getMechaConfig().entrySet())
         {
-          writer.write("\"" + entry.getValue() + "\",\"" + CIS_DATA.getKey(entry.getKey()) + "\",\" \"");
+          writer.write("\"" + entry.getValue() + "\",\"" + entry.getKey().getFerixKey() + "\",\" \"");
           writer.newLine();
-          writer.flush();
         }
 
-        writer.close();
-
+        writer.flush();
         new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("File saved.")).show();
       }
       catch(IOException e)

@@ -96,7 +96,21 @@ public class MXLED extends CIS
   {
     return " ";
   }
-  
+
+  @Override
+  public int[] getLightSources()
+  {
+    switch(getSpec("Internal Light Source"))
+    {
+      case 0: return new int[]{0, 0};
+      case 1: return new int[]{1, 0};
+      case 2: return new int[]{2, 0};
+      case 3: return new int[]{2, 1};
+      case 4: return new int[]{0, 1};
+      default: return new int[0];
+    }
+  }
+
   @Override
   public double getGeometry(boolean coax)
   {

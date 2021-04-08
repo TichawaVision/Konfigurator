@@ -90,6 +90,18 @@ public class VHCIS extends CIS
   }
 
   @Override
+  public int[] getLightSources()
+  {
+    switch(getSpec("Internal Light Source"))
+    {
+      case 0: return new int[]{0, 0};
+      case 1: return new int[]{1, 0};
+      case 2: return new int[]{2, 0};
+      default: return new int[0];
+    }
+  }
+
+  @Override
   public String getCLCalc(int numOfPix)
   {
     int numOfPixNominal;
