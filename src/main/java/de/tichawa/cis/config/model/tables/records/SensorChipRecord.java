@@ -22,126 +22,126 @@ public class SensorChipRecord extends UpdatableRecordImpl<SensorChipRecord> impl
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>tivicc.sensor_chip.name</code>.
+     * Setter for <code>sensor_chip.name</code>.
      */
     public void setName(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_chip.name</code>.
+     * Getter for <code>sensor_chip.name</code>.
      */
     public String getName() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_chip.family</code>.
+     * Setter for <code>sensor_chip.family</code>.
      */
     public void setFamily(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_chip.family</code>.
+     * Getter for <code>sensor_chip.family</code>.
      */
     public Integer getFamily() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_chip.dpi</code>.
+     * Setter for <code>sensor_chip.dpi</code>.
      */
     public void setDpi(Integer value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_chip.dpi</code>.
+     * Getter for <code>sensor_chip.dpi</code>.
      */
     public Integer getDpi() {
         return (Integer) get(2);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_chip.dead_pixels</code>.
+     * Setter for <code>sensor_chip.dead_pixels</code>.
      */
     public void setDeadPixels(Integer value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_chip.dead_pixels</code>.
+     * Getter for <code>sensor_chip.dead_pixels</code>.
      */
     public Integer getDeadPixels() {
         return (Integer) get(3);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_chip.pixel_per_sensor</code>.
+     * Setter for <code>sensor_chip.pixel_per_sensor</code>.
      */
     public void setPixelPerSensor(Integer value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_chip.pixel_per_sensor</code>.
+     * Getter for <code>sensor_chip.pixel_per_sensor</code>.
      */
     public Integer getPixelPerSensor() {
         return (Integer) get(4);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_chip.clock_speed</code>.
+     * Setter for <code>sensor_chip.clock_speed</code>.
      */
     public void setClockSpeed(Integer value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_chip.clock_speed</code>.
+     * Getter for <code>sensor_chip.clock_speed</code>.
      */
     public Integer getClockSpeed() {
         return (Integer) get(5);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_chip.timing</code>.
+     * Setter for <code>sensor_chip.timing</code>.
      */
     public void setTiming(Integer value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_chip.timing</code>.
+     * Getter for <code>sensor_chip.timing</code>.
      */
     public Integer getTiming() {
         return (Integer) get(6);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_chip.binning</code>.
+     * Setter for <code>sensor_chip.binning</code>.
      */
     public void setBinning(Integer value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_chip.binning</code>.
+     * Getter for <code>sensor_chip.binning</code>.
      */
     public Integer getBinning() {
         return (Integer) get(7);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_chip.light_en</code>.
+     * Setter for <code>sensor_chip.light_en</code>.
      */
     public void setLightEn(Integer value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_chip.light_en</code>.
+     * Getter for <code>sensor_chip.light_en</code>.
      */
     public Integer getLightEn() {
         return (Integer) get(8);

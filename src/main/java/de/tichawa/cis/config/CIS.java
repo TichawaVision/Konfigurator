@@ -10,7 +10,6 @@ import org.jooq.impl.*;
 
 import java.io.*;
 import java.io.IOException;
-import java.nio.charset.*;
 import java.text.*;
 import java.util.*;
 import java.util.Date;
@@ -22,22 +21,26 @@ import static de.tichawa.cis.config.model.Tables.*;
 // Alle allgemeine CIS Funktionen
 public abstract class CIS
 {
+  public static final int BASE_LENGTH = 260;
+  protected static Locale locale = Locale.getDefault();
 
   public final String cisName;
 
-  protected Map<String, Integer> spec;
+  protected final HashMap<Integer, Integer> maxRateForHalfMode;
+
+  private final Properties dbProperties;
+  private final BasicDataSource dataSource;
   private final Map<String, AdcBoardRecord> adcBoards;
   private final Map<String, SensorChipRecord> sensChips;
   private final Map<String, SensorBoardRecord> sensBoards;
+
+  protected Map<String, Integer> spec;
   protected Map<PriceRecord, Integer> electConfig;
   protected Map<PriceRecord, Integer> mechaConfig;
   protected Double[] electSums;
   protected Double[] mechaSums;
   protected Double[] totalPrices;
-  protected final HashMap<Integer, Integer> maxRateForHalfMode;
-  public static final int BASE_LENGTH = 260;
   protected int numFPGA;
-  protected static Locale locale = Locale.getDefault();
 
   protected static final String[] COLOR_CODE = new String[]
   {
@@ -65,6 +68,30 @@ public abstract class CIS
     String fullName = this.getClass().getName();
     cisName = fullName.substring(fullName.lastIndexOf('.') + 1);
 
+    dbProperties = new Properties();
+    dataSource = new BasicDataSource();
+    try
+    {
+      dbProperties.loadFromXML(new FileInputStream("connection.xml"));
+
+      switch(dbProperties.getProperty("dbType"))
+      {
+        case "SQLite":
+          dataSource.setUrl("jdbc:sqlite:" + dbProperties.getProperty("dbFile"));
+          break;
+        case "MariaDB":
+          dataSource.setUrl("jdbc:mariadb://" + dbProperties.getProperty("dbHost") + ":" + dbProperties.getProperty("dbPort")
+              + "/" + dbProperties.getProperty("dbName"));
+          dataSource.setUsername(dbProperties.getProperty("dbUser"));
+          dataSource.setPassword(dbProperties.getProperty("dbPwd"));
+          break;
+        default:
+          break;
+      }
+    }
+    catch(IOException ignored)
+    {}
+
     adcBoards = getDatabase()
         .map(context -> context.selectFrom(ADC_BOARD).stream())
         .orElse(Stream.empty())
@@ -87,83 +114,9 @@ public abstract class CIS
 
   public abstract int[] getLightSources();
 
-  public String getBlKey()
-  {
-    String key = "G_MXLED";
-    key += String.format("_%04d", getSpec("sw_cp"));
-
-    switch(getSpec("Internal Light Source"))
-    {
-      case 0:
-        key += "_NO";
-        break;
-      case 1:
-        key += "_" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      case 2:
-        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      case 3:
-        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
-        break;
-      case 4:
-        key += "_" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
-        break;
-      default:
-        key += "_UNKNOWN";
-    }
-
-    if(getSpec("Color") == 4)
-    {
-      key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
-    }
-
-    key += "_" + getDatabase().flatMap(context -> context.selectFrom(CONFIG)
-        .where(CONFIG.CIS_TYPE.eq("MXLED"))
-        .and(CONFIG.KEY.eq("VERSION"))
-        .fetchOptional(CONFIG.VALUE))
-        .orElse("2.0") + "_";
-
-    if(key.endsWith("_"))
-    {
-      key = key.substring(0, key.length() - 1);
-    }
-
-    return key;
-  }
-
   public static void setLocale(Locale l)
   {
     locale = l;
-  }
-
-  protected final HashMap<String, Integer[]> readConfigTable(String path)
-  {
-    HashMap<String, Integer[]> map = new HashMap<>();
-
-    try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(path), StandardCharsets.UTF_8)))
-    {
-      String line;
-
-      while((line = reader.readLine()) != null)
-      {
-        String[] data = line.split(",");
-        Integer[] list = new Integer[data.length - 1];
-
-        for(int x = 1; x < data.length; x++)
-        {
-          list[x - 1] = Integer.parseInt(data[x]);
-        }
-
-        map.put(data[0], list);
-      }
-    }
-    catch(IOException e)
-    {
-      throw new CISException("Error in table " + path);
-    }
-
-    return map;
   }
 
   public Optional<AdcBoardRecord> getADC(String name)
@@ -205,20 +158,25 @@ public abstract class CIS
   {
     try
     {
-      DSLContext context;
-      Properties dbProperties = new Properties();
-      dbProperties.loadFromXML(new FileInputStream("connection.xml"));
-      BasicDataSource dataSource = new BasicDataSource();
-      dataSource.setUrl("jdbc:mariadb://" + dbProperties.getProperty("dbHost") + ":" + dbProperties.getProperty("dbPort")
-          + "/" + dbProperties.getProperty("dbName"));
-      dataSource.setUsername(dbProperties.getProperty("dbUser"));
-      dataSource.setPassword(dbProperties.getProperty("dbPwd"));
-      context = DSL.using(dataSource, SQLDialect.MARIADB);
+      SQLDialect dialect;
+      switch(dbProperties.getProperty("dbType"))
+      {
+        case "SQLite":
+          dialect = SQLDialect.SQLITE;
+          break;
+        case "MariaDB":
+          dialect = SQLDialect.MARIADB;
+          break;
+        default:
+          dialect = SQLDialect.MYSQL;
+      }
+      DSLContext context = DSL.using(dataSource, dialect);
 
       return Optional.of(context);
     }
-    catch(IOException ex)
+    catch(Exception ex)
     {
+      ex.printStackTrace();
       return Optional.empty();
     }
   }

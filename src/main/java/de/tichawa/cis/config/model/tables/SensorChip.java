@@ -4,8 +4,8 @@
 package de.tichawa.cis.config.model.tables;
 
 
+import de.tichawa.cis.config.model.DefaultSchema;
 import de.tichawa.cis.config.model.Keys;
-import de.tichawa.cis.config.model.Tivicc;
 import de.tichawa.cis.config.model.tables.records.SensorChipRecord;
 
 import java.util.Arrays;
@@ -35,7 +35,7 @@ public class SensorChip extends TableImpl<SensorChipRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>tivicc.sensor_chip</code>
+     * The reference instance of <code>sensor_chip</code>
      */
     public static final SensorChip SENSOR_CHIP = new SensorChip();
 
@@ -48,47 +48,47 @@ public class SensorChip extends TableImpl<SensorChipRecord> {
     }
 
     /**
-     * The column <code>tivicc.sensor_chip.name</code>.
+     * The column <code>sensor_chip.name</code>.
      */
     public final TableField<SensorChipRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(45).nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_chip.family</code>.
+     * The column <code>sensor_chip.family</code>.
      */
     public final TableField<SensorChipRecord, Integer> FAMILY = createField(DSL.name("family"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_chip.dpi</code>.
+     * The column <code>sensor_chip.dpi</code>.
      */
     public final TableField<SensorChipRecord, Integer> DPI = createField(DSL.name("dpi"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_chip.dead_pixels</code>.
+     * The column <code>sensor_chip.dead_pixels</code>.
      */
     public final TableField<SensorChipRecord, Integer> DEAD_PIXELS = createField(DSL.name("dead_pixels"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_chip.pixel_per_sensor</code>.
+     * The column <code>sensor_chip.pixel_per_sensor</code>.
      */
     public final TableField<SensorChipRecord, Integer> PIXEL_PER_SENSOR = createField(DSL.name("pixel_per_sensor"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_chip.clock_speed</code>.
+     * The column <code>sensor_chip.clock_speed</code>.
      */
     public final TableField<SensorChipRecord, Integer> CLOCK_SPEED = createField(DSL.name("clock_speed"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_chip.timing</code>.
+     * The column <code>sensor_chip.timing</code>.
      */
     public final TableField<SensorChipRecord, Integer> TIMING = createField(DSL.name("timing"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_chip.binning</code>.
+     * The column <code>sensor_chip.binning</code>.
      */
     public final TableField<SensorChipRecord, Integer> BINNING = createField(DSL.name("binning"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_chip.light_en</code>.
+     * The column <code>sensor_chip.light_en</code>.
      */
     public final TableField<SensorChipRecord, Integer> LIGHT_EN = createField(DSL.name("light_en"), SQLDataType.INTEGER.nullable(false), this, "");
 
@@ -101,21 +101,21 @@ public class SensorChip extends TableImpl<SensorChipRecord> {
     }
 
     /**
-     * Create an aliased <code>tivicc.sensor_chip</code> table reference
+     * Create an aliased <code>sensor_chip</code> table reference
      */
     public SensorChip(String alias) {
         this(DSL.name(alias), SENSOR_CHIP);
     }
 
     /**
-     * Create an aliased <code>tivicc.sensor_chip</code> table reference
+     * Create an aliased <code>sensor_chip</code> table reference
      */
     public SensorChip(Name alias) {
         this(alias, SENSOR_CHIP);
     }
 
     /**
-     * Create a <code>tivicc.sensor_chip</code> table reference
+     * Create a <code>sensor_chip</code> table reference
      */
     public SensorChip() {
         this(DSL.name("sensor_chip"), null);
@@ -127,17 +127,17 @@ public class SensorChip extends TableImpl<SensorChipRecord> {
 
     @Override
     public Schema getSchema() {
-        return Tivicc.TIVICC;
+        return DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public UniqueKey<SensorChipRecord> getPrimaryKey() {
-        return Keys.KEY_SENSOR_CHIP_PRIMARY;
+        return Keys.PK_SENSOR_CHIP;
     }
 
     @Override
     public List<UniqueKey<SensorChipRecord>> getKeys() {
-        return Arrays.<UniqueKey<SensorChipRecord>>asList(Keys.KEY_SENSOR_CHIP_PRIMARY);
+        return Arrays.<UniqueKey<SensorChipRecord>>asList(Keys.PK_SENSOR_CHIP);
     }
 
     @Override

@@ -4,8 +4,8 @@
 package de.tichawa.cis.config.model.tables;
 
 
+import de.tichawa.cis.config.model.DefaultSchema;
 import de.tichawa.cis.config.model.Keys;
-import de.tichawa.cis.config.model.Tivicc;
 import de.tichawa.cis.config.model.tables.records.EquipmentRecord;
 
 import java.util.Arrays;
@@ -34,7 +34,7 @@ public class Equipment extends TableImpl<EquipmentRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>tivicc.equipment</code>
+     * The reference instance of <code>equipment</code>
      */
     public static final Equipment EQUIPMENT = new Equipment();
 
@@ -47,17 +47,17 @@ public class Equipment extends TableImpl<EquipmentRecord> {
     }
 
     /**
-     * The column <code>tivicc.equipment.art_no</code>.
+     * The column <code>equipment.art_no</code>.
      */
     public final TableField<EquipmentRecord, Integer> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.equipment.select_code</code>.
+     * The column <code>equipment.select_code</code>.
      */
-    public final TableField<EquipmentRecord, String> SELECT_CODE = createField(DSL.name("select_code"), SQLDataType.VARCHAR(45).defaultValue(DSL.field("NULL", SQLDataType.VARCHAR)), this, "");
+    public final TableField<EquipmentRecord, String> SELECT_CODE = createField(DSL.name("select_code"), SQLDataType.VARCHAR(45), this, "");
 
     /**
-     * The column <code>tivicc.equipment.amount</code>.
+     * The column <code>equipment.amount</code>.
      */
     public final TableField<EquipmentRecord, String> AMOUNT = createField(DSL.name("amount"), SQLDataType.VARCHAR(45).nullable(false), this, "");
 
@@ -70,21 +70,21 @@ public class Equipment extends TableImpl<EquipmentRecord> {
     }
 
     /**
-     * Create an aliased <code>tivicc.equipment</code> table reference
+     * Create an aliased <code>equipment</code> table reference
      */
     public Equipment(String alias) {
         this(DSL.name(alias), EQUIPMENT);
     }
 
     /**
-     * Create an aliased <code>tivicc.equipment</code> table reference
+     * Create an aliased <code>equipment</code> table reference
      */
     public Equipment(Name alias) {
         this(alias, EQUIPMENT);
     }
 
     /**
-     * Create a <code>tivicc.equipment</code> table reference
+     * Create a <code>equipment</code> table reference
      */
     public Equipment() {
         this(DSL.name("equipment"), null);
@@ -96,19 +96,19 @@ public class Equipment extends TableImpl<EquipmentRecord> {
 
     @Override
     public Schema getSchema() {
-        return Tivicc.TIVICC;
+        return DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public List<ForeignKey<EquipmentRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<EquipmentRecord, ?>>asList(Keys.EQUIPMENT_PRICE_ART_NO_FK);
+        return Arrays.<ForeignKey<EquipmentRecord, ?>>asList(Keys.FK_EQUIPMENT_PRICE_1);
     }
 
     private transient Price _price;
 
     public Price price() {
         if (_price == null)
-            _price = new Price(this, Keys.EQUIPMENT_PRICE_ART_NO_FK);
+            _price = new Price(this, Keys.FK_EQUIPMENT_PRICE_1);
 
         return _price;
     }

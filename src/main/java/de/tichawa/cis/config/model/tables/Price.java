@@ -4,8 +4,8 @@
 package de.tichawa.cis.config.model.tables;
 
 
+import de.tichawa.cis.config.model.DefaultSchema;
 import de.tichawa.cis.config.model.Keys;
-import de.tichawa.cis.config.model.Tivicc;
 import de.tichawa.cis.config.model.tables.records.PriceRecord;
 
 import java.util.Arrays;
@@ -35,7 +35,7 @@ public class Price extends TableImpl<PriceRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>tivicc.price</code>
+     * The reference instance of <code>price</code>
      */
     public static final Price PRICE = new Price();
 
@@ -48,44 +48,45 @@ public class Price extends TableImpl<PriceRecord> {
     }
 
     /**
-     * The column <code>tivicc.price.art_no</code>.
+     * The column <code>price.art_no</code>.
      */
     public final TableField<PriceRecord, Integer> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.price.ferix_key</code>.
+     * The column <code>price.ferix_key</code>.
      */
     public final TableField<PriceRecord, String> FERIX_KEY = createField(DSL.name("ferix_key"), SQLDataType.VARCHAR(45).nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.price.display_name</code>.
+     * @deprecated Unknown data type. Please define an explicit {@link org.jooq.Binding} to specify how this type should be handled. Deprecation can be turned off using {@literal <deprecationOnUnknownTypes/>} in your code generator configuration.
      */
-    public final TableField<PriceRecord, String> DISPLAY_NAME = createField(DSL.name("display_name"), SQLDataType.CLOB.nullable(false), this, "");
+    @Deprecated
+    public final TableField<PriceRecord, Object> DISPLAY_NAME = createField(DSL.name("display_name"), org.jooq.impl.DefaultDataType.getDefaultDataType("\"mediumtext\"").nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.price.price</code>.
+     * The column <code>price.price</code>.
      */
     public final TableField<PriceRecord, Double> PRICE_ = createField(DSL.name("price"), SQLDataType.DOUBLE.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.price.assembly_time</code>.
+     * The column <code>price.assembly_time</code>.
      */
-    public final TableField<PriceRecord, Double> ASSEMBLY_TIME = createField(DSL.name("assembly_time"), SQLDataType.DOUBLE.defaultValue(DSL.field("NULL", SQLDataType.DOUBLE)), this, "");
+    public final TableField<PriceRecord, Double> ASSEMBLY_TIME = createField(DSL.name("assembly_time"), SQLDataType.DOUBLE, this, "");
 
     /**
-     * The column <code>tivicc.price.power_consumption</code>.
+     * The column <code>price.power_consumption</code>.
      */
-    public final TableField<PriceRecord, Double> POWER_CONSUMPTION = createField(DSL.name("power_consumption"), SQLDataType.DOUBLE.defaultValue(DSL.field("NULL", SQLDataType.DOUBLE)), this, "");
+    public final TableField<PriceRecord, Double> POWER_CONSUMPTION = createField(DSL.name("power_consumption"), SQLDataType.DOUBLE, this, "");
 
     /**
-     * The column <code>tivicc.price.weight</code>.
+     * The column <code>price.weight</code>.
      */
-    public final TableField<PriceRecord, Double> WEIGHT = createField(DSL.name("weight"), SQLDataType.DOUBLE.defaultValue(DSL.field("NULL", SQLDataType.DOUBLE)), this, "");
+    public final TableField<PriceRecord, Double> WEIGHT = createField(DSL.name("weight"), SQLDataType.DOUBLE, this, "");
 
     /**
-     * The column <code>tivicc.price.photo_value</code>.
+     * The column <code>price.photo_value</code>.
      */
-    public final TableField<PriceRecord, Double> PHOTO_VALUE = createField(DSL.name("photo_value"), SQLDataType.DOUBLE.defaultValue(DSL.field("NULL", SQLDataType.DOUBLE)), this, "");
+    public final TableField<PriceRecord, Double> PHOTO_VALUE = createField(DSL.name("photo_value"), SQLDataType.DOUBLE, this, "");
 
     private Price(Name alias, Table<PriceRecord> aliased) {
         this(alias, aliased, null);
@@ -96,21 +97,21 @@ public class Price extends TableImpl<PriceRecord> {
     }
 
     /**
-     * Create an aliased <code>tivicc.price</code> table reference
+     * Create an aliased <code>price</code> table reference
      */
     public Price(String alias) {
         this(DSL.name(alias), PRICE);
     }
 
     /**
-     * Create an aliased <code>tivicc.price</code> table reference
+     * Create an aliased <code>price</code> table reference
      */
     public Price(Name alias) {
         this(alias, PRICE);
     }
 
     /**
-     * Create a <code>tivicc.price</code> table reference
+     * Create a <code>price</code> table reference
      */
     public Price() {
         this(DSL.name("price"), null);
@@ -122,17 +123,17 @@ public class Price extends TableImpl<PriceRecord> {
 
     @Override
     public Schema getSchema() {
-        return Tivicc.TIVICC;
+        return DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public UniqueKey<PriceRecord> getPrimaryKey() {
-        return Keys.KEY_PRICE_PRIMARY;
+        return Keys.PK_PRICE;
     }
 
     @Override
     public List<UniqueKey<PriceRecord>> getKeys() {
-        return Arrays.<UniqueKey<PriceRecord>>asList(Keys.KEY_PRICE_PRIMARY, Keys.KEY_PRICE_FERIX_KEY_UNIQUE);
+        return Arrays.<UniqueKey<PriceRecord>>asList(Keys.PK_PRICE, Keys.SQLITE_AUTOINDEX_PRICE_2);
     }
 
     @Override
@@ -166,7 +167,7 @@ public class Price extends TableImpl<PriceRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<Integer, String, String, Double, Double, Double, Double, Double> fieldsRow() {
+    public Row8<Integer, String, Object, Double, Double, Double, Double, Double> fieldsRow() {
         return (Row8) super.fieldsRow();
     }
 }

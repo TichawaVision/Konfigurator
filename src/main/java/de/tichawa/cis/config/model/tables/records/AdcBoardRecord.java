@@ -22,56 +22,56 @@ public class AdcBoardRecord extends UpdatableRecordImpl<AdcBoardRecord> implemen
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>tivicc.adc_board.name</code>.
+     * Setter for <code>adc_board.name</code>.
      */
     public void setName(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>tivicc.adc_board.name</code>.
+     * Getter for <code>adc_board.name</code>.
      */
     public String getName() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>tivicc.adc_board.adcs</code>.
+     * Setter for <code>adc_board.adcs</code>.
      */
     public void setAdcs(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>tivicc.adc_board.adcs</code>.
+     * Getter for <code>adc_board.adcs</code>.
      */
     public Integer getAdcs() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>tivicc.adc_board.channels</code>.
+     * Setter for <code>adc_board.channels</code>.
      */
     public void setChannels(Integer value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>tivicc.adc_board.channels</code>.
+     * Getter for <code>adc_board.channels</code>.
      */
     public Integer getChannels() {
         return (Integer) get(2);
     }
 
     /**
-     * Setter for <code>tivicc.adc_board.clock_speed</code>.
+     * Setter for <code>adc_board.clock_speed</code>.
      */
     public void setClockSpeed(Integer value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>tivicc.adc_board.clock_speed</code>.
+     * Getter for <code>adc_board.clock_speed</code>.
      */
     public Integer getClockSpeed() {
         return (Integer) get(3);

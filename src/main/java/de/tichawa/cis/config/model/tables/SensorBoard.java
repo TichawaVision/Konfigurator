@@ -4,8 +4,8 @@
 package de.tichawa.cis.config.model.tables;
 
 
+import de.tichawa.cis.config.model.DefaultSchema;
 import de.tichawa.cis.config.model.Keys;
-import de.tichawa.cis.config.model.Tivicc;
 import de.tichawa.cis.config.model.tables.records.SensorBoardRecord;
 
 import java.util.Arrays;
@@ -35,7 +35,7 @@ public class SensorBoard extends TableImpl<SensorBoardRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>tivicc.sensor_board</code>
+     * The reference instance of <code>sensor_board</code>
      */
     public static final SensorBoard SENSOR_BOARD = new SensorBoard();
 
@@ -48,47 +48,47 @@ public class SensorBoard extends TableImpl<SensorBoardRecord> {
     }
 
     /**
-     * The column <code>tivicc.sensor_board.name</code>.
+     * The column <code>sensor_board.name</code>.
      */
     public final TableField<SensorBoardRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(45).nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_board.chips</code>.
+     * The column <code>sensor_board.chips</code>.
      */
     public final TableField<SensorBoardRecord, Integer> CHIPS = createField(DSL.name("chips"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_board.orientation</code>.
+     * The column <code>sensor_board.orientation</code>.
      */
     public final TableField<SensorBoardRecord, Integer> ORIENTATION = createField(DSL.name("orientation"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_board.lines</code>.
+     * The column <code>sensor_board.lines</code>.
      */
     public final TableField<SensorBoardRecord, Integer> LINES = createField(DSL.name("lines"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_board.line_spacing_odd_even</code>.
+     * The column <code>sensor_board.line_spacing_odd_even</code>.
      */
     public final TableField<SensorBoardRecord, Integer> LINE_SPACING_ODD_EVEN = createField(DSL.name("line_spacing_odd_even"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_board.line_spacing_one_two</code>.
+     * The column <code>sensor_board.line_spacing_one_two</code>.
      */
     public final TableField<SensorBoardRecord, Integer> LINE_SPACING_ONE_TWO = createField(DSL.name("line_spacing_one_two"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_board.length</code>.
+     * The column <code>sensor_board.length</code>.
      */
     public final TableField<SensorBoardRecord, Double> LENGTH = createField(DSL.name("length"), SQLDataType.DOUBLE.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_board.stagged</code>.
+     * The column <code>sensor_board.stagged</code>.
      */
     public final TableField<SensorBoardRecord, Byte> STAGGED = createField(DSL.name("stagged"), SQLDataType.TINYINT.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.sensor_board.overlap</code>.
+     * The column <code>sensor_board.overlap</code>.
      */
     public final TableField<SensorBoardRecord, Integer> OVERLAP = createField(DSL.name("overlap"), SQLDataType.INTEGER.nullable(false), this, "");
 
@@ -101,21 +101,21 @@ public class SensorBoard extends TableImpl<SensorBoardRecord> {
     }
 
     /**
-     * Create an aliased <code>tivicc.sensor_board</code> table reference
+     * Create an aliased <code>sensor_board</code> table reference
      */
     public SensorBoard(String alias) {
         this(DSL.name(alias), SENSOR_BOARD);
     }
 
     /**
-     * Create an aliased <code>tivicc.sensor_board</code> table reference
+     * Create an aliased <code>sensor_board</code> table reference
      */
     public SensorBoard(Name alias) {
         this(alias, SENSOR_BOARD);
     }
 
     /**
-     * Create a <code>tivicc.sensor_board</code> table reference
+     * Create a <code>sensor_board</code> table reference
      */
     public SensorBoard() {
         this(DSL.name("sensor_board"), null);
@@ -127,17 +127,17 @@ public class SensorBoard extends TableImpl<SensorBoardRecord> {
 
     @Override
     public Schema getSchema() {
-        return Tivicc.TIVICC;
+        return DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public UniqueKey<SensorBoardRecord> getPrimaryKey() {
-        return Keys.KEY_SENSOR_BOARD_PRIMARY;
+        return Keys.PK_SENSOR_BOARD;
     }
 
     @Override
     public List<UniqueKey<SensorBoardRecord>> getKeys() {
-        return Arrays.<UniqueKey<SensorBoardRecord>>asList(Keys.KEY_SENSOR_BOARD_PRIMARY);
+        return Arrays.<UniqueKey<SensorBoardRecord>>asList(Keys.PK_SENSOR_BOARD);
     }
 
     @Override

@@ -22,42 +22,42 @@ public class ConfigRecord extends UpdatableRecordImpl<ConfigRecord> implements R
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>tivicc.config.cis_type</code>.
+     * Setter for <code>config.cis_type</code>.
      */
     public void setCisType(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>tivicc.config.cis_type</code>.
+     * Getter for <code>config.cis_type</code>.
      */
     public String getCisType() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>tivicc.config.key</code>.
+     * Setter for <code>config.key</code>.
      */
     public void setKey(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>tivicc.config.key</code>.
+     * Getter for <code>config.key</code>.
      */
     public String getKey() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>tivicc.config.value</code>.
+     * Setter for <code>config.value</code>.
      */
     public void setValue(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>tivicc.config.value</code>.
+     * Getter for <code>config.value</code>.
      */
     public String getValue() {
         return (String) get(2);

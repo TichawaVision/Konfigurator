@@ -21,42 +21,42 @@ public class EquipmentRecord extends TableRecordImpl<EquipmentRecord> implements
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>tivicc.equipment.art_no</code>.
+     * Setter for <code>equipment.art_no</code>.
      */
     public void setArtNo(Integer value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>tivicc.equipment.art_no</code>.
+     * Getter for <code>equipment.art_no</code>.
      */
     public Integer getArtNo() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>tivicc.equipment.select_code</code>.
+     * Setter for <code>equipment.select_code</code>.
      */
     public void setSelectCode(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>tivicc.equipment.select_code</code>.
+     * Getter for <code>equipment.select_code</code>.
      */
     public String getSelectCode() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>tivicc.equipment.amount</code>.
+     * Setter for <code>equipment.amount</code>.
      */
     public void setAmount(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>tivicc.equipment.amount</code>.
+     * Getter for <code>equipment.amount</code>.
      */
     public String getAmount() {
         return (String) get(2);

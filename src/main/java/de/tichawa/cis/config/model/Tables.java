@@ -15,48 +15,48 @@ import de.tichawa.cis.config.model.tables.SensorChip;
 
 
 /**
- * Convenience access to all tables in tivicc.
+ * Convenience access to all tables in the default schema.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
 
     /**
-     * The table <code>tivicc.adc_board</code>.
+     * The table <code>adc_board</code>.
      */
     public static final AdcBoard ADC_BOARD = AdcBoard.ADC_BOARD;
 
     /**
-     * The table <code>tivicc.config</code>.
+     * The table <code>config</code>.
      */
     public static final Config CONFIG = Config.CONFIG;
 
     /**
-     * The table <code>tivicc.electronic</code>.
+     * The table <code>electronic</code>.
      */
     public static final Electronic ELECTRONIC = Electronic.ELECTRONIC;
 
     /**
-     * The table <code>tivicc.equipment</code>.
+     * The table <code>equipment</code>.
      */
     public static final Equipment EQUIPMENT = Equipment.EQUIPMENT;
 
     /**
-     * The table <code>tivicc.mechanic</code>.
+     * The table <code>mechanic</code>.
      */
     public static final Mechanic MECHANIC = Mechanic.MECHANIC;
 
     /**
-     * The table <code>tivicc.price</code>.
+     * The table <code>price</code>.
      */
     public static final Price PRICE = Price.PRICE;
 
     /**
-     * The table <code>tivicc.sensor_board</code>.
+     * The table <code>sensor_board</code>.
      */
     public static final SensorBoard SENSOR_BOARD = SensorBoard.SENSOR_BOARD;
 
     /**
-     * The table <code>tivicc.sensor_chip</code>.
+     * The table <code>sensor_chip</code>.
      */
     public static final SensorChip SENSOR_CHIP = SensorChip.SENSOR_CHIP;
 }

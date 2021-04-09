@@ -4,8 +4,8 @@
 package de.tichawa.cis.config.model.tables;
 
 
+import de.tichawa.cis.config.model.DefaultSchema;
 import de.tichawa.cis.config.model.Keys;
-import de.tichawa.cis.config.model.Tivicc;
 import de.tichawa.cis.config.model.tables.records.AdcBoardRecord;
 
 import java.util.Arrays;
@@ -35,7 +35,7 @@ public class AdcBoard extends TableImpl<AdcBoardRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>tivicc.adc_board</code>
+     * The reference instance of <code>adc_board</code>
      */
     public static final AdcBoard ADC_BOARD = new AdcBoard();
 
@@ -48,22 +48,22 @@ public class AdcBoard extends TableImpl<AdcBoardRecord> {
     }
 
     /**
-     * The column <code>tivicc.adc_board.name</code>.
+     * The column <code>adc_board.name</code>.
      */
     public final TableField<AdcBoardRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(45).nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.adc_board.adcs</code>.
+     * The column <code>adc_board.adcs</code>.
      */
     public final TableField<AdcBoardRecord, Integer> ADCS = createField(DSL.name("adcs"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.adc_board.channels</code>.
+     * The column <code>adc_board.channels</code>.
      */
     public final TableField<AdcBoardRecord, Integer> CHANNELS = createField(DSL.name("channels"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.adc_board.clock_speed</code>.
+     * The column <code>adc_board.clock_speed</code>.
      */
     public final TableField<AdcBoardRecord, Integer> CLOCK_SPEED = createField(DSL.name("clock_speed"), SQLDataType.INTEGER.nullable(false), this, "");
 
@@ -76,21 +76,21 @@ public class AdcBoard extends TableImpl<AdcBoardRecord> {
     }
 
     /**
-     * Create an aliased <code>tivicc.adc_board</code> table reference
+     * Create an aliased <code>adc_board</code> table reference
      */
     public AdcBoard(String alias) {
         this(DSL.name(alias), ADC_BOARD);
     }
 
     /**
-     * Create an aliased <code>tivicc.adc_board</code> table reference
+     * Create an aliased <code>adc_board</code> table reference
      */
     public AdcBoard(Name alias) {
         this(alias, ADC_BOARD);
     }
 
     /**
-     * Create a <code>tivicc.adc_board</code> table reference
+     * Create a <code>adc_board</code> table reference
      */
     public AdcBoard() {
         this(DSL.name("adc_board"), null);
@@ -102,17 +102,17 @@ public class AdcBoard extends TableImpl<AdcBoardRecord> {
 
     @Override
     public Schema getSchema() {
-        return Tivicc.TIVICC;
+        return DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public UniqueKey<AdcBoardRecord> getPrimaryKey() {
-        return Keys.KEY_ADC_BOARD_PRIMARY;
+        return Keys.PK_ADC_BOARD;
     }
 
     @Override
     public List<UniqueKey<AdcBoardRecord>> getKeys() {
-        return Arrays.<UniqueKey<AdcBoardRecord>>asList(Keys.KEY_ADC_BOARD_PRIMARY);
+        return Arrays.<UniqueKey<AdcBoardRecord>>asList(Keys.PK_ADC_BOARD);
     }
 
     @Override

@@ -4,8 +4,8 @@
 package de.tichawa.cis.config.model.tables;
 
 
+import de.tichawa.cis.config.model.DefaultSchema;
 import de.tichawa.cis.config.model.Keys;
-import de.tichawa.cis.config.model.Tivicc;
 import de.tichawa.cis.config.model.tables.records.MechanicRecord;
 
 import java.util.Arrays;
@@ -34,7 +34,7 @@ public class Mechanic extends TableImpl<MechanicRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>tivicc.mechanic</code>
+     * The reference instance of <code>mechanic</code>
      */
     public static final Mechanic MECHANIC = new Mechanic();
 
@@ -47,37 +47,37 @@ public class Mechanic extends TableImpl<MechanicRecord> {
     }
 
     /**
-     * The column <code>tivicc.mechanic.cis_type</code>.
+     * The column <code>mechanic.cis_type</code>.
      */
     public final TableField<MechanicRecord, String> CIS_TYPE = createField(DSL.name("cis_type"), SQLDataType.VARCHAR(10).nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.mechanic.cis_length</code>.
+     * The column <code>mechanic.cis_length</code>.
      */
     public final TableField<MechanicRecord, Integer> CIS_LENGTH = createField(DSL.name("cis_length"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.mechanic.diffuse_lights</code>.
+     * The column <code>mechanic.diffuse_lights</code>.
      */
     public final TableField<MechanicRecord, Integer> DIFFUSE_LIGHTS = createField(DSL.name("diffuse_lights"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.mechanic.coax_lights</code>.
+     * The column <code>mechanic.coax_lights</code>.
      */
     public final TableField<MechanicRecord, Integer> COAX_LIGHTS = createField(DSL.name("coax_lights"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.mechanic.select_code</code>.
+     * The column <code>mechanic.select_code</code>.
      */
-    public final TableField<MechanicRecord, String> SELECT_CODE = createField(DSL.name("select_code"), SQLDataType.VARCHAR(45).defaultValue(DSL.field("NULL", SQLDataType.VARCHAR)), this, "");
+    public final TableField<MechanicRecord, String> SELECT_CODE = createField(DSL.name("select_code"), SQLDataType.VARCHAR(45), this, "");
 
     /**
-     * The column <code>tivicc.mechanic.art_no</code>.
+     * The column <code>mechanic.art_no</code>.
      */
     public final TableField<MechanicRecord, Integer> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.mechanic.amount</code>.
+     * The column <code>mechanic.amount</code>.
      */
     public final TableField<MechanicRecord, String> AMOUNT = createField(DSL.name("amount"), SQLDataType.VARCHAR(45).nullable(false), this, "");
 
@@ -90,21 +90,21 @@ public class Mechanic extends TableImpl<MechanicRecord> {
     }
 
     /**
-     * Create an aliased <code>tivicc.mechanic</code> table reference
+     * Create an aliased <code>mechanic</code> table reference
      */
     public Mechanic(String alias) {
         this(DSL.name(alias), MECHANIC);
     }
 
     /**
-     * Create an aliased <code>tivicc.mechanic</code> table reference
+     * Create an aliased <code>mechanic</code> table reference
      */
     public Mechanic(Name alias) {
         this(alias, MECHANIC);
     }
 
     /**
-     * Create a <code>tivicc.mechanic</code> table reference
+     * Create a <code>mechanic</code> table reference
      */
     public Mechanic() {
         this(DSL.name("mechanic"), null);
@@ -116,19 +116,19 @@ public class Mechanic extends TableImpl<MechanicRecord> {
 
     @Override
     public Schema getSchema() {
-        return Tivicc.TIVICC;
+        return DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public List<ForeignKey<MechanicRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<MechanicRecord, ?>>asList(Keys.FK_MECHANIC_ART_NO);
+        return Arrays.<ForeignKey<MechanicRecord, ?>>asList(Keys.FK_MECHANIC_PRICE_1);
     }
 
     private transient Price _price;
 
     public Price price() {
         if (_price == null)
-            _price = new Price(this, Keys.FK_MECHANIC_ART_NO);
+            _price = new Price(this, Keys.FK_MECHANIC_PRICE_1);
 
         return _price;
     }

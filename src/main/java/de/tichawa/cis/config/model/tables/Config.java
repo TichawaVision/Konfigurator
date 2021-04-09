@@ -4,8 +4,8 @@
 package de.tichawa.cis.config.model.tables;
 
 
+import de.tichawa.cis.config.model.DefaultSchema;
 import de.tichawa.cis.config.model.Keys;
-import de.tichawa.cis.config.model.Tivicc;
 import de.tichawa.cis.config.model.tables.records.ConfigRecord;
 
 import java.util.Arrays;
@@ -35,7 +35,7 @@ public class Config extends TableImpl<ConfigRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>tivicc.config</code>
+     * The reference instance of <code>config</code>
      */
     public static final Config CONFIG = new Config();
 
@@ -48,17 +48,17 @@ public class Config extends TableImpl<ConfigRecord> {
     }
 
     /**
-     * The column <code>tivicc.config.cis_type</code>.
+     * The column <code>config.cis_type</code>.
      */
     public final TableField<ConfigRecord, String> CIS_TYPE = createField(DSL.name("cis_type"), SQLDataType.VARCHAR(10).nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.config.key</code>.
+     * The column <code>config.key</code>.
      */
     public final TableField<ConfigRecord, String> KEY = createField(DSL.name("key"), SQLDataType.VARCHAR(45).nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.config.value</code>.
+     * The column <code>config.value</code>.
      */
     public final TableField<ConfigRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(45).nullable(false), this, "");
 
@@ -71,21 +71,21 @@ public class Config extends TableImpl<ConfigRecord> {
     }
 
     /**
-     * Create an aliased <code>tivicc.config</code> table reference
+     * Create an aliased <code>config</code> table reference
      */
     public Config(String alias) {
         this(DSL.name(alias), CONFIG);
     }
 
     /**
-     * Create an aliased <code>tivicc.config</code> table reference
+     * Create an aliased <code>config</code> table reference
      */
     public Config(Name alias) {
         this(alias, CONFIG);
     }
 
     /**
-     * Create a <code>tivicc.config</code> table reference
+     * Create a <code>config</code> table reference
      */
     public Config() {
         this(DSL.name("config"), null);
@@ -97,17 +97,17 @@ public class Config extends TableImpl<ConfigRecord> {
 
     @Override
     public Schema getSchema() {
-        return Tivicc.TIVICC;
+        return DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public UniqueKey<ConfigRecord> getPrimaryKey() {
-        return Keys.KEY_CONFIG_PRIMARY;
+        return Keys.PK_CONFIG;
     }
 
     @Override
     public List<UniqueKey<ConfigRecord>> getKeys() {
-        return Arrays.<UniqueKey<ConfigRecord>>asList(Keys.KEY_CONFIG_PRIMARY);
+        return Arrays.<UniqueKey<ConfigRecord>>asList(Keys.PK_CONFIG);
     }
 
     @Override

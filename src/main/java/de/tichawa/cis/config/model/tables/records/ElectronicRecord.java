@@ -21,84 +21,84 @@ public class ElectronicRecord extends TableRecordImpl<ElectronicRecord> implemen
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>tivicc.electronic.cis_type</code>.
+     * Setter for <code>electronic.cis_type</code>.
      */
     public void setCisType(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>tivicc.electronic.cis_type</code>.
+     * Getter for <code>electronic.cis_type</code>.
      */
     public String getCisType() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>tivicc.electronic.cis_length</code>.
+     * Setter for <code>electronic.cis_length</code>.
      */
     public void setCisLength(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>tivicc.electronic.cis_length</code>.
+     * Getter for <code>electronic.cis_length</code>.
      */
     public Integer getCisLength() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>tivicc.electronic.select_code</code>.
+     * Setter for <code>electronic.select_code</code>.
      */
     public void setSelectCode(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>tivicc.electronic.select_code</code>.
+     * Getter for <code>electronic.select_code</code>.
      */
     public String getSelectCode() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>tivicc.electronic.art_no</code>.
+     * Setter for <code>electronic.art_no</code>.
      */
     public void setArtNo(Integer value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>tivicc.electronic.art_no</code>.
+     * Getter for <code>electronic.art_no</code>.
      */
     public Integer getArtNo() {
         return (Integer) get(3);
     }
 
     /**
-     * Setter for <code>tivicc.electronic.multiplier</code>.
+     * Setter for <code>electronic.multiplier</code>.
      */
     public void setMultiplier(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>tivicc.electronic.multiplier</code>.
+     * Getter for <code>electronic.multiplier</code>.
      */
     public String getMultiplier() {
         return (String) get(4);
     }
 
     /**
-     * Setter for <code>tivicc.electronic.amount</code>.
+     * Setter for <code>electronic.amount</code>.
      */
     public void setAmount(String value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>tivicc.electronic.amount</code>.
+     * Getter for <code>electronic.amount</code>.
      */
     public String getAmount() {
         return (String) get(5);

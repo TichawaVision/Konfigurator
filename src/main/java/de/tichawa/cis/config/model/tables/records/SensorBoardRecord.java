@@ -22,126 +22,126 @@ public class SensorBoardRecord extends UpdatableRecordImpl<SensorBoardRecord> im
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>tivicc.sensor_board.name</code>.
+     * Setter for <code>sensor_board.name</code>.
      */
     public void setName(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_board.name</code>.
+     * Getter for <code>sensor_board.name</code>.
      */
     public String getName() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_board.chips</code>.
+     * Setter for <code>sensor_board.chips</code>.
      */
     public void setChips(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_board.chips</code>.
+     * Getter for <code>sensor_board.chips</code>.
      */
     public Integer getChips() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_board.orientation</code>.
+     * Setter for <code>sensor_board.orientation</code>.
      */
     public void setOrientation(Integer value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_board.orientation</code>.
+     * Getter for <code>sensor_board.orientation</code>.
      */
     public Integer getOrientation() {
         return (Integer) get(2);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_board.lines</code>.
+     * Setter for <code>sensor_board.lines</code>.
      */
     public void setLines(Integer value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_board.lines</code>.
+     * Getter for <code>sensor_board.lines</code>.
      */
     public Integer getLines() {
         return (Integer) get(3);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_board.line_spacing_odd_even</code>.
+     * Setter for <code>sensor_board.line_spacing_odd_even</code>.
      */
     public void setLineSpacingOddEven(Integer value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_board.line_spacing_odd_even</code>.
+     * Getter for <code>sensor_board.line_spacing_odd_even</code>.
      */
     public Integer getLineSpacingOddEven() {
         return (Integer) get(4);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_board.line_spacing_one_two</code>.
+     * Setter for <code>sensor_board.line_spacing_one_two</code>.
      */
     public void setLineSpacingOneTwo(Integer value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_board.line_spacing_one_two</code>.
+     * Getter for <code>sensor_board.line_spacing_one_two</code>.
      */
     public Integer getLineSpacingOneTwo() {
         return (Integer) get(5);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_board.length</code>.
+     * Setter for <code>sensor_board.length</code>.
      */
     public void setLength(Double value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_board.length</code>.
+     * Getter for <code>sensor_board.length</code>.
      */
     public Double getLength() {
         return (Double) get(6);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_board.stagged</code>.
+     * Setter for <code>sensor_board.stagged</code>.
      */
     public void setStagged(Byte value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_board.stagged</code>.
+     * Getter for <code>sensor_board.stagged</code>.
      */
     public Byte getStagged() {
         return (Byte) get(7);
     }
 
     /**
-     * Setter for <code>tivicc.sensor_board.overlap</code>.
+     * Setter for <code>sensor_board.overlap</code>.
      */
     public void setOverlap(Integer value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>tivicc.sensor_board.overlap</code>.
+     * Getter for <code>sensor_board.overlap</code>.
      */
     public Integer getOverlap() {
         return (Integer) get(8);

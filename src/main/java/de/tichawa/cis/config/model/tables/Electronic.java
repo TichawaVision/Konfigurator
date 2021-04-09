@@ -4,8 +4,8 @@
 package de.tichawa.cis.config.model.tables;
 
 
+import de.tichawa.cis.config.model.DefaultSchema;
 import de.tichawa.cis.config.model.Keys;
-import de.tichawa.cis.config.model.Tivicc;
 import de.tichawa.cis.config.model.tables.records.ElectronicRecord;
 
 import java.util.Arrays;
@@ -34,7 +34,7 @@ public class Electronic extends TableImpl<ElectronicRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>tivicc.electronic</code>
+     * The reference instance of <code>electronic</code>
      */
     public static final Electronic ELECTRONIC = new Electronic();
 
@@ -47,32 +47,32 @@ public class Electronic extends TableImpl<ElectronicRecord> {
     }
 
     /**
-     * The column <code>tivicc.electronic.cis_type</code>.
+     * The column <code>electronic.cis_type</code>.
      */
     public final TableField<ElectronicRecord, String> CIS_TYPE = createField(DSL.name("cis_type"), SQLDataType.VARCHAR(10).nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.electronic.cis_length</code>.
+     * The column <code>electronic.cis_length</code>.
      */
     public final TableField<ElectronicRecord, Integer> CIS_LENGTH = createField(DSL.name("cis_length"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.electronic.select_code</code>.
+     * The column <code>electronic.select_code</code>.
      */
-    public final TableField<ElectronicRecord, String> SELECT_CODE = createField(DSL.name("select_code"), SQLDataType.VARCHAR(45).defaultValue(DSL.field("NULL", SQLDataType.VARCHAR)), this, "");
+    public final TableField<ElectronicRecord, String> SELECT_CODE = createField(DSL.name("select_code"), SQLDataType.VARCHAR(45), this, "");
 
     /**
-     * The column <code>tivicc.electronic.art_no</code>.
+     * The column <code>electronic.art_no</code>.
      */
     public final TableField<ElectronicRecord, Integer> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>tivicc.electronic.multiplier</code>.
+     * The column <code>electronic.multiplier</code>.
      */
-    public final TableField<ElectronicRecord, String> MULTIPLIER = createField(DSL.name("multiplier"), SQLDataType.VARCHAR(45).defaultValue(DSL.field("NULL", SQLDataType.VARCHAR)), this, "");
+    public final TableField<ElectronicRecord, String> MULTIPLIER = createField(DSL.name("multiplier"), SQLDataType.VARCHAR(45), this, "");
 
     /**
-     * The column <code>tivicc.electronic.amount</code>.
+     * The column <code>electronic.amount</code>.
      */
     public final TableField<ElectronicRecord, String> AMOUNT = createField(DSL.name("amount"), SQLDataType.VARCHAR(45).nullable(false), this, "");
 
@@ -85,21 +85,21 @@ public class Electronic extends TableImpl<ElectronicRecord> {
     }
 
     /**
-     * Create an aliased <code>tivicc.electronic</code> table reference
+     * Create an aliased <code>electronic</code> table reference
      */
     public Electronic(String alias) {
         this(DSL.name(alias), ELECTRONIC);
     }
 
     /**
-     * Create an aliased <code>tivicc.electronic</code> table reference
+     * Create an aliased <code>electronic</code> table reference
      */
     public Electronic(Name alias) {
         this(alias, ELECTRONIC);
     }
 
     /**
-     * Create a <code>tivicc.electronic</code> table reference
+     * Create a <code>electronic</code> table reference
      */
     public Electronic() {
         this(DSL.name("electronic"), null);
@@ -111,19 +111,19 @@ public class Electronic extends TableImpl<ElectronicRecord> {
 
     @Override
     public Schema getSchema() {
-        return Tivicc.TIVICC;
+        return DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public List<ForeignKey<ElectronicRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<ElectronicRecord, ?>>asList(Keys.FK_ELECTRONIC_ART_NO);
+        return Arrays.<ForeignKey<ElectronicRecord, ?>>asList(Keys.FK_ELECTRONIC_PRICE_1);
     }
 
     private transient Price _price;
 
     public Price price() {
         if (_price == null)
-            _price = new Price(this, Keys.FK_ELECTRONIC_ART_NO);
+            _price = new Price(this, Keys.FK_ELECTRONIC_PRICE_1);
 
         return _price;
     }
