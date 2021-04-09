@@ -4,12 +4,8 @@
 package de.tichawa.cis.config.model;
 
 
-import de.tichawa.cis.config.model.tables.Electronic;
-import de.tichawa.cis.config.model.tables.Mechanic;
-import de.tichawa.cis.config.model.tables.Price;
-import de.tichawa.cis.config.model.tables.records.ElectronicRecord;
-import de.tichawa.cis.config.model.tables.records.MechanicRecord;
-import de.tichawa.cis.config.model.tables.records.PriceRecord;
+import de.tichawa.cis.config.model.tables.*;
+import de.tichawa.cis.config.model.tables.records.*;
 
 import org.jooq.ForeignKey;
 import org.jooq.TableField;
@@ -38,4 +34,5 @@ public class Keys {
 
     public static final ForeignKey<ElectronicRecord, PriceRecord> FK_ELECTRONIC_ART_NO = Internal.createForeignKey(Electronic.ELECTRONIC, DSL.name("fk_electronic_art_no"), new TableField[] { Electronic.ELECTRONIC.ART_NO }, Keys.KEY_PRICE_PRIMARY, new TableField[] { Price.PRICE.ART_NO }, true);
     public static final ForeignKey<MechanicRecord, PriceRecord> FK_MECHANIC_ART_NO = Internal.createForeignKey(Mechanic.MECHANIC, DSL.name("fk_mechanic_art_no"), new TableField[] { Mechanic.MECHANIC.ART_NO }, Keys.KEY_PRICE_PRIMARY, new TableField[] { Price.PRICE.ART_NO }, true);
+    public static final ForeignKey<EquipmentRecord, PriceRecord> FK_EQUIPMENT_ART_NO = Internal.createForeignKey(Equipment.EQUIPMENT, DSL.name("fk_equipment_art_no"), new TableField[] { Equipment.EQUIPMENT.ART_NO }, Keys.KEY_PRICE_PRIMARY, new TableField[] { Price.PRICE.ART_NO }, true);
 }

@@ -133,29 +133,6 @@ public abstract class CIS
     return key;
   }
 
-  public int countNLs()
-  {
-    try
-    {
-      int x = (int) Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Mechanics.csv"))
-              .limit(1)
-              .map(line -> line.split("\t"))
-              .flatMap(Arrays::stream)
-              .filter(field -> field.startsWith("NL"))
-              .count();
-
-      if(getSpec("MXLED") != null)
-      {
-        x /= 2;
-      }
-      return x;
-    }
-    catch(IOException ex)
-    {
-      return -1;
-    }
-  }
-
   public static void setLocale(Locale l)
   {
     locale = l;
@@ -240,18 +217,11 @@ public abstract class CIS
     return Math.round(Math.pow(10.0, digits) * value) / Math.pow(10.0, digits);
   }
 
-  public boolean calculate()
+  public Optional<DSLContext> getDatabase()
   {
-    DSLContext context;
-    Map<Integer, PriceRecord> priceRecords = new HashMap<>();
-    mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 100.0};
-    electSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
-    totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
-    mechaConfig = new HashMap<>();
-    electConfig = new HashMap<>();
-
     try
     {
+      DSLContext context;
       Properties dbProperties = new Properties();
       dbProperties.loadFromXML(new FileInputStream("connection.xml"));
       BasicDataSource dataSource = new BasicDataSource();
@@ -261,135 +231,150 @@ public abstract class CIS
       dataSource.setPassword(dbProperties.getProperty("dbPwd"));
       context = DSL.using(dataSource, SQLDialect.MARIADB);
 
-      context.selectFrom(PRICE)
-          .fetchStream()
-          .forEach(priceRecord -> priceRecords.put(priceRecord.getArtNo(), priceRecord));
+      return Optional.of(context);
     }
     catch(IOException ex)
     {
-      ex.printStackTrace();
-      throw new CISException("Error in Prices");
+      return Optional.empty();
     }
+  }
 
-    //Electronics
-    int sensPerFpga;
+  public boolean calculate()
+  {
+    Map<Integer, PriceRecord> priceRecords = new HashMap<>();
+    mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 100.0};
+    electSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
+    totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
+    mechaConfig = new HashMap<>();
+    electConfig = new HashMap<>();
 
-    if(getSpec("res_cp2") != null && getSpec("res_cp2") > 600)
+    return getDatabase().map(context ->
     {
-      sensPerFpga = 1;
-    }
-    else if((getSpec("VDCIS") != null && getSpec("Color") > 2) || (getSpec("VDCIS") == null && getSpec("Color") > 1))
-    {
-      //FULL (RGB)
-      sensPerFpga = 2;
-    }
-    else if(getSpec("res_cp2") != null && maxRateForHalfMode.get(getSpec("res_cp2")) != null && (getSpec("Selected line rate") / 1000.0) <= maxRateForHalfMode.get(getSpec("res_cp2")))
-    {
-      //HALF
-      sensPerFpga = 4;
-    }
-    else
-    {
-      //FULL
-      sensPerFpga = 2;
-    }
+      context.selectFrom(PRICE)
+          .fetchStream()
+          .forEach(priceRecord -> priceRecords.put(priceRecord.getArtNo(), priceRecord));
 
-    setSpec("MODE", sensPerFpga);
 
-    double lengthPerSens = BASE_LENGTH * sensPerFpga;
-    numFPGA = (int) Math.ceil(getSpec("sw_cp") / lengthPerSens);
+      //Electronics
+      int sensPerFpga;
 
-    try
-    {
-      // Einlesen der Elektronik-Tabelle
-      context.selectFrom(ELECTRONIC)
-          .where(ELECTRONIC.CIS_TYPE.eq(getClass().getSimpleName()))
-          .and(ELECTRONIC.CIS_LENGTH.eq(getSpec("sw_cp")))
-          .stream()
-          .filter(electronicRecord -> isApplicable(electronicRecord.getSelectCode()))
-          .forEach(electronicRecord ->
-          {
-            int amount = (int) (getElectFactor(electronicRecord.getMultiplier())
-                * MathEval.evaluate(electronicRecord.getAmount()
-                .replace(" ", "")
-                .replace("L", "" + getSpec("LEDLines"))
-                .replace("F", "" + numFPGA)
-                .replace("S", "" + getSpec("sw_cp") / BASE_LENGTH)
-                .replace("N", "" + getSpec("sw_cp"))));
+      if(getSpec("res_cp2") != null && getSpec("res_cp2") > 600)
+      {
+        sensPerFpga = 1;
+      }
+      else if((getSpec("VDCIS") != null && getSpec("Color") > 2) || (getSpec("VDCIS") == null && getSpec("Color") > 1))
+      {
+        //FULL (RGB)
+        sensPerFpga = 2;
+      }
+      else if(getSpec("res_cp2") != null && maxRateForHalfMode.get(getSpec("res_cp2")) != null && (getSpec("Selected line rate") / 1000.0) <= maxRateForHalfMode.get(getSpec("res_cp2")))
+      {
+        //HALF
+        sensPerFpga = 4;
+      }
+      else
+      {
+        //FULL
+        sensPerFpga = 2;
+      }
 
-            if(amount > 0)
+      setSpec("MODE", sensPerFpga);
+
+      double lengthPerSens = BASE_LENGTH * sensPerFpga;
+      numFPGA = (int) Math.ceil(getSpec("sw_cp") / lengthPerSens);
+
+      try
+      {
+        // Einlesen der Elektronik-Tabelle
+        context.selectFrom(ELECTRONIC)
+            .where(ELECTRONIC.CIS_TYPE.eq(getClass().getSimpleName()))
+            .and(ELECTRONIC.CIS_LENGTH.eq(getSpec("sw_cp")))
+            .stream()
+            .filter(electronicRecord -> isApplicable(electronicRecord.getSelectCode()))
+            .forEach(electronicRecord ->
             {
-              Optional.ofNullable(priceRecords.get(electronicRecord.getArtNo()))
-                  .ifPresent(priceRecord ->
-                  {
-                    electConfig.put(priceRecord, amount);
-                    electSums[0] += priceRecord.getPrice() * amount;
-                    electSums[1] += priceRecord.getAssemblyTime() * amount;
-                    electSums[2] += priceRecord.getPowerConsumption() * amount;
-                    electSums[3] += priceRecord.getWeight() * amount;
+              int amount = (int) (getElectFactor(electronicRecord.getMultiplier())
+                  * MathEval.evaluate(electronicRecord.getAmount()
+                  .replace(" ", "")
+                  .replace("L", "" + getSpec("LEDLines"))
+                  .replace("F", "" + numFPGA)
+                  .replace("S", "" + getSpec("sw_cp") / BASE_LENGTH)
+                  .replace("N", "" + getSpec("sw_cp"))));
 
-                    if(priceRecord.getPhotoValue() != null)
-                    {
-                      electSums[4] = Math.min(priceRecord.getPhotoValue(), electSums[4]);
-                    }
-                  });
-
-              if(electronicRecord.getSelectCode() != null && electronicRecord.getSelectCode().contains("FPGA"))
+              if(amount > 0)
               {
-                numFPGA += amount;
-              }
-            }
-          });
-    }
-    catch(DataAccessException e)
-    {
-      throw new CISException("Error in Electronics");
-    }
-
-    //Mechanics
-    try
-    {
-      context.selectFrom(MECHANIC)
-          .where(MECHANIC.CIS_TYPE.eq(getClass().getSimpleName()))
-          .and(MECHANIC.CIS_LENGTH.eq(getSpec("sw_cp")))
-          .and(MECHANIC.DIFFUSE_LIGHTS.eq(getLightSources()[0]))
-          .and(MECHANIC.COAX_LIGHTS.eq(getLightSources()[1]))
-          .stream()
-          .filter(mechanicRecord -> isApplicable(mechanicRecord.getSelectCode()))
-          .forEach(mechanicRecord ->
-          {
-            int amount = getMechaFactor(mechanicRecord.getAmount());
-
-            if(amount > 0)
-            {
-              Optional.ofNullable(priceRecords.get(mechanicRecord.getArtNo()))
-                  .ifPresent(priceRecord ->
-                  {
-                    mechaConfig.put(priceRecord, amount);
-                    mechaSums[0] += priceRecord.getPrice() * amount;
-                    mechaSums[1] += priceRecord.getAssemblyTime() * amount;
-                    mechaSums[2] += priceRecord.getPowerConsumption() * amount;
-                    mechaSums[3] += priceRecord.getWeight() * amount;
-
-                    if(priceRecord.getPhotoValue() != null)
+                Optional.ofNullable(priceRecords.get(electronicRecord.getArtNo()))
+                    .ifPresent(priceRecord ->
                     {
-                      mechaSums[4] *= priceRecord.getPhotoValue();
-                    }
-                  });
-            }
-          });
-    }
-    catch(DataAccessException e)
-    {
-      throw new CISException("Error in Mechanics");
-    }
+                      electConfig.put(priceRecord, amount);
+                      electSums[0] += priceRecord.getPrice() * amount;
+                      electSums[1] += priceRecord.getAssemblyTime() * amount;
+                      electSums[2] += priceRecord.getPowerConsumption() * amount;
+                      electSums[3] += priceRecord.getWeight() * amount;
 
-    if(getSpec("MXLED") == null)
-    {
-      setSpec("numOfPix", calcNumOfPix());
-    }
+                      if(priceRecord.getPhotoValue() != null)
+                      {
+                        electSums[4] = Math.min(priceRecord.getPhotoValue(), electSums[4]);
+                      }
+                    });
 
-    return true;
+                if(electronicRecord.getSelectCode() != null && electronicRecord.getSelectCode().contains("FPGA"))
+                {
+                  numFPGA += amount;
+                }
+              }
+            });
+      }
+      catch(DataAccessException e)
+      {
+        throw new CISException("Error in Electronics");
+      }
+
+      //Mechanics
+      try
+      {
+        context.selectFrom(MECHANIC)
+            .where(MECHANIC.CIS_TYPE.eq(getClass().getSimpleName()))
+            .and(MECHANIC.CIS_LENGTH.eq(getSpec("sw_cp")))
+            .and(MECHANIC.DIFFUSE_LIGHTS.eq(getLightSources()[0]))
+            .and(MECHANIC.COAX_LIGHTS.eq(getLightSources()[1]))
+            .stream()
+            .filter(mechanicRecord -> isApplicable(mechanicRecord.getSelectCode()))
+            .forEach(mechanicRecord ->
+            {
+              int amount = getMechaFactor(mechanicRecord.getAmount());
+
+              if(amount > 0)
+              {
+                Optional.ofNullable(priceRecords.get(mechanicRecord.getArtNo()))
+                    .ifPresent(priceRecord ->
+                    {
+                      mechaConfig.put(priceRecord, amount);
+                      mechaSums[0] += priceRecord.getPrice() * amount;
+                      mechaSums[1] += priceRecord.getAssemblyTime() * amount;
+                      mechaSums[2] += priceRecord.getPowerConsumption() * amount;
+                      mechaSums[3] += priceRecord.getWeight() * amount;
+
+                      if(priceRecord.getPhotoValue() != null)
+                      {
+                        mechaSums[4] *= priceRecord.getPhotoValue();
+                      }
+                    });
+              }
+            });
+      }
+      catch(DataAccessException e)
+      {
+        throw new CISException("Error in Mechanics");
+      }
+
+      if(getSpec("MXLED") == null)
+      {
+        setSpec("numOfPix", calcNumOfPix());
+      }
+
+      return true;
+    }).orElse(false);
   }
 
   public String getVersion()
@@ -957,7 +942,7 @@ public abstract class CIS
             .append(getString("Weight/pc (kg)")).append("\n");
 
     getElectConfig().forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
-        .append(String.format("%05d", priceRecord.getArtNo().intValue())).append("\t")
+        .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
         .append(amount).append("\t")
         .append(String.format(getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
         .append(String.format(getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\t")

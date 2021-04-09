@@ -4,9 +4,7 @@
 package de.tichawa.cis.config.model;
 
 
-import de.tichawa.cis.config.model.tables.Electronic;
-import de.tichawa.cis.config.model.tables.Mechanic;
-import de.tichawa.cis.config.model.tables.Price;
+import de.tichawa.cis.config.model.tables.*;
 
 
 /**
@@ -24,6 +22,11 @@ public class Tables {
      * The table <code>tivicc.mechanic</code>.
      */
     public static final Mechanic MECHANIC = Mechanic.MECHANIC;
+
+    /**
+     * The table <code>tivicc.price</code>.
+     */
+    public static final Equipment EQUIPMENT = Equipment.EQUIPMENT;
 
     /**
      * The table <code>tivicc.price</code>.

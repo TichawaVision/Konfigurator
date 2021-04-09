@@ -20,6 +20,7 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 
 import static de.tichawa.cis.config.CIS.isDouble;
+import static de.tichawa.cis.config.model.Tables.*;
 
 public abstract class MaskController implements Initializable
 {
@@ -313,67 +314,59 @@ public abstract class MaskController implements Initializable
   @FXML
   public void handleEquipment(ActionEvent a)
   {
-    try
+    Stage printStage = new Stage();
+    printStage.setTitle("Additional equipment list");
+    printStage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
+    GridPane printPane = new GridPane();
+    printPane.getStylesheets().add("/de/tichawa/cis/config/style.css");
+    printPane.getStyleClass().add("white");
+    ColumnConstraints c = new ColumnConstraints();
+    c.setHgrow(Priority.ALWAYS);
+    printPane.getColumnConstraints().addAll(c, c);
+    Scene printScene = new Scene(printPane);
+
+    SimpleBooleanProperty pale = new SimpleBooleanProperty(false);
+    CIS_DATA.getDatabase().ifPresent(context ->
     {
-      Map<String, Double> prices = Files.lines(Launcher.tableHome.resolve("Prices.csv"))
-              .skip(1)
-              .map(line -> line.split("\t"))
-              .filter(line -> isDouble(line[2]))
-              .collect(Collectors.toMap(line -> line[0], line -> Double.parseDouble(line[2].replace(',', '.')), (oldVal, newVal) -> oldVal));
-
-      Stage printStage = new Stage();
-      printStage.setTitle("Additional equipment list");
-      printStage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
-      GridPane printPane = new GridPane();
-      printPane.getStylesheets().add("/de/tichawa/cis/config/style.css");
-      printPane.getStyleClass().add("white");
-      ColumnConstraints c = new ColumnConstraints();
-      c.setHgrow(Priority.ALWAYS);
-      printPane.getColumnConstraints().addAll(c, c);
-      Scene printScene = new Scene(printPane);
-
-      SimpleBooleanProperty pale = new SimpleBooleanProperty(false);
-      Files.lines(Launcher.tableHome.resolve("Equip.csv"))
-              .skip(1)
-              .map(line -> line.split("\t"))
-              .filter(line -> line.length > 3 && Arrays.stream(line[2].split("&"))
+      context.select(EQUIPMENT.asterisk(), PRICE.FERIX_KEY)
+          .from(EQUIPMENT.join(PRICE).on(EQUIPMENT.ART_NO.eq(PRICE.ART_NO)))
+          .fetchStream()
+          .filter(record -> record.get(EQUIPMENT.SELECT_CODE) == null
+              || Arrays.stream(record.get(EQUIPMENT.SELECT_CODE).split("&"))
               .allMatch(pred -> pred.length() == 0
-              || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred.replace("!", "")))
-              || (CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
-              .map(line ->
+                  || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred.replace("!", "")))
+                  || (CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
+          .map(record ->
+          {
+            Label[] labels = new Label[2];
+
+            for(int i = 0; i < labels.length; i++)
+            {
+              labels[i] = new Label();
+              Label l = labels[i];
+              l.setAlignment(Pos.CENTER_LEFT);
+              l.setMaxWidth(1000);
+              l.getStyleClass().add("bolder");
+              if(pale.get())
               {
-                Label[] labels = new Label[2];
+                l.getStyleClass().add("pale-blue");
+              }
+              else
+              {
+                l.getStyleClass().add("white");
+              }
+            }
 
-                for(int i = 0; i < labels.length; i++)
-                {
-                  labels[i] = new Label();
-                  Label l = labels[i];
-                  l.setAlignment(Pos.CENTER_LEFT);
-                  l.setMaxWidth(1000);
-                  l.getStyleClass().add("bolder");
-                  if(pale.get())
-                  {
-                    l.getStyleClass().add("pale-blue");
-                  }
-                  else
-                  {
-                    l.getStyleClass().add("white");
-                  }
-                }
+            labels[0].setText(record.get(EQUIPMENT.ART_NO).toString());
+            labels[1].setText(record.get(PRICE.FERIX_KEY));
 
-                labels[0].setText(line[1]);
-                labels[1].setText(line[0]);
-
-                pale.set(!pale.get());
-                return labels;
-              })
-              .forEach(labels -> printPane.addRow(printPane.getChildren().size() / 2, labels));
+            pale.set(!pale.get());
+            return labels;
+          })
+          .forEach(labels -> printPane.addRow(printPane.getChildren().size() / 2, labels));
 
       printStage.setScene(printScene);
       printStage.show();
-    }
-    catch(IOException ex)
-    {
-    }
+    });
   }
 }

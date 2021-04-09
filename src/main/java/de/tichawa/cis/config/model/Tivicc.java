@@ -4,9 +4,7 @@
 package de.tichawa.cis.config.model;
 
 
-import de.tichawa.cis.config.model.tables.Electronic;
-import de.tichawa.cis.config.model.tables.Mechanic;
-import de.tichawa.cis.config.model.tables.Price;
+import de.tichawa.cis.config.model.tables.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -40,6 +38,11 @@ public class Tivicc extends SchemaImpl {
     public final Mechanic MECHANIC = Mechanic.MECHANIC;
 
     /**
+     * The table <code>tivicc.mechanic</code>.
+     */
+    public final Equipment EQUIPMENT = Equipment.EQUIPMENT;
+
+    /**
      * The table <code>tivicc.price</code>.
      */
     public final Price PRICE = Price.PRICE;
@@ -62,6 +65,7 @@ public class Tivicc extends SchemaImpl {
         return Arrays.<Table<?>>asList(
             Electronic.ELECTRONIC,
             Mechanic.MECHANIC,
+            Equipment.EQUIPMENT,
             Price.PRICE);
     }
 }
