@@ -4,11 +4,14 @@
 package de.tichawa.cis.config.model;
 
 
+import de.tichawa.cis.config.model.tables.AdcBoard;
 import de.tichawa.cis.config.model.tables.Config;
 import de.tichawa.cis.config.model.tables.Electronic;
 import de.tichawa.cis.config.model.tables.Equipment;
 import de.tichawa.cis.config.model.tables.Mechanic;
 import de.tichawa.cis.config.model.tables.Price;
+import de.tichawa.cis.config.model.tables.SensorBoard;
+import de.tichawa.cis.config.model.tables.SensorChip;
 
 
 /**
@@ -16,6 +19,11 @@ import de.tichawa.cis.config.model.tables.Price;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
+
+    /**
+     * The table <code>tivicc.adc_board</code>.
+     */
+    public static final AdcBoard ADC_BOARD = AdcBoard.ADC_BOARD;
 
     /**
      * The table <code>tivicc.config</code>.
@@ -41,4 +49,14 @@ public class Tables {
      * The table <code>tivicc.price</code>.
      */
     public static final Price PRICE = Price.PRICE;
+
+    /**
+     * The table <code>tivicc.sensor_board</code>.
+     */
+    public static final SensorBoard SENSOR_BOARD = SensorBoard.SENSOR_BOARD;
+
+    /**
+     * The table <code>tivicc.sensor_chip</code>.
+     */
+    public static final SensorChip SENSOR_CHIP = SensorChip.SENSOR_CHIP;
 }

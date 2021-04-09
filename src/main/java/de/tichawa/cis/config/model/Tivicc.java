@@ -4,11 +4,14 @@
 package de.tichawa.cis.config.model;
 
 
+import de.tichawa.cis.config.model.tables.AdcBoard;
 import de.tichawa.cis.config.model.tables.Config;
 import de.tichawa.cis.config.model.tables.Electronic;
 import de.tichawa.cis.config.model.tables.Equipment;
 import de.tichawa.cis.config.model.tables.Mechanic;
 import de.tichawa.cis.config.model.tables.Price;
+import de.tichawa.cis.config.model.tables.SensorBoard;
+import de.tichawa.cis.config.model.tables.SensorChip;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +33,11 @@ public class Tivicc extends SchemaImpl {
      * The reference instance of <code>tivicc</code>
      */
     public static final Tivicc TIVICC = new Tivicc();
+
+    /**
+     * The table <code>tivicc.adc_board</code>.
+     */
+    public final AdcBoard ADC_BOARD = AdcBoard.ADC_BOARD;
 
     /**
      * The table <code>tivicc.config</code>.
@@ -57,6 +65,16 @@ public class Tivicc extends SchemaImpl {
     public final Price PRICE = Price.PRICE;
 
     /**
+     * The table <code>tivicc.sensor_board</code>.
+     */
+    public final SensorBoard SENSOR_BOARD = SensorBoard.SENSOR_BOARD;
+
+    /**
+     * The table <code>tivicc.sensor_chip</code>.
+     */
+    public final SensorChip SENSOR_CHIP = SensorChip.SENSOR_CHIP;
+
+    /**
      * No further instances allowed
      */
     private Tivicc() {
@@ -72,10 +90,13 @@ public class Tivicc extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.<Table<?>>asList(
+            AdcBoard.ADC_BOARD,
             Config.CONFIG,
             Electronic.ELECTRONIC,
             Equipment.EQUIPMENT,
             Mechanic.MECHANIC,
-            Price.PRICE);
+            Price.PRICE,
+            SensorBoard.SENSOR_BOARD,
+            SensorChip.SENSOR_CHIP);
     }
 }

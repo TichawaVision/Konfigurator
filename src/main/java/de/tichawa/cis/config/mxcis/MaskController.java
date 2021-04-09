@@ -1,7 +1,9 @@
 package de.tichawa.cis.config.mxcis;
 
+import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.model.tables.records.*;
 import de.tichawa.cis.config.mxled.MXLED;
-import de.tichawa.cis.config.CIS;
+
 import java.net.*;
 import java.util.*;
 import javafx.beans.value.*;
@@ -75,9 +77,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getSpec("LEDLines") == 0);
       ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
-      Integer[] board = ((MXCIS) CIS_DATA).getBoard(CIS_DATA.getSpec("res_cp2"));
-      Integer[] chip = ((MXCIS) CIS_DATA).getChip(CIS_DATA.getSpec("res_cp2"));
-      double maxLR = Math.round(1000.0 * board[2] / (CIS_DATA.getSpec("Color") * (chip[3] + 3 + chip[2]) * 1.0 / Math.min(chip[4], CIS_DATA.getADC("MODU_ADC(SLOW)")[2]))) / 1000.0;
+      SensorChipRecord sensorChip = ((MXCIS) CIS_DATA).getSensorChip(CIS_DATA.getSpec("res_cp2")).orElseThrow(() -> new CISException("Unknown sensor chip"));
+      SensorBoardRecord sensorBoard = ((MXCIS) CIS_DATA).getSensorBoard(CIS_DATA.getSpec("res_cp2")).orElseThrow(() -> new CISException("Unknown ADC board"));
+      AdcBoardRecord adcBoard = CIS_DATA.getADC("MODU_ADC(SLOW)").orElseThrow(() -> new CISException("Unknown ADC board."));
+      double maxLR = Math.round(1000.0 * sensorBoard.getLines() / (CIS_DATA.getSpec("Color") * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);
@@ -170,9 +173,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
       CIS_DATA.setSpec("res_cp2", res);
 
-      Integer[] board = ((MXCIS) CIS_DATA).getBoard(res);
-      Integer[] chip = ((MXCIS) CIS_DATA).getChip(res);
-      double maxLR = Math.round(1000.0 * board[2] / (CIS_DATA.getSpec("Color") * (chip[3] + 3 + chip[2]) * 1.0 / Math.min(chip[4], CIS_DATA.getADC("MODU_ADC(SLOW)")[2]))) / 1000.0;
+      SensorChipRecord sensorChip = ((MXCIS) CIS_DATA).getSensorChip(CIS_DATA.getSpec("res_cp2")).orElseThrow(() -> new CISException("Unknown sensor chip"));
+      SensorBoardRecord sensorBoard = ((MXCIS) CIS_DATA).getSensorBoard(CIS_DATA.getSpec("res_cp2")).orElseThrow(() -> new CISException("Unknown ADC board"));
+      AdcBoardRecord adcBoard = CIS_DATA.getADC("MODU_ADC(SLOW)").orElseThrow(() -> new CISException("Unknown ADC board."));
+      double maxLR = Math.round(1000.0 * sensorBoard.getLines() / (CIS_DATA.getSpec("Color") * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);

@@ -1,6 +1,7 @@
 package de.tichawa.cis.config.vdcis;
 
 import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.model.tables.records.*;
 
 import java.util.*;
 
@@ -130,7 +131,8 @@ public class VDCIS extends CIS
     int tapCount;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) Math.ceil(numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
+    SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD_INLINE").orElseThrow(() -> new CISException("Unknown sensor board"));
+    numOfPixNominal = (int) Math.ceil(numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSpec("res_cp2"))));
     taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSpec("Selected line rate") / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;

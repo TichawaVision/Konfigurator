@@ -1,8 +1,11 @@
 package de.tichawa.cis.config.vdcis;
 
-import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.*;
+
 import java.net.*;
 import java.util.*;
+
+import de.tichawa.cis.config.model.tables.records.*;
 import javafx.beans.value.*;
 import javafx.fxml.*;
 import javafx.scene.control.*;
@@ -79,7 +82,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
       InternalLightColor.setDisable(newValue.equals("RGB"));
 
-      double maxLR = Math.round(1000 * CIS_DATA.getSensBoard("SMARAGD_INLINE")[2] / (CIS_DATA.getSpec("Color") * (CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[3] + 3 + CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[2]) * 1.0 / Math.min(CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[4], CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
+      AdcBoardRecord adcBoard = CIS_DATA.getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
+      SensorBoardRecord sensorBoard = CIS_DATA.getSensorBoard("SMARAGD_INLINE").orElseThrow(() -> new CISException("Unknown sensor board"));
+      SensorChipRecord sensorChip = CIS_DATA.getSensorChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD").orElseThrow(() -> new CISException("Unknown sensor chip"));
+      double maxLR = Math.round(1000 * sensorBoard.getLines() / (CIS_DATA.getSpec("Color") * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);
@@ -139,15 +145,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController
         return;
       }
 
-      double maxLR = Math.round(1000 *
-          CIS_DATA.getSensBoard("SMARAGD_INLINE")[2] /
-          (CIS_DATA.getSpec("Color")
-              * (CIS_DATA.getSensChip("SMARAGD"
-              + CIS_DATA.getSpec("res_cp") + "_VD")[3] + 3 +
-              CIS_DATA.getSensChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD")[2]) * 1.0
-              / Math.min(CIS_DATA.getSensChip("SMARAGD" +
-              CIS_DATA.getSpec("res_cp") + "_VD")[4],
-              CIS_DATA.getADC("VADCFPGA")[2]))) / 1000.0;
+      AdcBoardRecord adcBoard = CIS_DATA.getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
+      SensorBoardRecord sensorBoard = CIS_DATA.getSensorBoard("SMARAGD_INLINE").orElseThrow(() -> new CISException("Unknown sensor board"));
+      SensorChipRecord sensorChip = CIS_DATA.getSensorChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD").orElseThrow(() -> new CISException("Unknown sensor chip"));
+      double maxLR = Math.round(1000 * sensorBoard.getLines() / (CIS_DATA.getSpec("Color") * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
       MaxLineRate.setText(maxLR + " kHz");
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);

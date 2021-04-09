@@ -1,6 +1,7 @@
 package de.tichawa.cis.config.vhcis;
 
 import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.model.tables.records.*;
 
 public class VHCIS extends CIS
 {
@@ -111,7 +112,8 @@ public class VHCIS extends CIS
     int tcounter = 0;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARDOUB")[7] / (1200 / getSpec("res_cp2"))));
+    SensorBoardRecord sensorBoard = getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
+    numOfPixNominal = numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSpec("res_cp2")));
     taps = (int) Math.ceil(1.01 * (numOfPixNominal * getSpec("Maximum line rate") / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;

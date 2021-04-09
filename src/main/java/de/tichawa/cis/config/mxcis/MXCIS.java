@@ -1,6 +1,7 @@
 package de.tichawa.cis.config.mxcis;
 
 import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.model.tables.records.*;
 
 import java.util.*;
 
@@ -139,7 +140,7 @@ public class MXCIS extends CIS
     dpiToRate.put(400, 13);
     dpiToRate.put(600, 10);
 
-    double FpgaDataRate;
+    double fpgaDataRate;
     int tapsPerFpga;
     int lval;
     int pixPerFpga;
@@ -165,9 +166,11 @@ public class MXCIS extends CIS
       sensPerFpga = 2;
     }
 
-    pixPerFpga = sensPerFpga * getBoard(getSpec("res_cp"))[0] * getChip(getSpec("res_cp2"))[3] / getSpec("Binning");
-    FpgaDataRate = pixPerFpga * getSpec("Selected line rate") / 1000.0;
-    tapsPerFpga = (int) Math.ceil(FpgaDataRate / (84 * 1000.0));
+    SensorChipRecord sensorChip = getSensorChip(getSpec("res_cp2")).orElseThrow(() -> new CISException("Unknown sensor chip"));
+    SensorBoardRecord sensorBoard = getSensorBoard(getSpec("res_cp2")).orElseThrow(() -> new CISException("Unknown ADC board"));
+    pixPerFpga = sensPerFpga * sensorBoard.getChips() * sensorChip.getPixelPerSensor() / getSpec("Binning");
+    fpgaDataRate = pixPerFpga * getSpec("Selected line rate") / 1000.0;
+    tapsPerFpga = (int) Math.ceil(fpgaDataRate / (84 * 1000.0));
     if(getSpec("Color") == 1 && getNumFPGA() > 1 && tapsPerFpga % 2 == 1)
     {
       tapsPerFpga++;
@@ -268,17 +271,17 @@ public class MXCIS extends CIS
     }
   }
 
-  public Integer[] getBoard(int res)
+  public Optional<SensorBoardRecord> getSensorBoard(int res)
   {
-    while(getSensBoard("SENS_" + res) == null)
+    while(!getSensorBoard("SENS_" + res).isPresent())
     {
       res *= 2;
     }
 
-    return getSensBoard("SENS_" + res);
+    return getSensorBoard("SENS_" + res);
   }
 
-  public Integer[] getChip(int res)
+  public Optional<SensorChipRecord> getSensorChip(int res)
   {
     int z = 1;
     while(resToSens.get(res * z) == null)
@@ -288,7 +291,7 @@ public class MXCIS extends CIS
 
     setSpec("Binning", z);
 
-    return getSensChip(resToSens.get(res * z));
+    return getSensorChip(resToSens.get(res * z));
   }
   
   @Override

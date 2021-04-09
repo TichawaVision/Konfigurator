@@ -1,6 +1,7 @@
 package de.tichawa.cis.config.vscis;
 
 import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.model.tables.records.*;
 
 public class VSCIS extends CIS
 {
@@ -131,23 +132,26 @@ public class VSCIS extends CIS
     double binning;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
+    AdcBoardRecord adcBoard = getADC("VARICISC").orElseThrow(() -> new CISException("Unknown ADC board"));
+    SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
+    SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSpec("res_cp") + "_VS").orElseThrow(() -> new CISException("Unknown sensor chip"));
+    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSpec("res_cp2"))));
     taps = (int) Math.ceil((numOfPix * getSpec("Selected line rate") / 1000000.0) / 85.0);
-    chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / BASE_LENGTH)) / (double) taps);
-    ppsbin = getSensChip("SMARAGD" + getSpec("res_cp") + "_VS")[3] / ((double) getSpec("res_cp") / (double) getSpec("res_cp2"));
+    chipsPerTap = (int) Math.ceil((sensorBoard.getChips() * (getSpec("sw_cp") / BASE_LENGTH)) / (double) taps);
+    ppsbin = sensorChip.getPixelPerSensor() / ((double) getSpec("res_cp") / (double) getSpec("res_cp2"));
     pixPerTap = (int) (chipsPerTap * ppsbin);
     portDataRate = pixPerTap * getSpec("Selected line rate") / 1000000.0;
 
     while(portDataRate > 85.0)
     {
       taps++;
-      chipsPerTap = (int) Math.ceil((getSensBoard("SMARAGD")[0] * (getSpec("sw_cp") / BASE_LENGTH)) / (double) taps);
-      ppsbin = getSensChip("SMARAGD" + getSpec("res_cp") + "_VS")[3] / ((double) getSpec("res_cp") / (double) getSpec("res_cp2"));
+      chipsPerTap = (int) Math.ceil((sensorBoard.getChips() * (getSpec("sw_cp") / BASE_LENGTH)) / (double) taps);
+      ppsbin = sensorChip.getPixelPerSensor() / ((double) getSpec("res_cp") / (double) getSpec("res_cp2"));
       pixPerTap = (int) (chipsPerTap * ppsbin);
       portDataRate = pixPerTap * getSpec("Selected line rate") / 1000000.0;
     }
-    binning = 1 / (getSensChip("SMARAGD" + getSpec("res_cp") + "_VS")[6] * ((double) getSpec("res_cp") / (double) getSpec("res_cp2")));
-    lval = (int) (chipsPerTap * (ppsbin - (getSensBoard("SMARAGD")[7] * binning) / getSensBoard("SMARAGD")[0]));
+    binning = 1 / (sensorChip.getBinning() * ((double) getSpec("res_cp") / (double) getSpec("res_cp2")));
+    lval = (int) (chipsPerTap * (ppsbin - (sensorBoard.getOverlap() * binning) / sensorBoard.getChips()));
     lval -= lval % 8;
 
     printOut.append(getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");

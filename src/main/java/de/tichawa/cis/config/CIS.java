@@ -7,12 +7,10 @@ import org.apache.commons.dbcp2.*;
 import org.jooq.*;
 import org.jooq.exception.*;
 import org.jooq.impl.*;
-import org.jooq.types.*;
 
 import java.io.*;
 import java.io.IOException;
 import java.nio.charset.*;
-import java.nio.file.*;
 import java.text.*;
 import java.util.*;
 import java.util.Date;
@@ -27,12 +25,12 @@ public abstract class CIS
 
   public final String cisName;
 
-  protected HashMap<String, Integer> spec;
-  protected HashMap<String, Integer[]> sensChipTab;
-  protected HashMap<String, Integer[]> sensBoardTab;
-  protected HashMap<String, Integer[]> adcBoardTab;
-  protected HashMap<PriceRecord, Integer> electConfig;
-  protected HashMap<PriceRecord, Integer> mechaConfig;
+  protected Map<String, Integer> spec;
+  private final Map<String, AdcBoardRecord> adcBoards;
+  private final Map<String, SensorChipRecord> sensChips;
+  private final Map<String, SensorBoardRecord> sensBoards;
+  protected Map<PriceRecord, Integer> electConfig;
+  protected Map<PriceRecord, Integer> mechaConfig;
   protected Double[] electSums;
   protected Double[] mechaSums;
   protected Double[] totalPrices;
@@ -51,7 +49,7 @@ public abstract class CIS
     return Character.toString((char) (65 + x));
   }
 
-  public CIS()
+  protected CIS()
   {
     maxRateForHalfMode = new HashMap<>();
     maxRateForHalfMode.put(25, 27);
@@ -67,9 +65,18 @@ public abstract class CIS
     String fullName = this.getClass().getName();
     cisName = fullName.substring(fullName.lastIndexOf('.') + 1);
 
-    sensChipTab = readConfigTable("/de/tichawa/cis/config/sensChips.csv");
-    sensBoardTab = readConfigTable("/de/tichawa/cis/config/sensBoards.csv");
-    adcBoardTab = readConfigTable("/de/tichawa/cis/config/adcBoards.csv");
+    adcBoards = getDatabase()
+        .map(context -> context.selectFrom(ADC_BOARD).stream())
+        .orElse(Stream.empty())
+        .collect(Collectors.toMap(AdcBoardRecord::getName, Function.identity()));
+    sensChips = getDatabase()
+        .map(context -> context.selectFrom(SENSOR_CHIP).stream())
+        .orElse(Stream.empty())
+        .collect(Collectors.toMap(SensorChipRecord::getName, Function.identity()));
+    sensBoards = getDatabase()
+        .map(context -> context.selectFrom(SENSOR_BOARD).stream())
+        .orElse(Stream.empty())
+        .collect(Collectors.toMap(SensorBoardRecord::getName, Function.identity()));
 
     spec = new HashMap<>();
   }
@@ -159,34 +166,19 @@ public abstract class CIS
     return map;
   }
 
-  public Integer[] getADC(String name)
+  public Optional<AdcBoardRecord> getADC(String name)
   {
-    if(adcBoardTab.containsKey(name))
-    {
-      return adcBoardTab.get(name);
-    }
-
-    return null;
+    return Optional.ofNullable(adcBoards.get(name));
   }
 
-  public Integer[] getSensBoard(String name)
+  public Optional<SensorBoardRecord> getSensorBoard(String name)
   {
-    if(sensBoardTab.containsKey(name))
-    {
-      return sensBoardTab.get(name);
-    }
-
-    return null;
+    return Optional.ofNullable(sensBoards.get(name));
   }
 
-  public Integer[] getSensChip(String name)
+  public Optional<SensorChipRecord> getSensorChip(String name)
   {
-    if(sensChipTab.containsKey(name))
-    {
-      return sensChipTab.get(name);
-    }
-
-    return null;
+    return Optional.ofNullable(sensChips.get(name));
   }
 
   public final void setSpec(String key, int value)
@@ -1103,23 +1095,23 @@ public abstract class CIS
   private int calcNumOfPix()
   {
     int numOfPix;
-    int sensBoards = getSpec("sw_cp") / BASE_LENGTH;
+    int sensorBoards = getSpec("sw_cp") / BASE_LENGTH;
 
     if(getSpec("MXCIS") != null)
     {
-      numOfPix = ((MXCIS) this).getBoard(getSpec("res_cp"))[0] * (getSpec("sw_cp") / BASE_LENGTH) * ((MXCIS) this).getChip(getSpec("res_cp2"))[3] / getSpec("Binning");
+      SensorChipRecord sensorChip = ((MXCIS) this).getSensorChip(getSpec("res_cp")).orElseThrow(() -> new CISException("Unknown sensor chip"));
+      SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSpec("res_cp")).orElseThrow(() -> new CISException("Unknown sensor board"));
+      numOfPix = sensorBoard.getChips() * (getSpec("sw_cp") / BASE_LENGTH) * sensorChip.getPixelPerSensor() / getSpec("Binning");
     }
-    else if(getSpec("VHCIS") != null)
+    else if(getSpec("VHCIS") != null || getSpec("VTCIS") != null)
     {
-      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * sensBoards * 0.72 * getSpec("res_cp2"));
-    }
-    else if(getSpec("VTCIS") != null)
-    {
-      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * sensBoards * 0.72 * getSpec("res_cp2"));
+      SensorBoardRecord sensorBoard = getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
+      numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSpec("res_cp2"));
     }
     else
     {
-      numOfPix = (int) (getSensBoard("SMARAGD")[0] * sensBoards * 0.72 * getSpec("res_cp2"));
+      SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
+      numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSpec("res_cp2"));
     }
 
     if((getSpec("Color") * numOfPix * getSpec("Selected line rate") / 1000000 > 80 && getSpec("Interface") == 1))
