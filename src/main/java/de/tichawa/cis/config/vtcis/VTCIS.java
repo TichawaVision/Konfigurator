@@ -116,7 +116,7 @@ public class VTCIS extends CIS
     int tapCount;
     StringBuilder printOut = new StringBuilder();
 
-    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2")))) + 1;
+    numOfPixNominal = (int) (numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
     taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSpec("Selected line rate") / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
@@ -128,7 +128,7 @@ public class VTCIS extends CIS
     printOut.append(getString("numofport")).append(taps * getSpec("Color")).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");
     printOut.append(getString("nomPix")).append(numOfPixNominal).append("\n");
-    printOut.append("LVAL: ").append(lval).append("\n");
+    printOut.append("LVAL (Modulo 8): ").append(lval).append("\n");
     printOut.append(getString("clMode")).append(mediumMode ? "Base/Medium/Full" : "Full80").append("\n");
     printOut.append(getString("numPhases")).append(getSpec("Color")).append("\n");
 
@@ -141,7 +141,7 @@ public class VTCIS extends CIS
     mediumMap.put(6, Arrays.asList(1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0));
 
     Map<Integer, List<Integer>> highMap = new HashMap<>();
-    highMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 0));
+    highMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20));
     highMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 3, 3, 0, 0, 4, 4, 0, 5, 5, 0, 6, 6, 0, 0));
     highMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 4, 4, 4, 5, 5, 5, 6, 6, 6, 0));
     highMap.put(4, mediumMap.get(4));
@@ -153,9 +153,15 @@ public class VTCIS extends CIS
     {
       throw new CISException("Number of required taps (" + taps * getSpec("Color") + ") is too high. Please reduce the data rate.");
     }
+    //Out Of Flash Memory
+    printOut.append("Flash Extension: ");
     if(getSpec("res_cp2") >= 1200 && (numOfPix - 16 * getSpec("sw_cp") / BASE_LENGTH * 6 * 2) * getSpec("Color") * 2 > 327680)
     {
-      throw new CISException("Out of Flash memory. Please reduce the scan width or resolution.");
+      printOut.append("Required.\n");
+    }
+    else
+    {
+      printOut.append("Not required.\n");
     }
 
     int cableCount = 0;
