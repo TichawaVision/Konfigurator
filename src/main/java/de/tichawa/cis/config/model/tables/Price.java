@@ -24,7 +24,6 @@ import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
-import org.jooq.types.UInteger;
 
 
 /**
@@ -51,7 +50,7 @@ public class Price extends TableImpl<PriceRecord> {
     /**
      * The column <code>tivicc.price.art_no</code>.
      */
-    public final TableField<PriceRecord, UInteger> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGERUNSIGNED.nullable(false), this, "");
+    public final TableField<PriceRecord, Integer> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * The column <code>tivicc.price.ferix_key</code>.
@@ -167,7 +166,7 @@ public class Price extends TableImpl<PriceRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<UInteger, String, String, Double, Double, Double, Double, Double> fieldsRow() {
+    public Row8<Integer, String, String, Double, Double, Double, Double, Double> fieldsRow() {
         return (Row8) super.fieldsRow();
     }
 }

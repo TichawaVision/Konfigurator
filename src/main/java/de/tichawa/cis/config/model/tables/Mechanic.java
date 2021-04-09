@@ -23,7 +23,6 @@ import org.jooq.TableOptions;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
-import org.jooq.types.UInteger;
 
 
 /**
@@ -75,7 +74,7 @@ public class Mechanic extends TableImpl<MechanicRecord> {
     /**
      * The column <code>tivicc.mechanic.art_no</code>.
      */
-    public final TableField<MechanicRecord, UInteger> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGERUNSIGNED.nullable(false), this, "");
+    public final TableField<MechanicRecord, Integer> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * The column <code>tivicc.mechanic.amount</code>.
@@ -165,7 +164,7 @@ public class Mechanic extends TableImpl<MechanicRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row7<String, Integer, Integer, Integer, String, UInteger, String> fieldsRow() {
+    public Row7<String, Integer, Integer, Integer, String, Integer, String> fieldsRow() {
         return (Row7) super.fieldsRow();
     }
 }

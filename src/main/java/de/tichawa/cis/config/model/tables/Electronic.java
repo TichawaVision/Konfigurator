@@ -23,7 +23,6 @@ import org.jooq.TableOptions;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
-import org.jooq.types.UInteger;
 
 
 /**
@@ -65,7 +64,7 @@ public class Electronic extends TableImpl<ElectronicRecord> {
     /**
      * The column <code>tivicc.electronic.art_no</code>.
      */
-    public final TableField<ElectronicRecord, UInteger> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGERUNSIGNED.nullable(false), this, "");
+    public final TableField<ElectronicRecord, Integer> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * The column <code>tivicc.electronic.multiplier</code>.
@@ -160,7 +159,7 @@ public class Electronic extends TableImpl<ElectronicRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<String, Integer, String, UInteger, String, String> fieldsRow() {
+    public Row6<String, Integer, String, Integer, String, String> fieldsRow() {
         return (Row6) super.fieldsRow();
     }
 }

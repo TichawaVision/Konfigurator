@@ -243,7 +243,7 @@ public abstract class CIS
   public boolean calculate()
   {
     DSLContext context;
-    Map<UInteger, PriceRecord> priceRecords = new HashMap<>();
+    Map<Integer, PriceRecord> priceRecords = new HashMap<>();
     mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 100.0};
     electSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
     totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
@@ -255,7 +255,7 @@ public abstract class CIS
       Properties dbProperties = new Properties();
       dbProperties.loadFromXML(new FileInputStream("connection.xml"));
       BasicDataSource dataSource = new BasicDataSource();
-      dataSource.setUrl("jdbc:mariadb:" + dbProperties.getProperty("dbHost") + ":" + dbProperties.getProperty("dbPort")
+      dataSource.setUrl("jdbc:mariadb://" + dbProperties.getProperty("dbHost") + ":" + dbProperties.getProperty("dbPort")
           + "/" + dbProperties.getProperty("dbName"));
       dataSource.setUsername(dbProperties.getProperty("dbUser"));
       dataSource.setPassword(dbProperties.getProperty("dbPwd"));
@@ -334,7 +334,7 @@ public abstract class CIS
                     }
                   });
 
-              if(electronicRecord.getSelectCode().contains("FPGA"))
+              if(electronicRecord.getSelectCode() != null && electronicRecord.getSelectCode().contains("FPGA"))
               {
                 numFPGA += amount;
               }
@@ -390,18 +390,6 @@ public abstract class CIS
     }
 
     return true;
-  }
-
-  private Optional<UInteger> parseUInt(String s)
-  {
-    try
-    {
-      return Optional.of(UInteger.valueOf(s));
-    }
-    catch(NullPointerException | NumberFormatException ex)
-    {
-      return Optional.empty();
-    }
   }
 
   public String getVersion()
@@ -790,6 +778,11 @@ public abstract class CIS
 
   private boolean isApplicable(String selectCode)
   {
+    if(selectCode == null)
+    {
+      return true;
+    }
+
     boolean proceed;
     String key = getTiViKey();
     String[] multiplier = selectCode.split("&");
