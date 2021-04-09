@@ -329,8 +329,7 @@ public abstract class MaskController implements Initializable
     CIS_DATA.getDatabase().ifPresent(context ->
     {
       context.select(EQUIPMENT.asterisk(), PRICE.FERIX_KEY)
-          .from(EQUIPMENT.join(PRICE).on(EQUIPMENT.ART_NO.eq(PRICE.ART_NO)))
-          .fetchStream()
+          .from(EQUIPMENT.join(PRICE).on(EQUIPMENT.ART_NO.eq(PRICE.ART_NO))).stream()
           .filter(record -> record.get(EQUIPMENT.SELECT_CODE) == null
               || Arrays.stream(record.get(EQUIPMENT.SELECT_CODE).split("&"))
               .allMatch(pred -> pred.length() == 0

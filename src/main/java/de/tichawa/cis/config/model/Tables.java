@@ -4,7 +4,11 @@
 package de.tichawa.cis.config.model;
 
 
-import de.tichawa.cis.config.model.tables.*;
+import de.tichawa.cis.config.model.tables.Config;
+import de.tichawa.cis.config.model.tables.Electronic;
+import de.tichawa.cis.config.model.tables.Equipment;
+import de.tichawa.cis.config.model.tables.Mechanic;
+import de.tichawa.cis.config.model.tables.Price;
 
 
 /**
@@ -14,19 +18,24 @@ import de.tichawa.cis.config.model.tables.*;
 public class Tables {
 
     /**
+     * The table <code>tivicc.config</code>.
+     */
+    public static final Config CONFIG = Config.CONFIG;
+
+    /**
      * The table <code>tivicc.electronic</code>.
      */
     public static final Electronic ELECTRONIC = Electronic.ELECTRONIC;
 
     /**
+     * The table <code>tivicc.equipment</code>.
+     */
+    public static final Equipment EQUIPMENT = Equipment.EQUIPMENT;
+
+    /**
      * The table <code>tivicc.mechanic</code>.
      */
     public static final Mechanic MECHANIC = Mechanic.MECHANIC;
-
-    /**
-     * The table <code>tivicc.price</code>.
-     */
-    public static final Equipment EQUIPMENT = Equipment.EQUIPMENT;
 
     /**
      * The table <code>tivicc.price</code>.

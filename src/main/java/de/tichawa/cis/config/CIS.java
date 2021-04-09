@@ -16,6 +16,8 @@ import java.nio.file.*;
 import java.text.*;
 import java.util.*;
 import java.util.Date;
+import java.util.function.Function;
+import java.util.stream.*;
 
 import static de.tichawa.cis.config.model.Tables.*;
 
@@ -109,21 +111,11 @@ public abstract class CIS
       key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
     }
 
-    try
-    {
-      String version = Files.lines(Launcher.tableHome.resolve("mxled/Calculation.csv"))
-              .map(line -> line.split("\t"))
-              .filter(line -> line[0].equals("VERSION"))
-              .map(line -> line[1])
-              .findAny().orElse("2.0");
-
-      key += "_" + version + "_";
-    }
-    catch(IOException e)
-    {
-      e.printStackTrace();
-      key += "_2.0_";
-    }
+    key += "_" + getDatabase().flatMap(context -> context.selectFrom(CONFIG)
+        .where(CONFIG.CIS_TYPE.eq("MXLED"))
+        .and(CONFIG.KEY.eq("VERSION"))
+        .fetchOptional(CONFIG.VALUE))
+        .orElse("2.0") + "_";
 
     if(key.endsWith("_"))
     {
@@ -250,10 +242,8 @@ public abstract class CIS
 
     return getDatabase().map(context ->
     {
-      context.selectFrom(PRICE)
-          .fetchStream()
+      context.selectFrom(PRICE).stream()
           .forEach(priceRecord -> priceRecords.put(priceRecord.getArtNo(), priceRecord));
-
 
       //Electronics
       int sensPerFpga;
@@ -384,18 +374,11 @@ public abstract class CIS
   
   public String getMechaVersion()
   {
-    try
-    {
-      return "_" + Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Calculation.csv"))
-              .map(line -> line.split("\t"))
-              .filter(line -> line[0].equals("VERSION"))
-              .map(line -> line[1])
-              .findAny().orElse("2.0") + "_";
-    }
-    catch(IOException e)
-    {
-      return "_2.0_";
-    }
+    return "_" + getDatabase().flatMap(context -> context.selectFrom(CONFIG)
+        .where(CONFIG.CIS_TYPE.eq(getClass().getSimpleName()))
+        .and(CONFIG.KEY.eq("VERSION"))
+        .fetchOptional(CONFIG.VALUE))
+        .orElse("2.0") + "_";
   }
 
   public String getVersionHeader()
@@ -971,41 +954,33 @@ public abstract class CIS
 
     try
     {
-      HashMap<String, Integer> calcMap = new HashMap<>();
-      Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Calculation.csv"))
-              .map(line -> line.split("\t"))
-              .forEach(line ->
-              {
-                try
-                {
-                  calcMap.put(line[0], Integer.parseInt(line[1]));
-                }
-                catch(NumberFormatException ignored)
-                {}
-              });
+      Map<String, Double> calcMap = getDatabase().map(Stream::of).orElse(Stream.empty())
+          .flatMap(context -> context.selectFrom(CONFIG)
+              .where(CONFIG.CIS_TYPE.eq(getClass().getSimpleName())).stream())
+          .collect(Collectors.toMap(ConfigRecord::getKey, configRecord -> Double.parseDouble(configRecord.getValue())));
 
       totalOutput.append(getString("calcfor10")).append("\t \t \t \t ").append("\n");
       totalOutput.append(getString("Electronics")).append(":\t \t \t")
               .append(String.format(getLocale(), "%.2f", electSums[0])).append("\t \n");
       totalPrices[2] = electSums[0];
       totalOutput.append(getString("Overhead Electronics")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
-              .append(String.format(getLocale(), "%.2f", electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100.0))).append("\t \n");
-      totalPrices[2] += electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100.0);
+              .append(String.format(getLocale(), "%.2f", electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
+      totalPrices[2] += electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100);
       totalOutput.append(getString("Testing")).append(":\t \t \t")
               .append(String.format(getLocale(), "%.2f", electSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
       totalPrices[2] += electSums[1] * calcMap.get("STUNDENSATZ");
       if(getSpec("Interface") != null && getSpec("Interface") == 1)
       {
         totalOutput.append(getString("Overhead GigE")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
-                .append(String.format(getLocale(), "%.2f", electSums[0] * calcMap.get("Z_GIGE") / 100.0)).append("\t \n");
-        totalPrices[2] += electSums[0] * (calcMap.get("Z_GIGE") / 100.0);
+                .append(String.format(getLocale(), "%.2f", electSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
+        totalPrices[2] += electSums[0] * (calcMap.get("Z_GIGE") / 100);
       }
       totalOutput.append(getString("Mechanics")).append(":\t \t \t")
               .append(String.format(getLocale(), "%.2f", mechaSums[0])).append("\t \n");
       totalPrices[2] += mechaSums[0];
       totalOutput.append(getString("Overhead Mechanics")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
-              .append(String.format(getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0))).append("\t \n");
-      totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100.0);
+              .append(String.format(getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
+      totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100);
       totalOutput.append(getString("Assembly")).append(":\t \t ")
               .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getSpec("sw_cp") / BASE_LENGTH)).append(" h\t")
               .append(String.format(getLocale(), "%.2f", (double) (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ"))).append("\t \n");
@@ -1014,17 +989,17 @@ public abstract class CIS
       int addition = 0;
       double surcharge = 0.0;
 
-      totalPrices[0] = totalPrices[2] * calcMap.get("F_1") / 100.0;
-      totalPrices[1] = totalPrices[2] * calcMap.get("F_5") / 100.0;
-      totalPrices[2] = totalPrices[2] * calcMap.get("F_10") / 100.0;
-      totalPrices[3] = totalPrices[2] * calcMap.get("F_25") / 100.0;
+      totalPrices[0] = totalPrices[2] * calcMap.get("F_1") / 100;
+      totalPrices[1] = totalPrices[2] * calcMap.get("F_5") / 100;
+      totalPrices[2] = totalPrices[2] * calcMap.get("F_10") / 100;
+      totalPrices[3] = totalPrices[2] * calcMap.get("F_25") / 100;
       totalOutput.append(" \t(1 ").append(getString("pc")).append(")\t")
               .append("(5 ").append(getString("pcs")).append(")\t")
               .append("(10 ").append(getString("pcs")).append(")\t")
               .append("(25 ").append(getString("pcs")).append(")\n");
 
       String format = "%.2f";
-      double value = calcMap.get("Z_TRANSPORT") / 100.0;
+      double value = calcMap.get("Z_TRANSPORT") / 100;
       totalOutput.append(getString("Price/pc")).append(":\t")
               .append(String.format(getLocale(), format, totalPrices[0])).append("\t")
               .append(String.format(getLocale(), format, totalPrices[1])).append("\t")
@@ -1050,7 +1025,7 @@ public abstract class CIS
       else
       {
         String cat = getTiViKey().split("_")[3];
-        value = calcMap.get("Z_" + cat) / 100.0;
+        value = calcMap.get("Z_" + cat) / 100;
         totalOutput.append(getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[0] * value)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[1] * value)).append("\t")
@@ -1069,7 +1044,7 @@ public abstract class CIS
       addition += value;
 
       format = "%.2f";
-      value = calcMap.get("Z_DISCONT") / 100.0;
+      value = calcMap.get("Z_DISCONT") / 100;
       totalOutput.append(getString("Discount Surcharge")).append(" (").append(value).append("%):\t")
               .append(String.format(getLocale(), format, totalPrices[0] * value)).append("\t")
               .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
@@ -1093,8 +1068,9 @@ public abstract class CIS
               .append(String.format(getLocale(), format, totalPrices[2])).append("\t")
               .append(String.format(getLocale(), format, totalPrices[3])).append("\n");
     }
-    catch(NullPointerException | IndexOutOfBoundsException | NumberFormatException | IOException e)
+    catch(NullPointerException | IndexOutOfBoundsException | NumberFormatException e)
     {
+      e.printStackTrace();
       throw new CISException(getString("MissingConfigTables"));
     }
 
