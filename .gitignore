@@ -15,3 +15,4 @@ nbactions-release-profile.xml
 *.iml
 Thumbs.db
 Tabellen
+.idea/misc.xml
