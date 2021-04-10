@@ -7,4 +7,7 @@ buildNumber.properties
 *.iml
 Thumbs.db
 Tabellen
+.idea/misc.xml
+connection.xml
+.idea/misc.xml
 connection.xml
