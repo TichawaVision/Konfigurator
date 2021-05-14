@@ -1,6 +1,6 @@
 package de.tichawa.cis.config;
 
-import de.tichawa.cis.config.mxled.MXLED;
+import de.tichawa.cis.config.ldstd.LDSTD;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.*;
@@ -74,7 +74,7 @@ public abstract class MaskController implements Initializable
   protected Button Equip;
 
   protected CIS CIS_DATA;
-  protected MXLED MXLED_DATA;
+  protected LDSTD LDSTD_DATA;
 
   public MaskController()
   {
@@ -86,11 +86,11 @@ public abstract class MaskController implements Initializable
   @FXML
   public void handleCalculation(ActionEvent event)
   {
-    if(CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0)
+    if(CIS_DATA.getSpec("LDSTD") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0)
     {
       try
       {
-        MXLED_DATA.calculate();
+        LDSTD_DATA.calculate();
       }
       catch(CISException e)
       {
@@ -106,7 +106,7 @@ public abstract class MaskController implements Initializable
         Scene scene = new Scene(loader.load());
         Stage stage = new Stage();
         stage.setScene(scene);
-        stage.setTitle("MXLED Calculation");
+        stage.setTitle("LDSTD Calculation");
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
         stage.centerOnScreen();
         stage.show();
@@ -114,7 +114,7 @@ public abstract class MaskController implements Initializable
         stage.setY(stage.getY() - 20);
 
         CalculationController controller = loader.<CalculationController>getController();
-        controller.passData(MXLED_DATA);
+        controller.passData(LDSTD_DATA);
       }
       catch(IOException e)
       {
@@ -211,11 +211,11 @@ public abstract class MaskController implements Initializable
   @FXML
   public void handleDataSheet(ActionEvent event)
   {
-    if(CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0)
+    if(CIS_DATA.getSpec("LDSTD") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0)
     {
       try
       {
-        MXLED_DATA.calculate();
+        LDSTD_DATA.calculate();
       }
       catch(CISException e)
       {
@@ -231,7 +231,7 @@ public abstract class MaskController implements Initializable
         Scene scene = new Scene(loader.load());
         Stage stage = new Stage();
         stage.setScene(scene);
-        stage.setTitle("MXLED Datasheet");
+        stage.setTitle("LDSTD Datasheet");
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
         stage.centerOnScreen();
         stage.show();
@@ -239,7 +239,7 @@ public abstract class MaskController implements Initializable
         stage.setY(stage.getY() - 20);
 
         DataSheetController controller = loader.<DataSheetController>getController();
-        controller.passData(MXLED_DATA);
+        controller.passData(LDSTD_DATA);
 
         if(((Button) event.getSource()).equals(OEMMode))
         {
@@ -340,7 +340,7 @@ public abstract class MaskController implements Initializable
               .filter(line -> line.length > 3 && Arrays.stream(line[2].split("&"))
               .allMatch(pred -> pred.length() == 0
               || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred.replace("!", "")))
-              || (CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
+              || (CIS_DATA.getSpec("LDSTD") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0 && LDSTD_DATA.getTiViKey().contains(pred.replace("!", "")))))
               .map(line ->
               {
                 Label[] labels = new Label[2];

@@ -72,7 +72,7 @@ public abstract class CIS
 
   public String getBlKey()
   {
-    String key = "G_MXLED";
+    String key = "G_LDSTD";
     key += String.format("_%04d", getSpec("sw_cp"));
 
     switch(getSpec("Internal Light Source"))
@@ -103,7 +103,7 @@ public abstract class CIS
 
     try
     {
-      String version = Files.lines(Launcher.tableHome.resolve("mxled/Calculation.csv"))
+      String version = Files.lines(Launcher.tableHome.resolve("ldstd/Calculation.csv"))
               .map(line -> line.split("\t"))
               .filter(line -> line[0].equals("VERSION"))
               .map(line -> line[1])
@@ -136,7 +136,7 @@ public abstract class CIS
               .filter(field -> field.startsWith("NL"))
               .count();
 
-      if(getSpec("MXLED") != null)
+      if(getSpec("LDSTD") != null)
       {
         x /= 2;
       }
@@ -374,7 +374,7 @@ public abstract class CIS
     //Mechanics
     try
     {
-      int index = getSpec("MXLED") == null ? getSpec("Internal Light Source") : getSpec("sw_index");
+      int index = getSpec("LDSTD") == null ? getSpec("Internal Light Source") : getSpec("sw_index");
       Files.lines(Launcher.tableHome.resolve(getClass().getSimpleName() + "/Mechanics.csv"))
               .skip(1)
               .map(line -> line.split("\t"))
@@ -429,7 +429,7 @@ public abstract class CIS
       mechaSums[4] = 1.0;
     }
 
-    if(getSpec("MXLED") == null)
+    if(getSpec("LDSTD") == null)
     {
       setSpec("numOfPix", calcNumOfPix());
     }
@@ -466,7 +466,7 @@ public abstract class CIS
   @SuppressWarnings("fallthrough")
   public String createPrntOut()
   {
-    if(getSpec("MXLED") != null)
+    if(getSpec("LDSTD") != null)
     {
       return createBlPrntOut();
     }
@@ -1102,7 +1102,7 @@ public abstract class CIS
               .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
       surcharge += value;
 
-      if(getSpec("MXLED") == null)
+      if(getSpec("LDSTD") == null)
       {
         value = calcMap.get(getDpiCode()) / 100.0;
         totalOutput.append(getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
@@ -1110,17 +1110,6 @@ public abstract class CIS
                 .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
                 .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
                 .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
-        surcharge += value;
-      }
-      else
-      {
-        String cat = getTiViKey().split("_")[3];
-        value = calcMap.get("Z_" + cat) / 100.0;
-        totalOutput.append(getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[0] * value)).append("\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[1] * value)).append("\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[2] * value)).append("\t")
-                .append(String.format(getLocale(), "%.2f", totalPrices[3] * value)).append("\n");
         surcharge += value;
       }
 

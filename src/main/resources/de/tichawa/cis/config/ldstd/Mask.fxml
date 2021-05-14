@@ -8,7 +8,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="510.0" prefWidth="1030.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.tichawa.cis.config.mxled.MaskController">
+<AnchorPane id="AnchorPane" prefHeight="510.0" prefWidth="1030.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.tichawa.cis.config.ldstd.MaskController">
   <children>
     <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
       <columnConstraints>

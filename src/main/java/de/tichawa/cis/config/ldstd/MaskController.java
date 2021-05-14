@@ -1,4 +1,4 @@
-package de.tichawa.cis.config.mxled;
+package de.tichawa.cis.config.ldstd;
 
 import java.net.*;
 import java.util.*;
@@ -8,7 +8,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 {
   public MaskController()
   {
-    CIS_DATA = new MXLED();
+    CIS_DATA = new LDSTD();
   }
 
   @Override

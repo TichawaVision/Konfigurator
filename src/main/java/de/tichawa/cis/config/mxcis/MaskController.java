@@ -1,6 +1,6 @@
 package de.tichawa.cis.config.mxcis;
 
-import de.tichawa.cis.config.mxled.MXLED;
+import de.tichawa.cis.config.ldstd.LDSTD;
 import de.tichawa.cis.config.CIS;
 import java.net.*;
 import java.util.*;
@@ -15,7 +15,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
   public MaskController()
   {
     CIS_DATA = new MXCIS();
-    MXLED_DATA = new MXLED();
+    LDSTD_DATA = new LDSTD();
   }
 
   @Override
@@ -61,13 +61,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController
         case "Monochrome":
         {
           CIS_DATA.setSpec("Color", 1);
-          MXLED_DATA.setSpec("Color", 1);
+          LDSTD_DATA.setSpec("Color", 1);
           break;
         }
         case "RGB":
         {
           CIS_DATA.setSpec("Color", 4);
-          MXLED_DATA.setSpec("Color", 3);
+          LDSTD_DATA.setSpec("Color", 3);
           break;
         }
       }
@@ -257,9 +257,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       CIS_DATA.setSpec("sw_cp", sw);
       CIS_DATA.setSpec("sw_index", (int) (sw / CIS.BASE_LENGTH) - 2);
 
-      MXLED_DATA.setSpec("Scan Width", CIS_DATA.getSpec("Scan Width"));
-      MXLED_DATA.setSpec("sw_cp", CIS_DATA.getSpec("sw_cp"));
-      MXLED_DATA.setSpec("sw_index", MXLED.getSWIndex(sw));
+      LDSTD_DATA.setSpec("Scan Width", CIS_DATA.getSpec("Scan Width"));
+      LDSTD_DATA.setSpec("sw_cp", CIS_DATA.getSpec("sw_cp"));
+      LDSTD_DATA.setSpec("sw_index", LDSTD.getSWIndex(sw));
     });
     
     //Wird jedes Mal ausgeführt, wenn sich der Wert des "Selected line rate" Sliders ändert
@@ -349,13 +349,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController
 
       ExternalLightColor.setDisable(CIS_DATA.getSpec("Color") == 4 || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
-      MXLED_DATA.setSpec("Internal Light Source", CIS_DATA.getSpec("External Light Source"));
+      LDSTD_DATA.setSpec("Internal Light Source", CIS_DATA.getSpec("External Light Source"));
     });
     
     ExternalLightColor.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
       CIS_DATA.setSpec("External Light Color", ExternalLightColor.getSelectionModel().getSelectedIndex());
-      MXLED_DATA.setSpec("Internal Light Color", CIS_DATA.getSpec("External Light Color"));
+      LDSTD_DATA.setSpec("Internal Light Color", CIS_DATA.getSpec("External Light Color"));
     });
     
     Interface.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->

@@ -1,17 +1,17 @@
-package de.tichawa.cis.config.mxled;
+package de.tichawa.cis.config.ldstd;
 
 import de.tichawa.cis.config.*;
 
 import java.util.*;
 
-public class MXLED extends CIS
+public class LDSTD extends CIS
 {
 
-  public MXLED()
+  public LDSTD()
   {
     super();
 
-    setSpec("MXLED", 1);
+    setSpec("LDSTD", 1);
   }
 
   public static int getSWIndex(int length)
@@ -43,9 +43,8 @@ public class MXLED extends CIS
   @Override
   public String getTiViKey()
   {
-    String key = "G_MXLED";
+    String key = "G_LDSTD";
     key += String.format("_%04d", getSpec("sw_cp"));
-    key += "_K1";
 
     switch(getSpec("Internal Light Source"))
     {

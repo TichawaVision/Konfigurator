@@ -19,7 +19,7 @@
               <String fx:value="VTCIS" />
               <String fx:value="VDCIS" />
               <String fx:value="MXCIS" />
-              <String fx:value="MXLED" />
+              <String fx:value="LDSTD" />
             </FXCollections>
           </items>
         </ComboBox>
