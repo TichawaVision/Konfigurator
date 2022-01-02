@@ -11,15 +11,7 @@ import de.tichawa.cis.config.model.tables.records.MechanicRecord;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jooq.Field;
-import org.jooq.ForeignKey;
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Row7;
-import org.jooq.Schema;
-import org.jooq.Table;
-import org.jooq.TableField;
-import org.jooq.TableOptions;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
@@ -159,7 +151,7 @@ public class Mechanic extends TableImpl<MechanicRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row7<String, Integer, Integer, Integer, String, Integer, String> fieldsRow() {
-        return (Row7) super.fieldsRow();
+    public Row6<String, Integer, String, String, Integer, String> fieldsRow() {
+        return (Row6) super.fieldsRow();
     }
 }

@@ -64,42 +64,42 @@ public class MechanicRecord extends TableRecordImpl<MechanicRecord> implements R
      * Setter for <code>mechanic.select_code</code>.
      */
     public void setSelectCode(String value) {
-        set(4, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>mechanic.select_code</code>.
      */
     public String getSelectCode() {
-        return (String) get(4);
+        return (String) get(3);
     }
 
     /**
      * Setter for <code>mechanic.art_no</code>.
      */
     public void setArtNo(Integer value) {
-        set(5, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>mechanic.art_no</code>.
      */
     public Integer getArtNo() {
-        return (Integer) get(5);
+        return (Integer) get(4);
     }
 
     /**
      * Setter for <code>mechanic.amount</code>.
      */
     public void setAmount(String value) {
-        set(6, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>mechanic.amount</code>.
      */
     public String getAmount() {
-        return (String) get(6);
+        return (String) get(5);
     }
 
     // -------------------------------------------------------------------------
