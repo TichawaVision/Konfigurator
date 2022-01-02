@@ -19,6 +19,7 @@
               <String fx:value="VTCIS" />
               <String fx:value="VDCIS" />
               <String fx:value="MXCIS" />
+              <String fx:value="VUCIS" />
               <String fx:value="MXLED" />
             </FXCollections>
           </items>

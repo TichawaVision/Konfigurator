@@ -57,14 +57,9 @@ public class Mechanic extends TableImpl<MechanicRecord> {
     public final TableField<MechanicRecord, Integer> CIS_LENGTH = createField(DSL.name("cis_length"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>mechanic.diffuse_lights</code>.
-     */
-    public final TableField<MechanicRecord, Integer> DIFFUSE_LIGHTS = createField(DSL.name("diffuse_lights"), SQLDataType.INTEGER.nullable(false), this, "");
-
-    /**
      * The column <code>mechanic.coax_lights</code>.
      */
-    public final TableField<MechanicRecord, Integer> COAX_LIGHTS = createField(DSL.name("coax_lights"), SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<MechanicRecord, String> LIGHTS = createField(DSL.name("lights"), SQLDataType.VARCHAR.nullable(false), this, "");
 
     /**
      * The column <code>mechanic.select_code</code>.

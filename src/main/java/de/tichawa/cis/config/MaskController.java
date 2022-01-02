@@ -22,7 +22,7 @@ import javafx.stage.*;
 import static de.tichawa.cis.config.CIS.isDouble;
 import static de.tichawa.cis.config.model.Tables.*;
 
-public abstract class MaskController implements Initializable
+public abstract class MaskController<C extends CIS> implements Initializable
 {
 
   @FXML
@@ -76,7 +76,7 @@ public abstract class MaskController implements Initializable
   @FXML
   protected Button Equip;
 
-  protected CIS CIS_DATA;
+  protected C CIS_DATA;
   protected MXLED MXLED_DATA;
 
   public MaskController()

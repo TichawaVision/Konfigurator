@@ -8,7 +8,7 @@ import javafx.beans.value.*;
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.mxled.*;
 
-public class MaskController extends de.tichawa.cis.config.MaskController
+public class MaskController extends de.tichawa.cis.config.MaskController<VHCIS>
 {
   public MaskController()
   {

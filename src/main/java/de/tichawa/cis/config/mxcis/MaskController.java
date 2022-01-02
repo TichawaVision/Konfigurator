@@ -12,7 +12,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.util.*;
 
 // Funktionen der Maske
-public class MaskController extends de.tichawa.cis.config.MaskController
+public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
 {
   public MaskController()
   {

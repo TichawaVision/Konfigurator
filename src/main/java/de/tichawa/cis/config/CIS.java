@@ -14,6 +14,7 @@ import java.text.*;
 import java.util.*;
 import java.util.Date;
 import java.util.function.Function;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.*;
 
 import static de.tichawa.cis.config.model.Tables.*;
@@ -112,7 +113,7 @@ public abstract class CIS
 
   public abstract String getTiViKey();
 
-  public abstract int[] getLightSources();
+  public abstract String getLightSources();
 
   public static void setLocale(Locale l)
   {
@@ -276,8 +277,7 @@ public abstract class CIS
         context.selectFrom(MECHANIC)
             .where(MECHANIC.CIS_TYPE.eq(getClass().getSimpleName()))
             .and(MECHANIC.CIS_LENGTH.eq(getSpec("sw_cp")))
-            .and(MECHANIC.DIFFUSE_LIGHTS.eq(getLightSources()[0]))
-            .and(MECHANIC.COAX_LIGHTS.eq(getLightSources()[1]))
+            .and(MECHANIC.LIGHTS.eq(getLightSources()))
             .stream()
             .filter(mechanicRecord -> isApplicable(mechanicRecord.getSelectCode()))
             .forEach(mechanicRecord ->
@@ -711,74 +711,90 @@ public abstract class CIS
       invert = m.startsWith("!");
       m = (invert ? m.substring(1) : m);
 
-      switch(m)
+      // Regex pattern, apply to light code
+      if(m.startsWith("^") && m.endsWith("$"))
       {
-        case "": //No code
-        case "FPGA": //Notifier for FPGA parts, ignore and proceed
+        try
+        {
+          proceed = getLightSources().matches(m);
+        }
+        catch(PatternSyntaxException ex)
+        {
+          //Not a valid expression, ignore and proceed
           proceed = !invert; //!invert ^ invert == true
-          break;
-        case "RGB": //Color coding
-        case "AM":
-        case "BL":
-        case "GR":
-        case "IR":
-        case "YE":
-        case "WH":
-          proceed = getSpec("Internal Light Source") > 0 && (key.split("_")[4].contains(m) || (getSpec("MXCIS") != null && key.split("_")[5].contains(m)));
-          break;
-        case "MONO": //Monochrome only
-          proceed = !getTiViKey().contains("RGB");
-          break;
-        case "25dpi": //Specific resolution
-        case "50dpi":
-        case "75dpi":
-        case "100dpi":
-        case "150dpi":
-        case "200dpi":
-        case "300dpi":
-        case "400dpi":
-        case "600dpi":
-        case "1200dpi":
-        case "2400dpi":
-          proceed = m.equals(getSpec("res_cp") + "dpi");
-          break;
-        case "GIGE": //GigE only
-          proceed = getSpec("Interface") != null && getSpec("Interface") == 1;
-          break;
-        case "CL": //CameraLink only
-          proceed = getSpec("Interface") != null && spec.get("Interface") == 0;
-          break;
-        case "COAX": //At least one coaxial light
-          proceed = key.split("_")[4].endsWith("C") || (getSpec("MXCIS") != null && key.split("_")[5].endsWith("C"));
-          break;
-        case "DIFF":
-          proceed = !(key.split("_")[4].endsWith("C") || (getSpec("MXCIS") != null && key.split("_")[5].endsWith("C"))) //No coaxial light
-              || (key.split("_")[4].startsWith("2") || (getSpec("MXCIS") != null && key.split("_")[5].startsWith("2"))); //Twosided => at least one diffuse (2XX oder 2XXC)
-          break;
-        case "NOCO": //Specific cooling
-        case "FAIR":
-        case "PAIR":
-        case "LICO":
-          proceed = key.contains(m);
-          break;
-        case "default": //Default cooling
-          proceed = !key.contains("NOCO") && !key.contains("FAIR") && !key.contains("PAIR") && !key.contains("LICO");
-          break;
-        case "NOEXT": //No external trigger
-          proceed = getSpec("External Trigger") == 0;
-          break;
-        case "EXT": //With external trigger
-          proceed = getSpec("External Trigger") == 1;
-          break;
-        case "L": //MODE: LOW (MXCIS only)
-          proceed = getSpec("MXCIS") != null && getSpec("MODE") == 4;
-          break;
-        case "H": //Mode: HIGH (MXCIS only)
-          proceed = getSpec("MXCIS") != null && getSpec("MODE") == 2;
-          break;
-        default: //Unknown modifier
-          proceed = invert; //invert ^ invert == false
-          break;
+        }
+      }
+      else
+      {
+        switch (m)
+        {
+          case "": //No code
+          case "FPGA": //Notifier for FPGA parts, ignore and proceed
+            proceed = !invert; //!invert ^ invert == true
+            break;
+          case "RGB": //Color coding
+          case "AM":
+          case "BL":
+          case "GR":
+          case "IR":
+          case "YE":
+          case "WH":
+            proceed = getSpec("Internal Light Source") > 0 && (key.split("_")[4].contains(m) || (getSpec("MXCIS") != null && key.split("_")[5].contains(m)));
+            break;
+          case "MONO": //Monochrome only
+            proceed = !getTiViKey().contains("RGB");
+            break;
+          case "25dpi": //Specific resolution
+          case "50dpi":
+          case "75dpi":
+          case "100dpi":
+          case "150dpi":
+          case "200dpi":
+          case "300dpi":
+          case "400dpi":
+          case "600dpi":
+          case "1200dpi":
+          case "2400dpi":
+            proceed = m.equals(getSpec("res_cp") + "dpi");
+            break;
+          case "GIGE": //GigE only
+            proceed = getSpec("Interface") != null && getSpec("Interface") == 1;
+            break;
+          case "CL": //CameraLink only
+            proceed = getSpec("Interface") != null && spec.get("Interface") == 0;
+            break;
+          case "COAX": //At least one coaxial light
+            proceed = key.split("_")[4].endsWith("C") || (getSpec("MXCIS") != null && key.split("_")[5].endsWith("C"));
+            break;
+          case "DIFF":
+            proceed = !(key.split("_")[4].endsWith("C") || (getSpec("MXCIS") != null && key.split("_")[5].endsWith("C"))) //No coaxial light
+                    || (key.split("_")[4].startsWith("2") || (getSpec("MXCIS") != null && key.split("_")[5].startsWith("2"))); //Twosided => at least one diffuse (2XX oder 2XXC)
+            break;
+          case "NOCO": //Specific cooling
+          case "FAIR":
+          case "PAIR":
+          case "LICO":
+            proceed = key.contains(m);
+            break;
+          case "default": //Default cooling
+            proceed = !key.contains("NOCO") && !key.contains("FAIR") && !key.contains("PAIR") && !key.contains("LICO");
+            break;
+          case "NOEXT": //No external trigger
+            proceed = getSpec("External Trigger") == 0;
+            break;
+          case "EXT": //With external trigger
+            proceed = getSpec("External Trigger") == 1;
+            break;
+          case "L": //MODE: LOW (MXCIS only)
+            proceed = getSpec("MXCIS") != null && getSpec("MODE") == 4;
+            break;
+          case "H": //Mode: HIGH (MXCIS only)
+            proceed = getSpec("MXCIS") != null && getSpec("MODE") == 2;
+            break;
+          default: //Unknown modifier
+            proceed = invert; //invert ^ invert == false
+            break;
+        }
       }
 
       proceed = invert ^ proceed;

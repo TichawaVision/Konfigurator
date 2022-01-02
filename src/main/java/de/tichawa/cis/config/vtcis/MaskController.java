@@ -10,7 +10,7 @@ import javafx.beans.value.*;
 import javafx.fxml.*;
 import javafx.scene.control.*;
 
-public class MaskController extends de.tichawa.cis.config.MaskController
+public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
 {
 
   @FXML

@@ -106,16 +106,16 @@ public class VSCIS extends CIS
   }
 
   @Override
-  public int[] getLightSources()
+  public String getLightSources()
   {
     switch(getSpec("Internal Light Source"))
     {
-      case 0: return new int[]{0, 0};
-      case 1: return new int[]{1, 0};
-      case 2: return new int[]{2, 0};
-      case 3: return new int[]{2, 1};
-      case 4: return new int[]{0, 1};
-      default: return new int[0];
+      case 0: return "0D0C";
+      case 1: return "1D0C";
+      case 2: return "2D0C";
+      case 3: return "2D1C";
+      case 4: return "0D1C";
+      default: return "";
     }
   }
 
