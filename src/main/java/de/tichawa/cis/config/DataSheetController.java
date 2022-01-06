@@ -1,5 +1,6 @@
 package de.tichawa.cis.config;
 
+import java.io.InputStream;
 import java.net.*;
 import java.util.*;
 import javafx.fxml.*;
@@ -91,7 +92,11 @@ public class DataSheetController implements Initializable
       Scroller.setStyle("-fx-background-color: #FFFFFF;");
       Grid.setStyle("-fx-background-color: #FFFFFF;");
 
-      ProductPic.setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Product.jpg")));
+      InputStream product = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Product.jpg");
+      if(product != null)
+      {
+        ProductPic.setImage(new Image(product));
+      }
 
       if(key.contains("MXCIS"))
       {
@@ -111,15 +116,27 @@ public class DataSheetController implements Initializable
           append += "_L1";
         }
 
-        ProfilePic.setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile" + append + ".jpg")));
+        InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile" + append + ".jpg");
+        if(profile != null)
+        {
+          ProfilePic.setImage(new Image(profile));
+        }
       }
       else if(key.split("_")[4].endsWith("C") && getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg") != null)
       {
-        ProfilePic.setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg")));
+        InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg");
+        if(profile != null)
+        {
+          ProfilePic.setImage(new Image(profile));
+        }
       }
       else
       {
-        ProfilePic.setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile.jpg")));
+        InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile.jpg");
+        if(profile != null)
+        {
+          ProfilePic.setImage(new Image(profile));
+        }
       }
     }
     catch(CISException e)

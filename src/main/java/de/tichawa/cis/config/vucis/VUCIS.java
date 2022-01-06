@@ -80,6 +80,7 @@ public class VUCIS extends CIS
               .findFirst();
     }
 
+    @SuppressWarnings("unused")
     public static Optional<LensType> findByCode(String code)
     {
       return Arrays.stream(LensType.values())
@@ -162,8 +163,9 @@ public class VUCIS extends CIS
     StringBuilder printOut = new StringBuilder();
 
     SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
-    numOfPixNominal = numOfPix - ((getScanWidth() / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
-    taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSelectedLineRate() / 1000000) / 85.0);
+    numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
+    long mhzLineRate = (long) numOfPixNominal * getSelectedLineRate() / 1000000;
+    taps = (int) Math.ceil(1.01 * mhzLineRate / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 

@@ -78,9 +78,9 @@ public class VSCIS extends CIS
 
     SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
     SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution() + "_VS").orElseThrow(() -> new CISException("Unknown sensor chip"));
-    numOfPixNominal = numOfPix - ((getScanWidth() / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
+    numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
     taps = (int) Math.ceil((numOfPix * getSelectedLineRate() / 1000000.0) / 85.0);
-    chipsPerTap = (int) Math.ceil((sensorBoard.getChips() * (getScanWidth() / BASE_LENGTH)) / (double) taps);
+    chipsPerTap = (int) Math.ceil((sensorBoard.getChips() * getBoardCount()) / (double) taps);
     ppsbin = sensorChip.getPixelPerSensor() / ((double) getSelectedResolution().getBoardResolution() / (double) getSelectedResolution().getActualResolution());
     pixPerTap = (int) (chipsPerTap * ppsbin);
     portDataRate = pixPerTap * getSelectedLineRate() / 1000000.0;
@@ -88,7 +88,7 @@ public class VSCIS extends CIS
     while(portDataRate > 85.0)
     {
       taps++;
-      chipsPerTap = (int) Math.ceil((sensorBoard.getChips() * (getScanWidth() / BASE_LENGTH)) / (double) taps);
+      chipsPerTap = (int) Math.ceil((sensorBoard.getChips() * getBoardCount()) / (double) taps);
       ppsbin = sensorChip.getPixelPerSensor() / ((double) getSelectedResolution().getBoardResolution() / (double) getSelectedResolution().getActualResolution());
       pixPerTap = (int) (chipsPerTap * ppsbin);
       portDataRate = pixPerTap * getSelectedLineRate() / 1000000.0;

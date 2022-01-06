@@ -91,6 +91,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
   public abstract List<CIS.Resolution> setupResolutions();
 
   @FXML
+  @SuppressWarnings("unused")
   public void handleCalculation(ActionEvent a)
   {
     if(!(CIS_DATA instanceof MXLED) && MXLED_DATA.getLedLines() > 0)
@@ -114,7 +115,11 @@ public abstract class MaskController<C extends CIS> implements Initializable
         Stage stage = new Stage();
         stage.setScene(scene);
         stage.setTitle("MXLED Calculation");
-        stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
+        InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
+        if(icon != null)
+        {
+          stage.getIcons().add(new Image(icon));
+        }
         stage.centerOnScreen();
         stage.show();
         stage.setX(stage.getX() - 20);
@@ -146,7 +151,11 @@ public abstract class MaskController<C extends CIS> implements Initializable
       Stage stage = new Stage();
       stage.setScene(scene);
       stage.setTitle(CIS_DATA.cisName + " Calculation");
-      stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
+      InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
+      if(icon != null)
+      {
+        stage.getIcons().add(new Image(icon));
+      }
       stage.centerOnScreen();
       stage.show();
       CalculationController controller = loader.getController();
@@ -157,6 +166,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
   }
 
   @FXML
+  @SuppressWarnings("unused")
   public void handlePartList(ActionEvent a)
   {
     try
@@ -209,7 +219,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
   }
 
   @FXML
-  public void handleDataSheet(ActionEvent event)
+  public void handleDataSheet(ActionEvent a)
   {
     if(!(CIS_DATA instanceof MXLED) && MXLED_DATA.getLedLines() > 0)
     {
@@ -232,7 +242,11 @@ public abstract class MaskController<C extends CIS> implements Initializable
         Stage stage = new Stage();
         stage.setScene(scene);
         stage.setTitle("MXLED Datasheet");
-        stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
+        InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
+        if(icon != null)
+        {
+          stage.getIcons().add(new Image(icon));
+        }
         stage.centerOnScreen();
         stage.show();
         stage.setX(stage.getX() - 20);
@@ -241,12 +255,16 @@ public abstract class MaskController<C extends CIS> implements Initializable
         DataSheetController controller = loader.getController();
         controller.passData(MXLED_DATA);
 
-        if(event.getSource().equals(OEMMode))
+        if(a.getSource().equals(OEMMode))
         {
           controller.getHeader().setEditable(true);
           controller.getSpecs().setEditable(true);
           controller.getCLConfig().setEditable(true);
-          controller.getProfilePic().setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg")));
+          InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg");
+          if(profile != null)
+          {
+            controller.getProfilePic().setImage(new Image(profile));
+          }
         }
       }
       catch(IOException ignored)
@@ -272,19 +290,27 @@ public abstract class MaskController<C extends CIS> implements Initializable
       Stage stage = new Stage();
       stage.setScene(scene);
       stage.setTitle(CIS_DATA.cisName + " Datasheet");
-      stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
+      InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
+      if(icon != null)
+      {
+        stage.getIcons().add(new Image(icon));
+      }
       stage.centerOnScreen();
       stage.show();
 
       DataSheetController controller = loader.getController();
       controller.passData(CIS_DATA);
 
-      if(event.getSource().equals(OEMMode))
+      if(a.getSource().equals(OEMMode))
       {
         controller.getHeader().setEditable(true);
         controller.getSpecs().setEditable(true);
         controller.getCLConfig().setEditable(true);
-        controller.getProfilePic().setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg")));
+        InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg");
+        if(profile != null)
+        {
+          controller.getProfilePic().setImage(new Image(profile));
+        }
       }
     }
     catch(IOException ignored)
@@ -292,17 +318,22 @@ public abstract class MaskController<C extends CIS> implements Initializable
   }
 
   @FXML
-  public void handleOEMMode(ActionEvent event)
+  public void handleOEMMode(ActionEvent a)
   {
-    handleDataSheet(event);
+    handleDataSheet(a);
   }
 
   @FXML
+  @SuppressWarnings("unused")
   public void handleEquipment(ActionEvent a)
   {
     Stage printStage = new Stage();
     printStage.setTitle("Additional equipment list");
-    printStage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
+    InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
+    if(icon != null)
+    {
+      printStage.getIcons().add(new Image(icon));
+    }
     GridPane printPane = new GridPane();
     printPane.getStylesheets().add("/de/tichawa/cis/config/style.css");
     printPane.getStyleClass().add("white");

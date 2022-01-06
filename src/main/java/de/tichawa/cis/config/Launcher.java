@@ -1,6 +1,7 @@
 package de.tichawa.cis.config;
 
-import java.io.*;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.*;
 import java.util.*;
 import javafx.application.*;
@@ -22,11 +23,19 @@ public class Launcher extends Application
     ferixHome = Paths.get(PROP.getProperty("ferixHome"));
     stage.setOnCloseRequest(w -> Platform.exit());
 
-    stage.setScene(new Scene(FXMLLoader.load(getClass().getResource("Launcher.fxml"))));
-    stage.setTitle("CIS Configurator");
-    stage.getIcons().add(new Image(getClass().getResourceAsStream("TiViCC.png")));
-    stage.centerOnScreen();
-    stage.show();
+    URL launcher = getClass().getResource("Launcher.fxml");
+    if(launcher != null)
+    {
+      stage.setScene(new Scene(FXMLLoader.load(launcher)));
+      stage.setTitle("CIS Configurator");
+      InputStream icon = getClass().getResourceAsStream("TiViCC.png");
+      if(icon != null)
+      {
+        stage.getIcons().add(new Image(icon));
+      }
+      stage.centerOnScreen();
+      stage.show();
+    }
   }
 
   public static void main(String[] args)

@@ -24,7 +24,7 @@
                 </FXCollections>
             </items>
         </ComboBox>
-        <Button fx:id="continueButton" onAction="#handleContinue" text="Continue"/>
-        <Button fx:id="updateButton" onAction="#handleUpdate" text="Update Prices"/>
+        <Button onAction="#handleContinue" text="Continue"/>
+        <Button onAction="#handleUpdate" text="Update Prices"/>
     </VBox>
 </AnchorPane>

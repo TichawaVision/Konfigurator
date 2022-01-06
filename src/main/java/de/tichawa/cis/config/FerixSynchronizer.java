@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.*;
 
+@SuppressWarnings("unused")
 public class FerixSynchronizer
 {
 
@@ -65,7 +66,7 @@ public class FerixSynchronizer
     boolean success = false;
     if(!exists())
     {
-      Integer artNo = getNextArtNo();
+      int artNo = getNextArtNo();
       if(artNo > -1)
       {
         try(PreparedStatement insertArt = con.prepareStatement("INSERT INTO f_art4 (a_artikel, a_bez1, a_bez2, a_teileart, a_umfakt, a_lagst, a_cre_dat,a_mod_dat, a_mod_sachb, a_lagerort, a_umfakt_vk)"
@@ -75,7 +76,7 @@ public class FerixSynchronizer
                 PreparedStatement insertLongtext = con.prepareStatement("INSERT INTO f_art4_lt (artlt_schl, artlt_txt) VALUES (?, ?);"))
         {
           String text = cis.createPrntOut();
-          insertArt.setString(1, artNo.toString());
+          insertArt.setString(1, "" + artNo);
           insertArt.setString(2, cis.getTiViKey());
           insertArt.setString(3, text.substring(0, text.indexOf('\n'))); //TODO
           insertArt.setInt(4, 1);
@@ -87,11 +88,11 @@ public class FerixSynchronizer
           
           if(insertArt.executeUpdate() > 0)
           {
-            insertBest.setString(1, artNo.toString());
+            insertBest.setString(1,"" + artNo);
             insertBest.setString(2, "TiViCC");
-            insertNotice.setString(1, artNo.toString());
+            insertNotice.setString(1,"" + artNo);
             insertNotice.setString(2, "");
-            insertLongtext.setString(1, artNo.toString());
+            insertLongtext.setString(1,"" + artNo);
             insertLongtext.setString(2, text.substring(text.indexOf('\n') + 1)); //TODO
             
             success = insertBest.executeUpdate() > 0 && insertNotice.executeUpdate() > 0 && insertLongtext.executeUpdate() > 0;

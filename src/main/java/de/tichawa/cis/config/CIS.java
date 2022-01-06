@@ -127,6 +127,7 @@ public abstract class CIS
               .findFirst();
     }
 
+    @SuppressWarnings("unused")
     public static Optional<LightColor> findByShortHand(String shortHand)
     {
       return Arrays.stream(LightColor.values())
@@ -134,6 +135,7 @@ public abstract class CIS
               .findFirst();
     }
 
+    @SuppressWarnings("unused")
     public static Optional<LightColor> findByCode(char code)
     {
       return Arrays.stream(LightColor.values())
@@ -176,6 +178,7 @@ public abstract class CIS
               .findFirst();
     }
 
+    @SuppressWarnings("unused")
     public static Optional<Cooling> findByCode(String code)
     {
       return Arrays.stream(Cooling.values())
@@ -333,7 +336,7 @@ public abstract class CIS
     }
   }
 
-  public boolean calculate()
+  public void calculate()
   {
     Map<Integer, PriceRecord> priceRecords = new HashMap<>();
     mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 100.0};
@@ -342,7 +345,7 @@ public abstract class CIS
     mechaConfig = new HashMap<>();
     electConfig = new HashMap<>();
 
-    return getDatabase().map(context ->
+    getDatabase().ifPresent(context ->
     {
       context.selectFrom(PRICE).stream()
           .forEach(priceRecord -> priceRecords.put(priceRecord.getArtNo(), priceRecord));
@@ -465,9 +468,7 @@ public abstract class CIS
       {
         setNumOfPix(calcNumOfPix());
       }
-
-      return true;
-    }).orElse(false);
+    });
   }
 
   public String getVersion()
@@ -939,6 +940,11 @@ public abstract class CIS
     return electConfig;
   }
 
+  protected int getBoardCount()
+  {
+    return getScanWidth() / BASE_LENGTH;
+  }
+
   public String createCalculation()
   {
     String printout = getTiViKey() + "\n\t\n";
@@ -1018,9 +1024,9 @@ public abstract class CIS
               .append(String.format(getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
       totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100);
       totalOutput.append(getString("Assembly")).append(":\t \t ")
-              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getScanWidth() / BASE_LENGTH)).append(" h\t")
-              .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getScanWidth() / BASE_LENGTH)) * calcMap.get("STUNDENSATZ"))).append("\t \n");
-      totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getScanWidth() / BASE_LENGTH)) * calcMap.get("STUNDENSATZ");
+              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()).append(" h\t")
+              .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ"))).append("\t \n");
+      totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ");
 
       int addition = 0;
       double surcharge = 0.0;
@@ -1144,7 +1150,7 @@ public abstract class CIS
     {
       SensorChipRecord sensorChip = ((MXCIS) this).getSensorChip(getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
       SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
-      numOfPix = sensorBoard.getChips() * (getScanWidth() / BASE_LENGTH) * sensorChip.getPixelPerSensor() / getBinning();
+      numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / getBinning();
     }
     else if(this instanceof VHCIS || this instanceof VTCIS || this instanceof VUCIS)
     {
@@ -1204,12 +1210,13 @@ public abstract class CIS
     }
     else if(this instanceof VUCIS)
     {
-      switch(getSelectedResolution().getBoardResolution())
+      if(getSelectedResolution().getBoardResolution() == 1000)
       {
-        case 1000:
-          return 500;
-        default:
-          throw new UnsupportedOperationException();
+        return 500;
+      }
+      else
+      {
+        throw new UnsupportedOperationException();
       }
     }
     else if(this instanceof VDCIS)

@@ -33,25 +33,33 @@ public class LauncherController implements Initializable
   }
 
   @FXML
-  private void handleContinue(ActionEvent event)
+  @SuppressWarnings("unused")
+  private void handleContinue(ActionEvent a)
   {
     try
     {
-      Parent root = FXMLLoader.load(getClass().getResource("/de/tichawa/cis/config/" + selectCIS.getSelectionModel().getSelectedItem().toLowerCase() + "/Mask.fxml"));
-      Scene scene = new Scene(root);
-      Stage stage = new Stage();
-      stage.setScene(scene);
-      stage.setTitle(selectCIS.getSelectionModel().getSelectedItem());
-      stage.getIcons().add(new Image(getClass().getResourceAsStream("TiViCC.png")));
-      stage.centerOnScreen();
-      stage.show();
+      URL mask = getClass().getResource("/de/tichawa/cis/config/" + selectCIS.getSelectionModel().getSelectedItem().toLowerCase() + "/Mask.fxml");
+      if(mask != null)
+      {
+        Parent root = FXMLLoader.load(mask);
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setTitle(selectCIS.getSelectionModel().getSelectedItem());
+        InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
+        if (icon != null) {
+          stage.getIcons().add(new Image(icon));
+        }
+        stage.centerOnScreen();
+        stage.show();
+      }
     }
     catch(IOException ignored)
-    {
-    }
+    {}
   }
 
   @FXML
+  @SuppressWarnings("unused")
   private void handleUpdate(ActionEvent a)
   {
     try

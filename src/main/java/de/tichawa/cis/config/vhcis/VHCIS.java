@@ -129,42 +129,36 @@ public class VHCIS extends CIS
       case 16:
       {
 
-        for(int x = 0; x < Math.min(3, taps); x++)
+        for(int x = 0; x < 3; x++)
         {
           printOut.append("\n   Port ").append(getPortName(x)).append(": ")
                   .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
         }
 
-        if(taps > 3)
+        tcounter++;
+        printOut.append("\nCamera Link 2:");
+        for(int x = 3; x < 8; x++)
+        {
+          printOut.append("\n   Port ").append(getPortName(x)).append(": ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
+        }
+
+        tcounter++;
+        printOut.append("\nCamera Link 3:");
+        for(int x = 8; x < 11; x++)
+        {
+          printOut.append("\n   Port ").append(getPortName(x))
+                  .append(": ").append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
+        }
+
+        if(taps > 11)
         {
           tcounter++;
-          printOut.append("\nCamera Link 2:");
-          for(int x = 3; x < Math.min(8, taps); x++)
+          printOut.append("\nCamera Link 4:");
+          for(int x = 11; x < taps; x++)
           {
             printOut.append("\n   Port ").append(getPortName(x)).append(": ")
                     .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-          }
-
-          if(taps > 8)
-          {
-            tcounter++;
-            printOut.append("\nCamera Link 3:");
-            for(int x = 8; x < Math.min(11, taps); x++)
-            {
-              printOut.append("\n   Port ").append(getPortName(x))
-                      .append(": ").append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-            }
-
-            if(taps > 11)
-            {
-              tcounter++;
-              printOut.append("\nCamera Link 4:");
-              for(int x = 11; x < taps; x++)
-              {
-                printOut.append("\n   Port ").append(getPortName(x)).append(": ")
-                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-              }
-            }
           }
         }
         break;
@@ -195,43 +189,34 @@ public class VHCIS extends CIS
       case 40:
       {
 
-        for(int x = 0; x < Math.min(3, taps); x++)
+        for(int x = 0; x < 3; x++)
         {
           printOut.append("\n   Port ").append(getPortName(x)).append(": ")
                   .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
         }
 
-        if(taps > 3)
+        tcounter++;
+        printOut.append("\nCamera Link 2:");
+        for(int x = 3; x < 10; x++)
         {
-          tcounter++;
-          printOut.append("\nCamera Link 2:");
-          for(int x = 3; x < Math.min(10, taps); x++)
-          {
-            printOut.append("\n   Port ").append(getPortName(x)).append(": ")
-                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-          }
+          printOut.append("\n   Port ").append(getPortName(x)).append(": ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
+        }
 
-          if(taps > 10)
-          {
-            tcounter++;
-            printOut.append("\nCamera Link 3:");
-            for(int x = 10; x < Math.min(13, taps); x++)
-            {
-              printOut.append("\n   Port ").append(getPortName(x - 10)).append(": ")
-                      .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-            }
+        tcounter++;
+        printOut.append("\nCamera Link 3:");
+        for(int x = 10; x < 13; x++)
+        {
+          printOut.append("\n   Port ").append(getPortName(x - 10)).append(": ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
+        }
 
-            if(taps > 13)
-            {
-              tcounter++;
-              printOut.append("\nCamera Link 4:");
-              for(int x = 13; x < Math.min(20, taps); x++)
-              {
-                printOut.append("\n   Port ").append(getPortName(x - 10)).append(": ")
-                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-              }
-            }
-          }
+        tcounter++;
+        printOut.append("\nCamera Link 4:");
+        for(int x = 13; x < Math.min(20, taps); x++)
+        {
+          printOut.append("\n   Port ").append(getPortName(x - 10)).append(": ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
         }
         break;
       }
@@ -282,42 +267,36 @@ public class VHCIS extends CIS
       case 36:
       {
 
-        for(int x = 20; x < Math.min(23, taps); x++)
+        for(int x = 20; x < 23; x++)
         {
           printOut.append("\n   Port ").append(getPortName(x - 20)).append(": ")
                   .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
         }
 
-        if(taps > 23)
+        tcounter++;
+        printOut.append("\nCamera Link 6:");
+        for(int x = 23; x < 28; x++)
+        {
+          printOut.append("\n   Port ").append(getPortName(x - 20)).append(": ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
+        }
+
+        tcounter++;
+        printOut.append("\nCamera Link 3:");
+        for(int x = 28; x < 31; x++)
+        {
+          printOut.append("\n   Port ").append(getPortName(x - 28)).append(": ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
+        }
+
+        if(taps > 31)
         {
           tcounter++;
-          printOut.append("\nCamera Link 6:");
-          for(int x = 23; x < Math.min(28, taps); x++)
+          printOut.append("\nCamera Link 4:");
+          for(int x = 31; x < taps; x++)
           {
-            printOut.append("\n   Port ").append(getPortName(x - 20)).append(": ")
+            printOut.append("\n   Port ").append(getPortName(x - 28)).append(": ")
                     .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-          }
-
-          if(taps > 28)
-          {
-            tcounter++;
-            printOut.append("\nCamera Link 3:");
-            for(int x = 28; x < Math.min(31, taps); x++)
-            {
-              printOut.append("\n   Port ").append(getPortName(x - 28)).append(": ")
-                      .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-            }
-
-            if(taps > 31)
-            {
-              tcounter++;
-              printOut.append("\nCamera Link 4:");
-              for(int x = 31; x < taps; x++)
-              {
-                printOut.append("\n   Port ").append(getPortName(x - 28)).append(": ")
-                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-              }
-            }
           }
         }
         break;
@@ -327,50 +306,35 @@ public class VHCIS extends CIS
       case 39:
       case 40:
       {
-
-        for(int x = 20; x < Math.min(23, taps); x++)
+        for(int x = 20; x < 23; x++)
         {
           printOut.append("\n   Port ").append(getPortName(x - 20)).append(": ")
                   .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
         }
 
-        if(taps > 23)
+        tcounter++;
+        printOut.append("\nCamera Link 2:");
+
+        tcounter++;
+        printOut.append("\nCamera Link 3:");
+        for(int x = 30; x < 33; x++)
         {
-          tcounter++;
-          printOut.append("\nCamera Link 2:");
-          for(int x = 23; x < Math.min(10, taps); x++)
-          {
-            printOut.append("\n   Port ").append(getPortName(x - 20)).append(": ")
-                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-          }
+          printOut.append("\n   Port ").append(getPortName(x - 30)).append(": ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
+        }
 
-          if(taps > 30)
-          {
-            tcounter++;
-            printOut.append("\nCamera Link 3:");
-            for(int x = 30; x < Math.min(33, taps); x++)
-            {
-              printOut.append("\n   Port ").append(getPortName(x - 30)).append(": ")
-                      .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-            }
-
-            if(taps > 33)
-            {
-              tcounter++;
-              printOut.append("\nCamera Link 4:");
-              for(int x = 33; x < taps; x++)
-              {
-                printOut.append("\n   Port ").append(getPortName(x - 30)).append(": ")
-                        .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
-              }
-            }
-          }
+        tcounter++;
+        printOut.append("\nCamera Link 4:");
+        for(int x = 33; x < taps; x++)
+        {
+          printOut.append("\n   Port ").append(getPortName(x - 30)).append(": ")
+                  .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1));
         }
         break;
       }
     }
 
-    printOut = printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, tcounter + "");
+    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, tcounter + "");
     return printOut.toString();
   }
   
