@@ -8,7 +8,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.*;
 import javafx.scene.transform.*;
 import javafx.stage.*;
 
@@ -172,11 +171,11 @@ public class DataSheetController implements Initializable
   {
     if(CIS_DATA.getLocale().toString().equals("de_DE"))
     {
-      CIS_DATA.setLocale(new Locale("en", "US"));
+      CIS.setLocale(new Locale("en", "US"));
     }
     else if(CIS_DATA.getLocale().toString().equals("en_US"))
     {
-      CIS_DATA.setLocale(new Locale("de", "DE"));
+      CIS.setLocale(new Locale("de", "DE"));
     }
 
     load();

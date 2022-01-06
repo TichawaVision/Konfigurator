@@ -21,26 +21,24 @@ public class MXCIS extends CIS
     resToSens.put(600, "PI3039");
     resToSens.put(1200, "PI5002_1200");
     resToSens.put(2400, "PI5002_2400");
-
-    setSpec("MXCIS", 1);
   }
 
   @Override
   public String getTiViKey()
   {
     String key = "G_MXCIS";
-    key += String.format("_%04d", getSpec("sw_cp"));
-    key += String.format("_%04d", getSpec("res_cp2"));
+    key += String.format("_%04d", getScanWidth());
+    key += String.format("_%04d", getSelectedResolution().getActualResolution());
 
-    if(getSpec("Color") == 4)
+    if(getPhaseCount() == 4)
     {
       key += "_K4";
     }
-    else if((getSpec("res_cp2") != 600 && getSpec("Selected line rate") <= getSpec("Maximum line rate") * 0.25) || (getSpec("res_cp2") == 600 && getSpec("Selected line rate") <= getSpec("Maximum line rate") * 0.2))
+    else if((getSelectedResolution().getActualResolution() != 600 && getSelectedLineRate() <= getMaxLineRate() * 0.25) || (getSelectedResolution().getActualResolution() == 600 && getSelectedLineRate() <= getMaxLineRate() * 0.2))
     {
       key += "_K1";
     }
-    else if(getSpec("Selected line rate") <= getSpec("Maximum line rate") * 0.5)
+    else if(getSelectedLineRate() <= getMaxLineRate() * 0.5)
     {
       key += "_K2";
     }
@@ -49,74 +47,34 @@ public class MXCIS extends CIS
       key += "_K3";
     }
 
-    switch(getSpec("Internal Light Source"))
+    key += "_";
+    if(getLightSources().equals("0D0C"))
     {
-      case 0:
-      {
-        key += "_NO";
-        break;
-      }
-      case 1:
-      {
-        key += "_" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      }
-      case 2:
-      {
-        key += "_" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
-        break;
-      }
-      case 3:
-      {
-        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      }
-      case 4:
-      {
-        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
-        break;
-      }
+      key += "NO";
     }
 
-    if(getSpec("Color") == 4)
+    if(getPhaseCount() == 4)
     {
-      key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
+      key += "RGB";
+    }
+    else
+    {
+      key += getLightColor().getShortHand();
+    }
+
+    if(!getLightSources().endsWith("0C"))
+    {
+      key += "C";
     }
 
     key += getMechaVersion();
 
-    if(getSpec("Interface") == 1)
+    if(isGigeInterface())
     {
       key += "GT";
     }
 
-    switch(getSpec("Cooling"))
-    {
-      case 0:
-      {
-        key += "NOCO";
-        break;
-      }
-      case 1:
-      {
-        break;
-      }
-      case 2:
-      {
-        key += "FAIR";
-        break;
-      }
-      case 3:
-      {
-        key += "PAIR";
-        break;
-      }
-      case 4:
-      {
-        key += "LICO";
-        break;
-      }
-    }
+    key += getCooling().getCode();
 
     if(key.endsWith("_"))
     {
@@ -124,6 +82,15 @@ public class MXCIS extends CIS
     }
 
     return key;
+  }
+
+  @Override
+  public double getMaxLineRate()
+  {
+    SensorChipRecord sensorChip = getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
+    SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown ADC board"));
+    AdcBoardRecord adcBoard = getADC("MODU_ADC(SLOW)").orElseThrow(() -> new CISException("Unknown ADC board."));
+    return Math.round(1000 * 1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
   }
 
   @Override
@@ -148,30 +115,30 @@ public class MXCIS extends CIS
     int sensPerFpga;
     StringBuilder printOut = new StringBuilder();
 
-    if(getSpec("res_cp2") > 600)
+    if(getSelectedResolution().getActualResolution() > 600)
     {
-      spec.put("MODE", 2);
+      setMode(2);
       sensPerFpga = 1;
     }
-    else if((getSpec("Selected line rate") / 1000.0) <= dpiToRate.get(getSpec("res_cp2")) && getSpec("Color") != 4)
+    else if((getSelectedLineRate() / 1000.0) <= dpiToRate.get(getSelectedResolution().getActualResolution()) && getPhaseCount() != 4)
     {
       //HALF
-      spec.put("MODE", 4);
+      setMode(4);
       sensPerFpga = 4;
     }
     else
     {
       //FULL
-      spec.put("MODE", 2);
+      setMode(2);
       sensPerFpga = 2;
     }
 
-    SensorChipRecord sensorChip = getSensorChip(getSpec("res_cp2")).orElseThrow(() -> new CISException("Unknown sensor chip"));
-    SensorBoardRecord sensorBoard = getSensorBoard(getSpec("res_cp2")).orElseThrow(() -> new CISException("Unknown ADC board"));
-    pixPerFpga = sensPerFpga * sensorBoard.getChips() * sensorChip.getPixelPerSensor() / getSpec("Binning");
-    fpgaDataRate = pixPerFpga * getSpec("Selected line rate") / 1000.0;
+    SensorChipRecord sensorChip = getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
+    SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown ADC board"));
+    pixPerFpga = sensPerFpga * sensorBoard.getChips() * sensorChip.getPixelPerSensor() / getBinning();
+    fpgaDataRate = pixPerFpga * getSelectedLineRate() / 1000.0;
     tapsPerFpga = (int) Math.ceil(fpgaDataRate / (84 * 1000.0));
-    if(getSpec("Color") == 1 && getNumFPGA() > 1 && tapsPerFpga % 2 == 1)
+    if(getPhaseCount() == 1 && getNumFPGA() > 1 && tapsPerFpga % 2 == 1)
     {
       tapsPerFpga++;
     }
@@ -179,12 +146,12 @@ public class MXCIS extends CIS
     pixPerTap = (int) ((double) pixPerFpga / (double) tapsPerFpga);
     lval = pixPerTap;
 
-    int portCount = getSpec("Color") == 1 ? (int) Math.ceil(numOfPix / (lval * 1.0)) : (int) Math.ceil(3 * Math.ceil(numOfPix / (lval * 1.0)));
+    int portCount = getPhaseCount() == 1 ? (int) Math.ceil(numOfPix / (lval * 1.0)) : (int) Math.ceil(3 * Math.ceil(numOfPix / (lval * 1.0)));
 
-    printOut.append(getString("datarate")).append(Math.round(portCount * Math.min(lval, numOfPix) * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte/s\n");
+    printOut.append(getString("datarate")).append(Math.round(portCount * Math.min(lval, numOfPix) * getSelectedLineRate() / 100000.0) / 10.0).append(" MByte/s\n");
     printOut.append(getString("numofpix")).append(numOfPix).append("\n");
     
-    if(getSpec("Color") == 1)
+    if(getPhaseCount() == 1)
     {
       printOut.append(getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 2.0))).append("\n");
     }
@@ -195,7 +162,7 @@ public class MXCIS extends CIS
     printOut.append(getString("numofport")).append(portCount).append("\n");
     printOut.append("Pixel Clock: 85MHz\n\n");
 
-    switch(getSpec("Color"))
+    switch(getPhaseCount())
     {
       case 4:
       {
@@ -257,20 +224,6 @@ public class MXCIS extends CIS
     return printOut.toString();
   }
 
-  @Override
-  public String getLightSources()
-  {
-    switch(getSpec("Internal Light Source"))
-    {
-      case 0: return "0D0C";
-      case 1: return "1D0C";
-      case 2: return "0D1C";
-      case 3: return "2D0C";
-      case 4: return "1D1C";
-      default: return "";
-    }
-  }
-
   public Optional<SensorBoardRecord> getSensorBoard(int res)
   {
     while(!getSensorBoard("SENS_" + res).isPresent())
@@ -289,7 +242,7 @@ public class MXCIS extends CIS
       z++;
     }
 
-    setSpec("Binning", z);
+    setBinning(z);
 
     return getSensorChip(resToSens.get(res * z));
   }

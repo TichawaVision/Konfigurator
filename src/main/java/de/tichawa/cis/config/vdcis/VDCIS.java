@@ -2,102 +2,64 @@ package de.tichawa.cis.config.vdcis;
 
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.model.tables.records.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.*;
 
 public class VDCIS extends CIS
 {
+  @Getter @Setter
+  private String cLMode;
 
   public VDCIS()
   {
     super();
-
-    setSpec("VDCIS", 1);
   }
 
   @Override
   public String getTiViKey()
   {
     String key = "G_VDCIS";
-    key += String.format("_%04d", getSpec("sw_cp"));
+    key += String.format("_%04d", getScanWidth());
 
-    if(getSpec("Resolution") == 0) //Switchable
+    if(getSelectedResolution().isSwitchable()) //Switchable
     {
       key += "_XXXX";
     }
     else
     {
-      key += String.format("_%04d", getSpec("res_cp2"));
+      key += String.format("_%04d", getSelectedResolution().getActualResolution());
     }
 
-    switch(getSpec("Internal Light Source"))
+    key += "_";
+    if(getLightSources().equals("0D0C"))
     {
-      case 0:
-      {
-        key += "_NO";
-        break;
-      }
-      case 1:
-      {
-        key += "_" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      }
-      case 2:
-      {
-        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      }
-      case 3:
-      {
-        key += "_3" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
-        break;
-      }
-      case 4:
-      {
-        key += "_" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
-        break;
-      }
+      key += "NO";
     }
 
-    if(getSpec("Color") == 4)
+    if(getPhaseCount() == 4)
     {
-      key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
+      key += "RGB";
+    }
+    else
+    {
+      key += getLightColor().getShortHand();
+    }
+
+    if(!getLightSources().endsWith("0C"))
+    {
+      key += "C";
     }
 
     key += getMechaVersion();
 
-    if(getSpec("Interface") == 1)
+    if(isGigeInterface())
     {
       key += "GT";
     }
 
-    switch(getSpec("Cooling"))
-    {
-      case 0:
-      {
-        key += "NOCO";
-        break;
-      }
-      case 1:
-      {
-        break;
-      }
-      case 2:
-      {
-        key += "FAIR";
-        break;
-      }
-      case 3:
-      {
-        key += "PAIR";
-        break;
-      }
-      case 4:
-      {
-        key += "LICO";
-        break;
-      }
-    }
+    key += getCooling().getCode();
 
     if(key.endsWith("_"))
     {
@@ -105,20 +67,6 @@ public class VDCIS extends CIS
     }
 
     return key;
-  }
-
-  @Override
-  public String getLightSources()
-  {
-    switch(getSpec("Internal Light Source"))
-    {
-      case 0: return "0D0C";
-      case 1: return "1D0C";
-      case 2: return "2D0C";
-      case 3: return "2D1C";
-      case 4: return "0D1C";
-      default: return "";
-    }
   }
 
   @Override
@@ -132,21 +80,21 @@ public class VDCIS extends CIS
     StringBuilder printOut = new StringBuilder();
 
     SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD_INLINE").orElseThrow(() -> new CISException("Unknown sensor board"));
-    numOfPixNominal = (int) Math.ceil(numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSpec("res_cp2"))));
-    taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSpec("Selected line rate") / 1000000) / 85.0);
+    numOfPixNominal = (int) Math.ceil(numOfPix - ((getScanWidth() / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution())));
+    taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSelectedLineRate() / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 
-    boolean mediumMode = getSpec("CLMode") == 1;
+    boolean mediumMode = !getCLMode().equals("Full80");
 
-    printOut.append(getString("datarate")).append(Math.round((getSpec("Color") - 1) * numOfPixNominal * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
+    printOut.append(getString("datarate")).append(Math.round((getPhaseCount() - 1) * numOfPixNominal * getSelectedLineRate() / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(getString("numofcons")).append("%%%%%\n");
-    printOut.append(getString("numofport")).append(taps * (getSpec("Color") - 1)).append("\n");
+    printOut.append(getString("numofport")).append(taps * (getPhaseCount() - 1)).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");
     printOut.append(getString("nomPix")).append(numOfPixNominal).append("\n");
     printOut.append("LVAL: ").append(lval).append("\n");
     printOut.append(getString("clMode")).append(mediumMode ? "Base/Medium/Full" : "Full80").append("\n");
-    printOut.append(getString("numPhases")).append(getSpec("Color")).append("\n");
+    printOut.append(getString("numPhases")).append(getPhaseCount()).append("\n");
 
     Map<Integer, List<Integer>> mediumMap = new HashMap<>();
     mediumMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 9, 10, 11, 12, 13, 14, 15, 16, 0, 0));
@@ -164,12 +112,12 @@ public class VDCIS extends CIS
     highMap.put(5, mediumMap.get(5));
     highMap.put(6, mediumMap.get(6));
 
-    List<Integer> tapConfig = (mediumMode ? mediumMap : highMap).get(getSpec("Color") - 1);
+    List<Integer> tapConfig = (mediumMode ? mediumMap : highMap).get(getPhaseCount() - 1);
     if(taps > tapConfig.stream().mapToInt(x -> x).max().orElse(0))
     {
-      throw new CISException("Number of required taps (" + taps * getSpec("Color") + ") is too high. Please reduce the data rate.");
+      throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
     }
-    if(getSpec("res_cp2") >= 1200 && (numOfPix - 16 * getSpec("sw_cp") / BASE_LENGTH * 6 * 2) * getSpec("Color") * 2 > 327680)
+    if(getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680)
     {
       throw new CISException("Out of Flash memory. Please reduce the scan width or resolution.");
     }
@@ -204,5 +152,15 @@ public class VDCIS extends CIS
   public double getGeometry(boolean coax)
   {
     return coax ? 0.229 : 0.252;
+  }
+
+  @Override
+  public double getMaxLineRate()
+  {
+    AdcBoardRecord adcBoard = getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
+    SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD_INLINE").orElseThrow(() -> new CISException("Unknown sensor board"));
+    SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution() + "_VD").orElseThrow(() -> new CISException("Unknown sensor chip"));
+    return Math.round(1000 * 1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
+
   }
 }

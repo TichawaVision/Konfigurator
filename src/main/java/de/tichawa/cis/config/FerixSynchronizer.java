@@ -121,9 +121,8 @@ public class FerixSynchronizer
       {
         con.close();
       }
-      catch(SQLException ex)
-      {
-      }
+      catch(SQLException ignored)
+      {}
     }
   }
 }

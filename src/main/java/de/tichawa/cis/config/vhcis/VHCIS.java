@@ -9,78 +9,45 @@ public class VHCIS extends CIS
   public VHCIS()
   {
     super();
-
-    setSpec("VHCIS", 1);
   }
 
   @Override
   public String getTiViKey()
   {
     String key = "G_VHCIS";
-    key += String.format("_%04d", getSpec("sw_cp"));
+    key += String.format("_%04d", getScanWidth());
 
-    if(getSpec("Resolution") == 0) //Switchable
+    if(getSelectedResolution().isSwitchable())
     {
       key += "_XXXX";
     }
     else
     {
-      key += String.format("_%04d", getSpec("res_cp2"));
+      key += String.format("_%04d", getSelectedResolution().getActualResolution());
     }
 
-    switch(getSpec("Internal Light Source"))
+    key += "_";
+    if(getLightSources().equals("0D0C"))
     {
-      case 0:
-      {
-        key += "_NO";
-        break;
-      }
-      case 1:
-      {
-        key += "_" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      }
-      case 2:
-      {
-        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      }
+      key += "NO";
     }
 
-    if(getSpec("Color") == 3)
+    if(getPhaseCount() == 3)
     {
-      key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
+      key += "RGB";
+    }
+    else
+    {
+      key += getLightColor().getShortHand();
+    }
+
+    if(!getLightSources().endsWith("0C"))
+    {
+      key += "C";
     }
 
     key += getMechaVersion();
-
-    switch(getSpec("Cooling"))
-    {
-      case 0:
-      {
-        key += "NOCO";
-        break;
-      }
-      case 1:
-      {
-        break;
-      }
-      case 2:
-      {
-        key += "FAIR";
-        break;
-      }
-      case 3:
-      {
-        key += "PAIR";
-        break;
-      }
-      case 4:
-      {
-        key += "LICO";
-        break;
-      }
-    }
+    key += getCooling().getCode();
 
     if(key.endsWith("_"))
     {
@@ -91,15 +58,12 @@ public class VHCIS extends CIS
   }
 
   @Override
-  public String getLightSources()
+  public double getMaxLineRate() throws CISException
   {
-    switch(getSpec("Internal Light Source"))
-    {
-      case 0: return "0D0C";
-      case 1: return "1D0C";
-      case 2: return "2D0C";
-      default: return "";
-    }
+    AdcBoardRecord adcBoard = getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
+    SensorBoardRecord sensorBoard = getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
+    SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
+    return Math.round(1000 * 1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
   }
 
   @Override
@@ -113,14 +77,14 @@ public class VHCIS extends CIS
     StringBuilder printOut = new StringBuilder();
 
     SensorBoardRecord sensorBoard = getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
-    numOfPixNominal = numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSpec("res_cp2")));
-    taps = (int) Math.ceil(1.01 * (numOfPixNominal * getSpec("Maximum line rate") / 1000000) / 85.0);
+    numOfPixNominal = numOfPix - ((getScanWidth() / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
+    taps = (int) Math.ceil(1.01 * (numOfPixNominal * getMaxLineRate() / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 
-    printOut.append(getString("datarate")).append(Math.round(getSpec("Color") * numOfPix * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
+    printOut.append(getString("datarate")).append(Math.round(getPhaseCount() * numOfPix * getSelectedLineRate() / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(getString("numofcons")).append("%%%%%\n");
-    printOut.append(getString("numofport")).append(taps * getSpec("Color")).append("\n");
+    printOut.append(getString("numofport")).append(taps * getPhaseCount()).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");
     printOut.append("Nominal pixel count: ").append(numOfPixNominal).append("\n");
     printOut.append("\n\nCamera Link 1:");
@@ -413,6 +377,6 @@ public class VHCIS extends CIS
   @Override
   public double getGeometry(boolean coax)
   {
-    return coax ? 1 : 1;
+    return 1;
   }
 }

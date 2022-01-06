@@ -10,9 +10,6 @@ import javafx.geometry.*;
 import javafx.print.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.layout.*;
 import javafx.scene.transform.*;
 import javafx.stage.*;
@@ -311,9 +308,8 @@ public class CalculationController implements Initializable
       alert.setHeaderText(e.getMessage());
       alert.show();
     }
-    catch(ParseException | NullPointerException e)
-    {
-    }
+    catch(ParseException | NullPointerException ignored)
+    {}
   }
   
   public void print()
@@ -528,11 +524,11 @@ public class CalculationController implements Initializable
   {
     if(CIS_DATA.getLocale().toString().equals("de_DE"))
     {
-      CIS_DATA.setLocale(new Locale("en", "US"));
+      CIS.setLocale(new Locale("en", "US"));
     }
     else if(CIS_DATA.getLocale().toString().equals("en_US"))
     {
-      CIS_DATA.setLocale(new Locale("de", "DE"));
+      CIS.setLocale(new Locale("de", "DE"));
     }
     
     load();

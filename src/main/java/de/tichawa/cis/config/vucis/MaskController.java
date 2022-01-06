@@ -1,22 +1,12 @@
 package de.tichawa.cis.config.vucis;
 
 import de.tichawa.cis.config.CIS;
-import de.tichawa.cis.config.CISException;
-import de.tichawa.cis.config.model.tables.records.AdcBoardRecord;
-import de.tichawa.cis.config.model.tables.records.SensorBoardRecord;
-import de.tichawa.cis.config.model.tables.records.SensorChipRecord;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
+import de.tichawa.cis.config.mxled.MXLED;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.effect.Light;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
 {
@@ -39,29 +29,31 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
   public MaskController()
   {
     CIS_DATA = new VUCIS();
+    MXLED_DATA = new MXLED();
+  }
+
+  @Override
+  public List<CIS.Resolution> setupResolutions()
+  {
+    return Arrays.asList(
+            new CIS.Resolution(1000,1000,true,0,0.025),
+            new CIS.Resolution(1000,1000,false,0,0.025),
+            new CIS.Resolution(500,1000,false,0,0.05),
+            new CIS.Resolution(250,1000,false,0,0.1),
+            new CIS.Resolution(125,1000,false,0,0.02),
+            new CIS.Resolution(100,1000,false,0,0.25),
+            new CIS.Resolution(50,1000,false,0,0.5),
+            new CIS.Resolution(25,1000,false,0,1.0));
   }
 
   @Override
   public void initialize(URL url, ResourceBundle rb)
   {
-    ArrayList<Double> pixelSize = new ArrayList<>();
-    pixelSize.add(0.0254);
-    pixelSize.add(0.0254);
-    pixelSize.add(0.0508);
-    pixelSize.add(0.1016);
-    pixelSize.add(0.2032);
-    pixelSize.add(0.254);
-    pixelSize.add(0.508);
-    pixelSize.add(1.016);
-
-    CIS_DATA.setSpec("Resolution", 0);
-    CIS_DATA.setSpec("res_cp", 1000);
-    CIS_DATA.setSpec("res_cp2", 1000);
-    CIS_DATA.setSpec("Scan Width", 0);
-    CIS_DATA.setSpec("sw_cp", 1200);
-    CIS_DATA.setSpec("sw_index", 5);
-    CIS_DATA.setSpec("External Trigger", 0);
-    CIS_DATA.setSpec("LEDLines", 2);
+    CIS_DATA.setSelectedResolution(getResolutions().get(0));
+    CIS_DATA.setScanWidth(1200);
+    CIS_DATA.setExternalTrigger(false);
+    CIS_DATA.setPhaseCount(2);
+    CIS_DATA.setCooling(CIS.Cooling.LICO);
 
     LightPreset.valueProperty().addListener((observable, oldValue, newValue) ->
     {
@@ -89,88 +81,42 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
     LensType.valueProperty().addListener((observable, oldValue, newValue) -> VUCIS.LensType.findByDescription(newValue)
             .ifPresent(CIS_DATA::setLensType));
 
-    Resolution.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
+    Resolution.valueProperty().addListener((observable, oldValue, newValue) ->
     {
-      CIS_DATA.setSpec("Resolution", Resolution.getSelectionModel().getSelectedIndex());
+      CIS_DATA.setSelectedResolution(getResolutions().get(Resolution.getSelectionModel().getSelectedIndex()));
 
-      String res = newValue.substring(0, newValue.lastIndexOf(" "));
-      res = res.trim().split(" ")[res.trim().split(" ").length - 1];
+      MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
+      SelLineRate.setMax(CIS_DATA.getMaxLineRate());
+      SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
-      switch(res)
-      {
-        case "1000/500/250":
-        case "1000":
-        {
-          CIS_DATA.setSpec("res_cp", 1000);
-          break;
-        }
-        case "500":
-        case "100":
-        {
-          CIS_DATA.setSpec("res_cp", 500);
-          break;
-        }
-        case "250":
-        case "125":
-        case "50":
-        case "25":
-        {
-          CIS_DATA.setSpec("res_cp", 250);
-          break;
-        }
-      }
+      CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
 
-      if(res.equals("1000/500/250"))
-      {
-        CIS_DATA.setSpec("res_cp2", 1000);
-      }
-      else
-      {
-        CIS_DATA.setSpec("res_cp2", Integer.parseInt(res));
-      }
-
-      AdcBoardRecord adcBoard = CIS_DATA.getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
-      SensorBoardRecord sensorBoard = CIS_DATA.getSensorBoard("SMARAGD_INLINE").orElseThrow(() -> new CISException("Unknown sensor board"));
-      SensorChipRecord sensorChip = CIS_DATA.getSensorChip("SMARAGD" + CIS_DATA.getSpec("res_cp") + "_VD").orElseThrow(() -> new CISException("Unknown sensor chip"));
-      double maxLR = Math.round(1000 * sensorBoard.getLines() / (CIS_DATA.getColorCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
-      MaxLineRate.setText(maxLR + " kHz");
-      SelLineRate.setMax(maxLR * 1000);
-      SelLineRate.setValue(maxLR * 1000);
-
-      CIS_DATA.setSpec("Maximum line rate", (int) Math.round(maxLR * 1000));
-      CIS_DATA.setSpec("Speedmms", (int) (pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate")) * 1000);
-
-      PixelSize.setText(pixelSize.get(CIS_DATA.getSpec("Resolution")) + " mm");
-      DefectSize.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * 3, 5) + " mm");
-      Speedmms.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate"), 3) + " mm/s");
-      Speedms.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") / 1000, 3) + " m/s");
-      Speedmmin.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.06, 3) + " m/min");
-      Speedips.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.03937, 3) + " ips");
+      PixelSize.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
+      DefectSize.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
+      Speedmms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+      Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+      Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+      Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
     });
-    ScanWidth.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
+    ScanWidth.valueProperty().addListener((observable, oldValue, newValue) ->
+            CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim())));
+    SelLineRate.valueProperty().addListener((observable, oldValue, newValue) ->
     {
-      int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim());
-
-      CIS_DATA.setSpec("Scan Width", ScanWidth.getSelectionModel().getSelectedIndex());
-      CIS_DATA.setSpec("sw_cp", sw);
-      CIS_DATA.setSpec("sw_index", sw / CIS.BASE_LENGTH - 1);
-    });
-    SelLineRate.valueProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) ->
-    {
-      CIS_DATA.setSpec("Selected line rate", newValue.intValue());
+      CIS_DATA.setSelectedLineRate(newValue.intValue());
 
       CurrLineRate.setText(newValue.intValue() / 1000.0 + " kHz");
 
-      Speedmms.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate"), 3) + " mm/s");
-      Speedms.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") / 1000, 3) + " m/s");
-      Speedmmin.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.06, 3) + " m/min");
-      Speedips.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.03937, 3) + " ips");
+      Speedmms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+      Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+      Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+      Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
     });
 
-    Interface.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
-            CIS_DATA.setSpec("Interface", Interface.getSelectionModel().getSelectedIndex()));
-    Cooling.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
-            CIS_DATA.setSpec("Cooling", Cooling.getSelectionModel().getSelectedIndex()));
+    Interface.valueProperty().addListener((observable, oldValue, newValue) ->
+            CIS_DATA.setGigeInterface(Interface.getSelectionModel().getSelectedIndex() == 1));
+    Cooling.valueProperty().addListener((observable, oldValue, newValue) -> CIS.Cooling
+            .findByDescription(newValue.split("\\(")[0].trim())
+            .ifPresent(CIS_DATA::setCooling));
 
     LightPreset.getSelectionModel().selectFirst();
     BrightFieldLeft.getSelectionModel().select(1);
@@ -183,11 +129,5 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
     Interface.getSelectionModel().selectFirst();
     Cooling.getSelectionModel().select(1);
     LensType.getSelectionModel().selectFirst();
-  }
-
-  @FXML
-  public void printTiViKey(ActionEvent a)
-  {
-    new Alert(Alert.AlertType.INFORMATION, CIS_DATA.getTiViKey()).showAndWait();
   }
 }

@@ -1,35 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
-<?import java.util.*?>
 <?import javafx.collections.*?>
 <?import javafx.geometry.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="150.0" prefWidth="320.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.tichawa.cis.config.LauncherController">
-  <children>
-      <VBox alignment="CENTER" layoutX="0" layoutY="0" prefHeight="150.0" prefWidth="320.0" spacing="15.0">
-      <children>
-        <ComboBox fx:id="selectCIS" editable="false" value="VSCIS">
-          <items>
-            <FXCollections fx:factory="observableArrayList">
-              <String fx:value="VSCIS" />
-              <String fx:value="VTCIS" />
-              <String fx:value="VDCIS" />
-              <String fx:value="MXCIS" />
-              <String fx:value="VUCIS" />
-              <String fx:value="MXLED" />
-            </FXCollections>
-          </items>
+<AnchorPane id="AnchorPane" prefHeight="150.0" prefWidth="320.0" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="de.tichawa.cis.config.LauncherController">
+    <VBox alignment="CENTER" prefHeight="150.0" prefWidth="320.0" spacing="15.0">
+        <padding>
+            <Insets/>
+        </padding>
+        <ComboBox fx:id="selectCIS" value="VSCIS">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="VSCIS"/>
+                    <String fx:value="VTCIS"/>
+                    <String fx:value="VDCIS"/>
+                    <String fx:value="MXCIS"/>
+                    <String fx:value="VUCIS"/>
+                    <String fx:value="MXLED"/>
+                </FXCollections>
+            </items>
         </ComboBox>
-        <Button fx:id="continueButton" onAction="#handleContinue" text="Continue" />
-        <Button fx:id="updateButton" onAction="#handleUpdate" text="Update Prices" />
-      </children>
-      <padding>
-        <Insets />
-      </padding>
+        <Button fx:id="continueButton" onAction="#handleContinue" text="Continue"/>
+        <Button fx:id="updateButton" onAction="#handleUpdate" text="Update Prices"/>
     </VBox>
-  </children>
 </AnchorPane>

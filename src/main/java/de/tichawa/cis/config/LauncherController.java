@@ -11,7 +11,6 @@ import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.*;
 import javafx.event.*;
 import javafx.fxml.*;
@@ -38,7 +37,7 @@ public class LauncherController implements Initializable
   {
     try
     {
-      Parent root = FXMLLoader.load(getClass().getResource("/de/tichawa/cis/config/" + selectCIS.getSelectionModel().getSelectedItem().toString().toLowerCase() + "/Mask.fxml"));
+      Parent root = FXMLLoader.load(getClass().getResource("/de/tichawa/cis/config/" + selectCIS.getSelectionModel().getSelectedItem().toLowerCase() + "/Mask.fxml"));
       Scene scene = new Scene(root);
       Stage stage = new Stage();
       stage.setScene(scene);
@@ -47,7 +46,7 @@ public class LauncherController implements Initializable
       stage.centerOnScreen();
       stage.show();
     }
-    catch(IOException e)
+    catch(IOException ignored)
     {
     }
   }
@@ -59,9 +58,8 @@ public class LauncherController implements Initializable
     {
       Desktop.getDesktop().open(Launcher.ferixHome.resolve("Priceexport.lnk").toFile());
 
-      String lastUpdated = "Never";
-      if(new Alert(AlertType.CONFIRMATION, "Please wait until FERIX has finished the export to " + Launcher.ferixHome.resolve("Export/art.csv") + ", then press OK to continue.\nLast update: "
-              + lastUpdated, ButtonType.OK, ButtonType.CANCEL).showAndWait()
+      if(new Alert(AlertType.CONFIRMATION, "Please wait until FERIX has finished the export to " + Launcher.ferixHome.resolve("Export/art.csv") + ", then press OK to continue.",
+              ButtonType.OK, ButtonType.CANCEL).showAndWait()
               .orElse(ButtonType.CANCEL) == ButtonType.OK)
       {
         Map<Integer, Tuple<Double, Boolean>> sourcePrices = Files.readAllLines(Launcher.ferixHome.resolve("Export/art.csv")).stream()
@@ -74,19 +72,36 @@ public class LauncherController implements Initializable
         new MXCIS().getDatabase()
                 .ifPresent(database ->
                 {
-                  int[] updateCounts = database.batchUpdate(sourcePrices.entrySet().stream()
+                  List<Double> oldPrices = database.selectFrom(Tables.PRICE)
+                          .where(Tables.PRICE.ART_NO.in(sourcePrices.keySet()))
+                          .orderBy(Tables.PRICE.ART_NO.asc())
+                          .fetch(Tables.PRICE.PRICE_);
+
+                  database.batchUpdate(sourcePrices.entrySet().stream()
                           .map(e ->
                           {
                             PriceRecord record = new PriceRecord();
                             record.setArtNo(e.getKey());
                             record.setPrice(e.getValue().getU());
-                            record.changed(Price.PRICE.ART_NO,false);
+                            record.changed(Tables.PRICE.ART_NO,false);
                             return record;
                           }).collect(Collectors.toList()))
                           .execute();
 
-                  int updateCount = Arrays.stream(updateCounts)
-                          .sum();
+                  List<Double> newPrices = database.selectFrom(Tables.PRICE)
+                          .where(Tables.PRICE.ART_NO.in(sourcePrices.keySet()))
+                          .orderBy(Tables.PRICE.ART_NO.asc())
+                          .fetch(Tables.PRICE.PRICE_);
+
+                  int updateCount = 0;
+                  for(int x = 0; x < newPrices.size(); x++)
+                  {
+                    if(!newPrices.get(x).equals(oldPrices.get(x)))
+                    {
+                      updateCount++;
+                    }
+                  }
+
                   new Alert(Alert.AlertType.CONFIRMATION,"Update successful. " + updateCount + " entries updated.")
                           .showAndWait();
 

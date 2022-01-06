@@ -2,7 +2,9 @@ package de.tichawa.cis.config.vucis;
 
 import de.tichawa.cis.config.CIS;
 import de.tichawa.cis.config.CISException;
+import de.tichawa.cis.config.model.tables.records.AdcBoardRecord;
 import de.tichawa.cis.config.model.tables.records.SensorBoardRecord;
+import de.tichawa.cis.config.model.tables.records.SensorChipRecord;
 
 import java.util.*;
 
@@ -39,54 +41,6 @@ public class VUCIS extends CIS
     {
       return Arrays.stream(LightPreset.values())
               .filter(c -> c.getDescription().equals(description))
-              .findFirst();
-    }
-  }
-
-  public enum LightColor
-  {
-    NONE("None", 'X'),
-    RED("Red", 'R'),
-    GREEN("Green", 'G'),
-    BLUE("Blue", 'B'),
-    YELLOW("Yellow", 'Y'),
-    WHITE("White", 'W'),
-    IR850("IR 850nm", 'I'),
-    IR950("IR 950nm", 'J'),
-    UVA("UVA 365nm", 'U'),
-    VERDE("Verde", 'V'),
-    RGB("RGB", 'C'),
-    IRUV("LEDIRUV", 'H'),
-    REBZ8("REBZ8LED", '8'),
-    REBELMIX("REBELMIX", 'E');
-
-    private final String description;
-    private final char code;
-
-    public String getDescription() {
-      return description;
-    }
-
-    public char getCode() {
-      return code;
-    }
-
-    LightColor(String description, char code) {
-      this.description = description;
-      this.code = code;
-    }
-
-    public static Optional<LightColor> findByDescription(String description)
-    {
-      return Arrays.stream(LightColor.values())
-              .filter(c -> c.getDescription().equals(description))
-              .findFirst();
-    }
-
-    public static Optional<LightColor> findByCode(char code)
-    {
-      return Arrays.stream(LightColor.values())
-              .filter(c -> c.getCode() == code)
               .findFirst();
     }
   }
@@ -138,7 +92,6 @@ public class VUCIS extends CIS
   {
     super();
 
-    setSpec("VUCIS", 1);
     this.lightPreset = LightPreset.MANUAL;
     this.leftBrightField = LightColor.RED;
     this.coaxLight = LightColor.NONE;
@@ -151,7 +104,7 @@ public class VUCIS extends CIS
   public String getTiViKey()
   {
     String key = "G_VUCIS";
-    key += String.format("_%04d", getSpec("sw_cp"));
+    key += String.format("_%04d", getScanWidth());
     key += "_S";
 
     key += "_";
@@ -191,6 +144,14 @@ public class VUCIS extends CIS
   }
 
   @Override
+  public int getLedLines()
+  {
+    return getLightSources()
+            .replaceAll("X", "")
+            .length();
+  }
+
+  @Override
   public String getCLCalc(int numOfPix)
   {
     int numOfPixNominal;
@@ -201,46 +162,35 @@ public class VUCIS extends CIS
     StringBuilder printOut = new StringBuilder();
 
     SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
-    numOfPixNominal = numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSpec("res_cp2")));
-    taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSpec("Selected line rate") / 1000000) / 85.0);
+    numOfPixNominal = numOfPix - ((getScanWidth() / BASE_LENGTH) * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
+    taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSelectedLineRate() / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 
-    boolean mediumMode = getSpec("CLMode") == 1;
-
-    printOut.append(getString("datarate")).append(Math.round(getSpec("Color") * numOfPixNominal * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
+    printOut.append(getString("datarate")).append(Math.round(getPhaseCount() * numOfPixNominal * getSelectedLineRate() / 100000.0) / 10.0).append(" MByte\n");
     printOut.append(getString("numofcons")).append("%%%%%\n");
-    printOut.append(getString("numofport")).append(taps * getSpec("Color")).append("\n");
+    printOut.append(getString("numofport")).append(taps * getPhaseCount()).append("\n");
     printOut.append("Pixel Clock: 85 MHz\n");
     printOut.append(getString("nomPix")).append(numOfPixNominal).append("\n");
     printOut.append("LVAL (Modulo 8): ").append(lval).append("\n");
-    printOut.append(getString("clMode")).append(mediumMode ? "Base/Medium/Full" : "Full80").append("\n");
-    printOut.append(getString("numPhases")).append(getSpec("Color")).append("\n");
-
-    Map<Integer, List<Integer>> mediumMap = new HashMap<>();
-    mediumMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 9, 10, 11, 12, 13, 14, 15, 16, 0, 0));
-    mediumMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 4, 4, 0, 0, 0, 0, 0));
-    mediumMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 3, 3, 3, 4, 4, 4, 0, 0, 0, 0));
-    mediumMap.put(4, Arrays.asList(1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0));
-    mediumMap.put(5, Arrays.asList(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0));
-    mediumMap.put(6, Arrays.asList(1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0));
+    printOut.append(getString("numPhases")).append(getPhaseCount()).append("\n");
 
     Map<Integer, List<Integer>> highMap = new HashMap<>();
     highMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20));
     highMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 3, 3, 0, 0, 4, 4, 0, 5, 5, 0, 6, 6, 0, 0));
     highMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 4, 4, 4, 5, 5, 5, 6, 6, 6, 0));
-    highMap.put(4, mediumMap.get(4));
-    highMap.put(5, mediumMap.get(5));
-    highMap.put(6, mediumMap.get(6));
+    highMap.put(4, Arrays.asList(1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0));
+    highMap.put(5, Arrays.asList(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0));
+    highMap.put(6, Arrays.asList(1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0));
 
-    List<Integer> tapConfig = (mediumMode ? mediumMap : highMap).get(getSpec("Color"));
+    List<Integer> tapConfig = highMap.get(getPhaseCount());
     if(taps > tapConfig.stream().mapToInt(x -> x).max().orElse(0))
     {
-      throw new CISException("Number of required taps (" + taps * getSpec("Color") + ") is too high. Please reduce the data rate.");
+      throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
     }
     //Out Of Flash Memory
     printOut.append("Flash Extension: ");
-    if(getSpec("res_cp2") >= 1200 && (numOfPix - 16 * getSpec("sw_cp") / BASE_LENGTH * 6 * 2) * getSpec("Color") * 2 > 327680)
+    if(getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680)
     {
       printOut.append("Required.\n");
     }
@@ -337,6 +287,15 @@ public class VUCIS extends CIS
 
   public void setLensType(LensType lensType) {
     this.lensType = lensType;
+  }
+
+  @Override
+  public double getMaxLineRate()
+  {
+    AdcBoardRecord adcBoard = getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
+    SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD_INLINE").orElseThrow(() -> new CISException("Unknown sensor board"));
+    SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution() + "_VD").orElseThrow(() -> new CISException("Unknown sensor chip"));
+    return Math.round(1000 * 1000 * sensorBoard.getLines() / (getColorCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
   }
 
   public int getColorCount()

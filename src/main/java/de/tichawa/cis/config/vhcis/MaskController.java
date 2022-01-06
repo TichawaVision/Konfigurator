@@ -3,8 +3,6 @@ package de.tichawa.cis.config.vhcis;
 import java.net.*;
 import java.util.*;
 
-import de.tichawa.cis.config.model.tables.records.*;
-import javafx.beans.value.*;
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.mxled.*;
 
@@ -17,241 +15,160 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VHCIS>
   }
 
   @Override
+  public List<CIS.Resolution> setupResolutions()
+  {
+    return Arrays.asList(
+            new CIS.Resolution(1200,1200,true,16.0,0.02115),
+            new CIS.Resolution(1200,1200,false,8.0,0.02115),
+            new CIS.Resolution(600,600,false,6.0,0.0423),
+            new CIS.Resolution(400,1200,false,4.0,0.0635),
+            new CIS.Resolution(300,300,false,3.0,0.0847),
+            new CIS.Resolution(200,600,false,2.0,0.125),
+            new CIS.Resolution(150,300,false,1.5,0.167),
+            new CIS.Resolution(100,300,false,1.0,0.25),
+            new CIS.Resolution(75,300,false,1.0,0.339),
+            new CIS.Resolution(50,300,false,0.5,0.5),
+            new CIS.Resolution(25,300,false,0.25,1.0));
+  }
+
+  @Override
   public void initialize(URL url, ResourceBundle rb)
   {
-    ArrayList<Double> pixelSize = new ArrayList<>();
-    pixelSize.add(0.02115);
-    pixelSize.add(0.02115);
-    pixelSize.add(0.0423);
-    pixelSize.add(0.0635);
-    pixelSize.add(0.0847);
-    pixelSize.add(0.125);
-    pixelSize.add(0.167);
-    pixelSize.add(0.25);
-    pixelSize.add(0.339);
-    pixelSize.add(0.5);
-    pixelSize.add(1.0);
+    CIS_DATA.setPhaseCount(1);
+    CIS_DATA.setLightColor(CIS.LightColor.RED);
+    CIS_DATA.setDiffuseLightSources(1);
+    CIS_DATA.setCoaxLightSources(0);
+    CIS_DATA.setSelectedResolution(getResolutions().get(0));
+    CIS_DATA.setScanWidth(780);
+    CIS_DATA.setExternalTrigger(false);
+    CIS_DATA.setCooling(CIS.Cooling.LICO);
 
-    CIS_DATA.setSpec("Color", 1);
-    CIS_DATA.setSpec("Internal Light Source", 1);
-    CIS_DATA.setSpec("External Light Source", 0);
-    CIS_DATA.setSpec("Resolution", 0);
-    CIS_DATA.setSpec("res_cp", 1200);
-    CIS_DATA.setSpec("res_cp2", 1200);
-    CIS_DATA.setSpec("Scan Width", 0);
-    CIS_DATA.setSpec("sw_cp", 780);
-    CIS_DATA.setSpec("sw_index", 6);
-    CIS_DATA.setSpec("External Trigger", 0);
-    CIS_DATA.setSpec("LEDLines", 1);
+    Color.valueProperty().addListener((observable, oldValue, newValue) ->
+    {
+      if(newValue.equals("RGB") && CIS_DATA.getLedLines() == 0)
+      {
+        Color.getSelectionModel().select(oldValue);
+        return;
+      }
 
-    Color.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
-            -> 
-            {
-              if(newValue.equals("RGB") && CIS_DATA.getSpec("Internal Light Source") == 0)
-              {
-                Color.getSelectionModel().select(oldValue);
-                return;
-              }
+      switch(newValue)
+      {
+        case "Monochrome":
+        {
+          CIS_DATA.setPhaseCount(1);
+          break;
+        }
+        case "RGB":
+        {
+          CIS_DATA.setPhaseCount(3);
+          break;
+        }
+      }
 
-              switch(newValue)
-              {
-                case "Monochrome":
-                {
-                  CIS_DATA.setSpec("Color", 1);
-                  break;
-                }
-                case "RGB":
-                {
-                  CIS_DATA.setSpec("Color", 3);
-                  break;
-                }
-              }
+      InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
+      ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
-              InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getSpec("LEDLines") == 0);
-              ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
+      MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
+      SelLineRate.setMax(CIS_DATA.getMaxLineRate());
+      SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
-              AdcBoardRecord adcBoard = CIS_DATA.getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
-              SensorBoardRecord sensorBoard = CIS_DATA.getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
-              SensorChipRecord sensorChip = CIS_DATA.getSensorChip("SMARAGD" + CIS_DATA.getSpec("res_cp")).orElseThrow(() -> new CISException("Unknown sensor chip"));
-              double maxLR = Math.round(1000 * sensorBoard.getLines() / (CIS_DATA.getSpec("Color") * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
-              MaxLineRate.setText(maxLR + " kHz");
-              SelLineRate.setMax(maxLR * 1000);
-              SelLineRate.setValue(maxLR * 1000);
+      CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
 
-              CIS_DATA.setSpec("Maximum line rate", (int) Math.round(maxLR * 1000));
-              CIS_DATA.setSpec("Speedmms", (int) (pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate")) * 1000);
-
-              MXLED_DATA.setSpec("Color", CIS_DATA.getSpec("Color"));
+      MXLED_DATA.setPhaseCount(CIS_DATA.getPhaseCount());
     });
-    Resolution.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
-            -> 
-            {
-              CIS_DATA.setSpec("Resolution", Resolution.getSelectionModel().getSelectedIndex());
+    Resolution.valueProperty().addListener((observable, oldValue, newValue) ->
+    {
+      CIS_DATA.setSelectedResolution(getResolutions().get(Resolution.getSelectionModel().getSelectedIndex()));
 
-              String res = newValue.substring(0, newValue.lastIndexOf(" "));
-              res = res.trim().split(" ")[res.trim().split(" ").length - 1];
+      MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
+      SelLineRate.setMax(CIS_DATA.getMaxLineRate());
+      SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
-              switch(res)
-              {
-                case "1200/600/300":
-                case "1200":
-                case "400":
-                {
-                  CIS_DATA.setSpec("res_cp", 1200);
-                  break;
-                }
-                case "600":
-                case "200":
-                {
-                  CIS_DATA.setSpec("res_cp", 600);
-                  break;
-                }
-                case "300":
-                case "150":
-                case "100":
-                case "75":
-                case "50":
-                {
-                  CIS_DATA.setSpec("res_cp", 300);
-                  break;
-                }
-              }
+      CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
 
-              if(res.equals("1200/600/300"))
-              {
-                CIS_DATA.setSpec("res_cp2", 1200);
-              }
-              else
-              {
-                CIS_DATA.setSpec("res_cp2", Integer.parseInt(res));
-              }
-
-              AdcBoardRecord adcBoard = CIS_DATA.getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
-              SensorBoardRecord sensorBoard = CIS_DATA.getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
-              SensorChipRecord sensorChip = CIS_DATA.getSensorChip("SMARAGD" + CIS_DATA.getSpec("res_cp")).orElseThrow(() -> new CISException("Unknown sensor chip"));
-              double maxLR = Math.round(1000 * sensorBoard.getLines() / (CIS_DATA.getSpec("Color") * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
-              MaxLineRate.setText(maxLR + " kHz");
-              SelLineRate.setMax(maxLR * 1000);
-              SelLineRate.setValue(maxLR * 1000);
-
-              CIS_DATA.setSpec("Maximum line rate", (int) Math.round(maxLR * 1000));
-              CIS_DATA.setSpec("Speedmms", (int) (pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate")) * 1000);
-
-              PixelSize.setText(pixelSize.get(CIS_DATA.getSpec("Resolution")) + " mm");
-              DefectSize.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * 3, 5) + " mm");
-              Speedmms.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate"), 3) + " mm/s");
-              Speedms.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") / 1000, 3) + " m/s");
-              Speedmmin.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.06, 3) + " m/min");
-              Speedips.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.03937, 3) + " ips");
+      PixelSize.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
+      DefectSize.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
+      Speedmms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+      Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+      Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+      Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
     });
-    ScanWidth.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
-            -> 
-            {
-              int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim());
+    ScanWidth.valueProperty().addListener((observable, oldValue, newValue) ->
+    {
+      int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim());
 
-              CIS_DATA.setSpec("Scan Width", ScanWidth.getSelectionModel().getSelectedIndex());
-              CIS_DATA.setSpec("sw_cp", sw);
-              CIS_DATA.setSpec("sw_index", (int) (sw / CIS.BASE_LENGTH) - 1);
-
-              MXLED_DATA.setSpec("Scan Width", CIS_DATA.getSpec("Scan Width"));
-              MXLED_DATA.setSpec("sw_cp", CIS_DATA.getSpec("sw_cp"));
-              MXLED_DATA.setSpec("sw_index", MXLED.getSWIndex(sw));
+      CIS_DATA.setScanWidth(sw);
+      MXLED_DATA.setScanWidth(CIS_DATA.getScanWidth());
     });
-    SelLineRate.valueProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue)
-            -> 
-            {
-              CIS_DATA.setSpec("Selected line rate", newValue.intValue());
+    SelLineRate.valueProperty().addListener((observable, oldValue, newValue) ->
+    {
+      CIS_DATA.setSelectedLineRate(newValue.intValue());
 
-              CurrLineRate.setText(newValue.intValue() / 1000.0 + " kHz");
+      CurrLineRate.setText(newValue.intValue() / 1000.0 + " kHz");
 
-              Speedmms.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate"), 3) + " mm/s");
-              Speedms.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") / 1000, 3) + " m/s");
-              Speedmmin.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.06, 3) + " m/min");
-              Speedips.setText(CIS.round(pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate") * 0.03937, 3) + " ips");
+      Speedmms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+      Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+      Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+      Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
     });
-    InternalLightSource.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
-            -> 
-            {
-              if(CIS_DATA.getSpec("Color") == 3 && newValue.equals("None") && CIS_DATA.getSpec("External Light Source") == 0)
-              {
-                InternalLightSource.getSelectionModel().select(oldValue);
-                return;
-              }
+    InternalLightSource.valueProperty().addListener((observable, oldValue, newValue) ->
+    {
+      if(CIS_DATA.getPhaseCount() == 3 && newValue.equals("None") && MXLED_DATA.getLedLines() == 0)
+      {
+        InternalLightSource.getSelectionModel().select(oldValue);
+        return;
+      }
 
-              CIS_DATA.setSpec("Internal Light Source", InternalLightSource.getSelectionModel().getSelectedIndex());
+      switch(InternalLightSource.getSelectionModel().getSelectedIndex())
+      {
+        case 0:
+          CIS_DATA.setDiffuseLightSources(0);
+          CIS_DATA.setCoaxLightSources(0);
+          break;
+        case 1:
+          CIS_DATA.setDiffuseLightSources(1);
+          CIS_DATA.setCoaxLightSources(0);
+          break;
+        case 2:
+          CIS_DATA.setDiffuseLightSources(2);
+          CIS_DATA.setCoaxLightSources(0);
+          break;
+      }
+      InternalLightColor.setDisable(CIS_DATA.getPhaseCount() == 3 || CIS_DATA.getLedLines() == 0);
+    });
+    InternalLightColor.valueProperty().addListener((observable, oldValue, newValue) ->
+            CIS.LightColor.findByDescription(newValue)
+                    .ifPresent(CIS_DATA::setLightColor));
+    ExternalLightSource.valueProperty().addListener((observable, oldValue, newValue) ->
+    {
+      if(CIS_DATA.getPhaseCount() == 3 && CIS_DATA.getLedLines() == 0 && newValue.equals("None"))
+      {
+        ExternalLightSource.getSelectionModel().select(oldValue);
+        return;
+      }
 
-              switch(newValue)
-              {
-                case "None":
-                {
-                  CIS_DATA.setSpec("LEDLines", 0);
-                  break;
-                }
-                case "One sided":
-                {
-                  CIS_DATA.setSpec("LEDLines", 1);
-                  break;
-                }
-                case "Two sided":
-                {
-                  CIS_DATA.setSpec("LEDLines", 2);
-                  break;
-                }
-                case "Coax":
-                {
-                  CIS_DATA.setSpec("LEDLines", 1);
-                  break;
-                }
-                case "Two sided plus Coax":
-                {
-                  CIS_DATA.setSpec("LEDLines", 3);
-                  break;
-                }
-              }
-
-              InternalLightColor.setDisable(CIS_DATA.getSpec("Color") == 3 || CIS_DATA.getSpec("LEDLines") == 0);
+      ExternalLightColor.setDisable(CIS_DATA.getPhaseCount() == 3 || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
+      switch(ExternalLightSource.getSelectionModel().getSelectedIndex())
+      {
+        case 0:
+          MXLED_DATA.setDiffuseLightSources(0);
+          MXLED_DATA.setCoaxLightSources(0);
+          break;
+        case 1:
+          MXLED_DATA.setDiffuseLightSources(1);
+          MXLED_DATA.setCoaxLightSources(0);
+          break;
+      }
     });
-    InternalLightColor.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
-            -> 
-            {
-              CIS_DATA.setSpec("Internal Light Color", InternalLightColor.getSelectionModel().getSelectedIndex());
-    });
-    ExternalLightSource.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
-            -> 
-            {
-              if(CIS_DATA.getSpec("Color") == 3 && CIS_DATA.getSpec("Internal Light Source") == 0 && newValue.equals("None"))
-              {
-                ExternalLightSource.getSelectionModel().select(oldValue);
-                return;
-              }
-
-              CIS_DATA.setSpec("External Light Source", ExternalLightSource.getSelectionModel().getSelectedIndex());
-
-              ExternalLightColor.setDisable(CIS_DATA.getSpec("Color") == 3 || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
-
-              MXLED_DATA.setSpec("Internal Light Source", CIS_DATA.getSpec("External Light Source"));
-    });
-    ExternalLightColor.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
-            -> 
-            {
-              CIS_DATA.setSpec("External Light Color", ExternalLightColor.getSelectionModel().getSelectedIndex());
-              MXLED_DATA.setSpec("Internal Light Color", CIS_DATA.getSpec("External Light Color"));
-    });
-    Interface.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
-            -> 
-            {
-              CIS_DATA.setSpec("Interface", Interface.getSelectionModel().getSelectedIndex());
-    });
-    Cooling.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue)
-            -> 
-            {
-              CIS_DATA.setSpec("Cooling", Cooling.getSelectionModel().getSelectedIndex());
-    });
-    Trigger.selectedProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue)
-            -> 
-            {
-              CIS_DATA.setSpec("External Trigger", newValue ? 1 : 0);
-    });
+    ExternalLightColor.valueProperty().addListener((observable, oldValue, newValue) -> CIS.LightColor.findByDescription(newValue)
+            .ifPresent(MXLED_DATA::setLightColor));
+    Interface.valueProperty().addListener((observable, oldValue, newValue) ->
+            CIS_DATA.setGigeInterface(Interface.getSelectionModel().getSelectedIndex() == 1));
+    Cooling.valueProperty().addListener((observable, oldValue, newValue) -> CIS.Cooling
+            .findByDescription(newValue.split("\\(")[0].trim())
+            .ifPresent(CIS_DATA::setCooling));
+    Trigger.selectedProperty().addListener((observable, oldValue, newValue) ->
+            CIS_DATA.setExternalTrigger(newValue));
 
     Color.getSelectionModel().selectFirst();
     Resolution.getSelectionModel().selectFirst();

@@ -1,8 +1,15 @@
 package de.tichawa.cis.config;
 
 import de.tichawa.cis.config.model.tables.records.*;
+import de.tichawa.cis.config.mxled.MXLED;
+import de.tichawa.cis.config.vdcis.VDCIS;
+import de.tichawa.cis.config.vhcis.VHCIS;
+import de.tichawa.cis.config.vscis.VSCIS;
+import de.tichawa.cis.config.vtcis.VTCIS;
+import de.tichawa.cis.config.vucis.VUCIS;
 import de.tichawa.util.MathEval;
 import de.tichawa.cis.config.mxcis.MXCIS;
+import lombok.*;
 import org.apache.commons.dbcp2.*;
 import org.jooq.*;
 import org.jooq.exception.*;
@@ -12,8 +19,9 @@ import java.io.*;
 import java.io.IOException;
 import java.text.*;
 import java.util.*;
-import java.util.Date;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.*;
 
@@ -24,6 +32,7 @@ public abstract class CIS
 {
   public static final int BASE_LENGTH = 260;
   protected static Locale locale = Locale.getDefault();
+  private static final Pattern LIGHT_PATTERN = Pattern.compile("(\\d+)D(\\d+)C");
 
   public final String cisName;
 
@@ -35,7 +44,6 @@ public abstract class CIS
   private final Map<String, SensorChipRecord> sensChips;
   private final Map<String, SensorBoardRecord> sensBoards;
 
-  protected Map<String, Integer> spec;
   protected Map<PriceRecord, Integer> electConfig;
   protected Map<PriceRecord, Integer> mechaConfig;
   protected Double[] electSums;
@@ -43,15 +51,159 @@ public abstract class CIS
   protected Double[] totalPrices;
   protected int numFPGA;
 
-  protected static final String[] COLOR_CODE = new String[]
-  {
-    "AM", "GR", "BL", "IR", "YE", "WH"
-  };
+  @Getter @Setter
+  private int mode;
+  @Getter @Setter
+  private int phaseCount;
+  @Getter @Setter
+  private int scanWidth;
+  @Getter @Setter
+  private int selectedLineRate;
+  @Getter @Setter
+  private boolean gigeInterface;
+  @Getter @Setter
+  private Resolution selectedResolution;
+  @Getter @Setter
+  private LightColor lightColor;
+  @Getter @Setter
+  private int numOfPix;
+  @Getter @Setter
+  private boolean externalTrigger;
+  @Getter @Setter
+  private Cooling cooling;
+  @Getter @Setter
+  private int binning;
+  @Getter @Setter
+  private int transportSpeed;
+  @Getter @Setter
+  private int diffuseLightSources;
+  @Getter @Setter
+  private int coaxLightSources;
 
-  public String getPortName(int x)
+  public enum LightColor
   {
-    return Character.toString((char) (65 + x));
+    NONE("None","NO", 'X'),
+    RED("Red","AM",'R'),
+    GREEN("Green","GR",'G'),
+    BLUE("Blue","BL",'B'),
+    YELLOW("Yellow","YE",'Y'),
+    WHITE("White","WH",'W'),
+    IR850("IR 850nm","IR",'I'),
+    IR950("IR 950nm","JR",'J'),
+    UVA("UVA 365nm","UV",'U'),
+    VERDE("Verde","VE",'V'),
+    RGB("RGB","RGB",'C'),
+    IRUV("LEDIRUV","HI",'H'),
+    REBZ8("REBZ8LED","REBZ8",'8'),
+    REBELMIX("REBELMIX","REBEL",'E');
+
+    private final String description;
+    private final String shortHand;
+    private final char code;
+
+    public String getDescription() {
+      return description;
+    }
+
+    public char getCode() {
+      return code;
+    }
+
+    public String getShortHand()
+    {
+      return shortHand;
+    }
+
+    LightColor(String description, String shortHand, char code) {
+      this.description = description;
+      this.shortHand = shortHand;
+      this.code = code;
+    }
+
+    public static Optional<LightColor> findByDescription(String description)
+    {
+      return Arrays.stream(LightColor.values())
+              .filter(c -> c.getDescription().equals(description))
+              .findFirst();
+    }
+
+    public static Optional<LightColor> findByShortHand(String shortHand)
+    {
+      return Arrays.stream(LightColor.values())
+              .filter(c -> c.getDescription().equals(shortHand))
+              .findFirst();
+    }
+
+    public static Optional<LightColor> findByCode(char code)
+    {
+      return Arrays.stream(LightColor.values())
+              .filter(c -> c.getCode() == code)
+              .findFirst();
+    }
   }
+
+  public enum Cooling
+  {
+    NONE("NOCO", "No cooling"),
+    PAIR("PAIR", "Passive air"),
+    FAIR("", "Internal forced air"),
+    EAIR("FAIR", "External forced air"),
+    LICO("LICO", "Liquid cooling");
+
+    private final String code;
+    private final String description;
+
+    Cooling(String code, String description)
+    {
+      this.code = code;
+      this.description = description;
+    }
+
+    public String getCode()
+    {
+      return code;
+    }
+
+    public String getDescription()
+    {
+      return description;
+    }
+
+    public static Optional<Cooling> findByDescription(String description)
+    {
+      return Arrays.stream(Cooling.values())
+              .filter(c -> c.getDescription().equals(description))
+              .findFirst();
+    }
+
+    public static Optional<Cooling> findByCode(String code)
+    {
+      return Arrays.stream(Cooling.values())
+              .filter(c -> c.getCode().equals(code))
+              .findFirst();
+    }
+  }
+
+  @Value
+  public static class Resolution
+  {
+    int boardResolution;
+    double pixelSize;
+    boolean switchable;
+    int actualResolution;
+    double depthOfField;
+
+    public Resolution(int actualResolution, int boardResolution, boolean switchable, double depthOfField, double pixelSize)
+    {
+      this.pixelSize = pixelSize;
+      this.boardResolution = boardResolution;
+      this.switchable = switchable;
+      this.depthOfField = depthOfField;
+      this.actualResolution = actualResolution;
+    }
+  }
+
+  public abstract double getMaxLineRate();
 
   protected CIS()
   {
@@ -105,15 +257,29 @@ public abstract class CIS
         .map(context -> context.selectFrom(SENSOR_BOARD).stream())
         .orElse(Stream.empty())
         .collect(Collectors.toMap(SensorBoardRecord::getName, Function.identity()));
-
-    spec = new HashMap<>();
   }
 
   public abstract String getCLCalc(int numOfPix);
 
   public abstract String getTiViKey();
 
-  public abstract String getLightSources();
+  public String getLightSources()
+  {
+    return getDiffuseLightSources() + "D" + getCoaxLightSources() + "C";
+  }
+
+  public int getLedLines()
+  {
+    Matcher m = LIGHT_PATTERN.matcher(getLightSources());
+    if(m.matches())
+    {
+      return Integer.parseInt(m.group(1)) + Integer.parseInt(m.group(2));
+    }
+    else
+    {
+      throw new IllegalArgumentException(getLightSources() + " is not a valid light source pattern.");
+    }
+  }
 
   public static void setLocale(Locale l)
   {
@@ -133,21 +299,6 @@ public abstract class CIS
   public Optional<SensorChipRecord> getSensorChip(String name)
   {
     return Optional.ofNullable(sensChips.get(name));
-  }
-
-  public final void setSpec(String key, int value)
-  {
-    spec.put(key, value);
-  }
-
-  public Integer getSpec(String key)
-  {
-    if(spec.containsKey(key))
-    {
-      return spec.get(key);
-    }
-
-    return null;
   }
 
   public static double round(double value, int digits)
@@ -199,16 +350,18 @@ public abstract class CIS
       //Electronics
       int sensPerFpga;
 
-      if(getSpec("res_cp2") != null && getSpec("res_cp2") > 600)
+      if(getSelectedResolution().getActualResolution() > 600)
       {
         sensPerFpga = 1;
       }
-      else if((getSpec("VDCIS") != null && getSpec("Color") > 2) || (getSpec("VDCIS") == null && getSpec("Color") > 1))
+      else if(this instanceof VDCIS && getPhaseCount() > 1)
       {
         //FULL (RGB)
         sensPerFpga = 2;
       }
-      else if(getSpec("res_cp2") != null && maxRateForHalfMode.get(getSpec("res_cp2")) != null && (getSpec("Selected line rate") / 1000.0) <= maxRateForHalfMode.get(getSpec("res_cp2")))
+      else if(getMaxRateForHalfMode(getSelectedResolution())
+              .map(rate -> getSelectedLineRate() / 1000 <= rate)
+              .orElse(false))
       {
         //HALF
         sensPerFpga = 4;
@@ -219,17 +372,17 @@ public abstract class CIS
         sensPerFpga = 2;
       }
 
-      setSpec("MODE", sensPerFpga);
+      setMode(sensPerFpga);
 
       double lengthPerSens = BASE_LENGTH * sensPerFpga;
-      numFPGA = (int) Math.ceil(getSpec("sw_cp") / lengthPerSens);
+      numFPGA = (int) Math.ceil(getScanWidth() / lengthPerSens);
 
       try
       {
         // Einlesen der Elektronik-Tabelle
         context.selectFrom(ELECTRONIC)
             .where(ELECTRONIC.CIS_TYPE.eq(getClass().getSimpleName()))
-            .and(ELECTRONIC.CIS_LENGTH.eq(getSpec("sw_cp")))
+            .and(ELECTRONIC.CIS_LENGTH.eq(getScanWidth()))
             .stream()
             .filter(electronicRecord -> isApplicable(electronicRecord.getSelectCode()))
             .forEach(electronicRecord ->
@@ -237,10 +390,10 @@ public abstract class CIS
               int amount = (int) (getElectFactor(electronicRecord.getMultiplier())
                   * MathEval.evaluate(electronicRecord.getAmount()
                   .replace(" ", "")
-                  .replace("L", "" + getSpec("LEDLines"))
+                  .replace("L", "" + getLedLines())
                   .replace("F", "" + numFPGA)
-                  .replace("S", "" + getSpec("sw_cp") / BASE_LENGTH)
-                  .replace("N", "" + getSpec("sw_cp"))));
+                  .replace("S", "" + getScanWidth() / BASE_LENGTH)
+                  .replace("N", "" + getScanWidth())));
 
               if(amount > 0)
               {
@@ -276,7 +429,7 @@ public abstract class CIS
       {
         context.selectFrom(MECHANIC)
             .where(MECHANIC.CIS_TYPE.eq(getClass().getSimpleName()))
-            .and(MECHANIC.CIS_LENGTH.eq(getSpec("sw_cp")))
+            .and(MECHANIC.CIS_LENGTH.eq(getScanWidth()))
             .and(MECHANIC.LIGHTS.eq(getLightSources()))
             .stream()
             .filter(mechanicRecord -> isApplicable(mechanicRecord.getSelectCode()))
@@ -308,9 +461,9 @@ public abstract class CIS
         throw new CISException("Error in Mechanics");
       }
 
-      if(getSpec("MXLED") == null)
+      if(!(this instanceof MXLED))
       {
-        setSpec("numOfPix", calcNumOfPix());
+        setNumOfPix(calcNumOfPix());
       }
 
       return true;
@@ -336,10 +489,21 @@ public abstract class CIS
     return "Version: " + getVersion() + "; " + SimpleDateFormat.getInstance().format(new Date());
   }
 
-  @SuppressWarnings("fallthrough")
+  public Optional<Integer> getMaxRateForHalfMode(Resolution res)
+  {
+    if(maxRateForHalfMode.containsKey(res.getActualResolution()))
+    {
+      return Optional.of(maxRateForHalfMode.get(res.getActualResolution()));
+    }
+    else
+    {
+      return Optional.empty();
+    }
+  }
+
   public String createPrntOut()
   {
-    if(getSpec("MXLED") != null)
+    if(this instanceof MXLED)
     {
       return createBlPrntOut();
     }
@@ -347,7 +511,7 @@ public abstract class CIS
     String key = getTiViKey();
     String printout = key;
     printout += "\n\t\n";
-    printout += getSpec("sw_cp") + " mm, Trigger: " + (getSpec("External Trigger") == 0 ? "CC1" : "extern (RS422)");
+    printout += getScanWidth() + " mm, Trigger: " + (isExternalTrigger() ? "CC1" : "extern (RS422)");
 
     if(key.contains("MXCIS"))
     {
@@ -372,137 +536,103 @@ public abstract class CIS
         factor = 1;
       }
 
-      printout += ", max. " + getSpec("Maximum line rate") * factor / 1000.0 + " kHz\n";
+      printout += ", max. " + getMaxLineRate() * factor / 1000.0 + " kHz\n";
     }
     else
     {
-      printout += ", max. " + getSpec("Maximum line rate") / 1000.0 + " kHz\n";
+      printout += ", max. " + getMaxLineRate() / 1000.0 + " kHz\n";
     }
     printout += getString("Resolution: ");
 
-    if(getSpec("Resolution") == 0
-        && (getSpec("VSCIS") != null || getSpec("VTCIS") != null || getSpec("VHCIS") != null))
+    if(getSelectedResolution().isSwitchable()
+        && (this instanceof VSCIS || this instanceof VTCIS || this instanceof VUCIS || this instanceof VHCIS))
     {
       printout += getString("binning200") + "\n";
     }
     else
     {
-      printout += "~ " + getSpec("res_cp2") + "dpi\n";
+      printout += "~ " + getSelectedResolution().getActualResolution() + "dpi\n";
     }
 
     printout += getString("internal light");
-    String color = "";
 
-    if(getSpec("Color") == 3 || ((getSpec("VDCIS") != null || getSpec("MXCIS") != null) && getSpec("Color") == 4))
+    if(this instanceof VUCIS)
     {
-      color = "RGB";
+      printout += getLightSources();
     }
     else
     {
-      switch(getSpec("Internal Light Color"))
-      {
-        case 0:
-          color = getString("Amber (Red)");
-          break;
-        case 1:
-          color = getString("Green");
-          break;
-        case 2:
-          color = getString("Blue");
-          break;
-        case 3:
-          color = getString("Infrared");
-          break;
-        case 4:
-          color = getString("Yellow");
-          break;
-        case 5:
-          color = getString("White");
-          break;
-        default:
-          color = "Unknown";
-      }
-    }
+      String color;
 
-    if(getSpec("MXCIS") != null)
-    {
-      switch(getSpec("Internal Light Source"))
+      if (getPhaseCount() == 3 || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4))
       {
-        case 0:
-          printout += getString("None");
-          break;
-        case 1:
-          printout += color + getString("onesided");
-          break;
-        case 2:
-          printout += color + getString("coax");
-          break;
-        case 3:
-          printout += color + getString("twosided");
-          break;
-        case 4:
-          printout += color + getString("onepluscoax");
-          break;
-        default:
-          printout += "Unknown";
-      }
-
-      printout += getString("schipal");
-
-      if(getSpec("res_cp2") > 600)
-      {
-        printout += getString("staggered");
+        color = "RGB";
       }
       else
       {
-        printout += getString("inline");
+        color = getLightColor().getDescription();
       }
-    }
-    else
-    {
-      switch(getSpec("Internal Light Source"))
+
+      switch(getLightSources())
       {
-        case 0:
-          printout += getString("None");
+        case "0D0C":
+          printout += color + getString("None");
           break;
-        case 1:
+        case "1D0C":
           printout += color + getString("onesided");
           break;
-        case 2:
+        case "2D0C":
           printout += color + getString("twosided");
           break;
-        case 3:
+        case "1D1C":
+          printout += color + getString("onepluscoax");
+          break;
+        case "2D1C":
           printout += color + getString("twopluscoax");
           break;
-        case 4:
+        case "0D1C":
           printout += color + getString("coax");
           break;
         default:
           printout += "Unknown";
+      }
+
+      if(this instanceof MXCIS)
+      {
+        printout += getString("schipal");
+
+        if (getSelectedResolution().getActualResolution() > 600)
+        {
+          printout += getString("staggered");
+        }
+        else
+        {
+          printout += getString("inline");
+        }
       }
     }
 
     printout += "\n\n";
-    int numOfPix = getSpec("numOfPix");
+    int numOfPix = getNumOfPix();
 
-    printout += getString("sellinerate") + Math.round(getSpec("Selected line rate") / 100.0) / 10.0 + " kHz\n";
-    
+    printout += getString("sellinerate") + Math.round(getSelectedLineRate() / 100.0) / 10.0 + " kHz\n";
+
 //  Korr CTi. 04.11.2019
-    if(getSpec("MXCIS") != null)
+    if(this instanceof MXCIS)
     {
-       printout += getString("transport speed") + ": " + String.format("%.1f", (getSpec("Speedmms") / 1000.0))  + " mm/s\n";   
+       printout += getString("transport speed") + ": " + String.format("%.1f", (getTransportSpeed() / 1000.0))  + " mm/s\n";
     }
     else
     {
-      printout += getString("transport speed") + ": " + String.format("%.1f", (getSpec("Speedmms") / 1000.0) * (1.0 * getSpec("Selected line rate") / getSpec("Maximum line rate"))) + " mm/s\n";       
+      printout += getString("transport speed") + ": " + String.format("%.1f", (getTransportSpeed() / 1000.0) * (1.0 * getSelectedLineRate() / getMaxLineRate())) + " mm/s\n";
     }
 
-    if(getSpec("MXCIS") != null)
+    if(this instanceof MXCIS)
     {
       printout += getString("chpltol") + "\n";
       printout += getString("Geocor_opt") + "\n";
     }
-    else if(getSpec("Resolution") < 3)
+    else if(getSelectedResolution().getActualResolution() >= 1200)
     {
       printout += getString("Geometry correction: x and y") + "\n";
     }
@@ -511,16 +641,12 @@ public abstract class CIS
       printout += getString("Geometry correction: x") + "\n";
     }
 
-    if(getSpec("MXCIS") != null)
+    if(this instanceof MXCIS)
     {
-      Double[] dof = new Double[]
-      {
-        16.0, 8.0, 6.0, 4.0, 3.0, 2.0, 1.5, 1.0, 1.0, 0.5, 0.5
-      };
       printout += getString("scan distance") + ": ~ 10 mm " + getString("exactseetypesign") + "\n";
-      printout += getString("DepthofField") + ": ~ +/- " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1 mm\n";
-      printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 288) + " mm\n";
-      if(getSpec("LEDLines") < 2)
+      printout += getString("DepthofField") + ": ~ +/- " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1 mm\n";
+      printout += getString("case length") + ": ~ " + (getScanWidth() + 288) + " mm\n";
+      if(getLedLines() < 2)
       {
         printout += getString("alucase_mxcis") + "\n";
       }
@@ -529,38 +655,34 @@ public abstract class CIS
         printout += getString("alucase_mxcis_two") + "\n";
       }
     }
-    else if(getSpec("VDCIS") != null)
+    else if(this instanceof VDCIS)
     {
-      Double[] dof = new Double[]
-      {
-        10.0, 10.0, 10.0, 10.0, 10.0, 5.0, 2.5, 2.5
-      };
       printout += getString("scan distance") + ": ~ 55 - 70 mm " + getString("exactresolution") + "\n";
-      printout += getString("DepthofField") + ": ~ " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1 mm\n";
-      printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
+      printout += getString("DepthofField") + ": ~ " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1 mm\n";
+      printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
       printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
     }
     else
     {
       printout += getString("scan distance") + ": 9-12 mm " + getString("exactseetypesign") + "\n";
-      if(getSpec("VSCIS") != null || getSpec("VTCIS") != null || getSpec("VHCIS") != null)
+      if(this instanceof VSCIS || this instanceof VTCIS || this instanceof VHCIS)
       {
-        String[] dof = new String[]
-        {
-          "+ 16.0 / -10.0", "+/- 8.0", "+/- 6.0", "+/- 4.0", "+/- 3.0", "+/- 2.0", "+/- 1.5", "+/- 1.0", "+/- 1.0", "+/- 0.5", "+/- 0.25"
-        };
-        printout += getString("DepthofField") + ": ~ " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1mm\n";
+        printout += getString("DepthofField") + ": ~ " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
       }
       else
       {
         printout += getString("DepthofField") + ": ~ +/- 0.50 mm\n" + getString("line width") + ": ~ 1mm\n";
       }
-      printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
-      if(getSpec("Internal Light Source") == 3 || getSpec("Internal Light Source") == 4)
+      printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
+      if(this instanceof VHCIS)
+      {
+        printout += "Unknown aluminium case profile with bonded\n";
+      }
+      else if(!getLightSources().endsWith("0C"))
       {
         printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
       }
-      else if(getSpec("VTCIS") != null)
+      else if(this instanceof VTCIS)
       {
         printout += getString("Aluminium case profile: 86x80mm (HxT) with bonded") + "\n";
       }
@@ -575,43 +697,27 @@ public abstract class CIS
     printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
     printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
 
-    switch(getSpec("Cooling"))
-    {
-      case 1:
-        if(getSpec("VTCIS") != null)
-        {
-          printout += getString("lico") + "\n";
-          break;
-        }
-
-        printout += getString("intforced") + "\n";
-        break;
-      case 2:
-        printout += getString("extforced") + "\n";
-        break;
-      case 3:
-        printout += getString("passair") + "\n";
-        break;
-      case 4:
-        printout += getString("lico") + "\n";
-        break;
-      default:
-        printout += "Unknown\n";
-    }
+    printout += getCooling().getDescription() + "\n";
     printout += getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
-    printout += "Interface: " + (getSpec("Interface") == 0 ? "CameraLink (max. 5m)" : "GigE") + "\n";
+    printout += "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m)") + "\n";
 
-    if(getSpec("VDCIS") != null)
+    if(this instanceof VDCIS)
     {
       printout += getString("laser") + "\n";
     }
 
-    if(getSpec("MXCIS") != null)
+    if(this instanceof MXCIS)
     {
       printout += getString("clbase");
     }
 
-    if(getSpec("Interface") == 0)
+    if(isGigeInterface())
+    {
+      printout += "\n\t\n";
+      printout += "Pixel Clock: 40MHz\n";
+      printout += getString("numofpix") + numOfPix + "\n";
+    }
+    else
     {
       String clCalc = getCLCalc(numOfPix);
       if(clCalc == null)
@@ -622,12 +728,6 @@ public abstract class CIS
       printout += "\n\t\n";
       printout += clCalc;
     }
-    else
-    {
-      printout += "\n\t\n";
-      printout += "Pixel Clock: 40MHz\n";
-      printout += getString("numofpix") + numOfPix + "\n";
-    }
     return printout;
   }
 
@@ -635,45 +735,23 @@ public abstract class CIS
   {
     String printout = getTiViKey();
     printout += "\n\t\n";
-    printout += getString("suitedfor") + getSpec("sw_cp") + getString("mm CIS scan width") + "\n";
+    printout += getString("suitedfor") + getScanWidth() + getString("mm CIS scan width") + "\n";
 
-    String color = "";
+    LightColor color;
 
-    if(getSpec("Color") == 3 || ((getSpec("VDCIS") != null && getSpec("MXCIS") != null) && getSpec("Color") == 4))
+    if(getPhaseCount() == 3 || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4))
     {
-      color = "RGB";
+      color = LightColor.RGB;
     }
     else
     {
-      switch(getSpec("Internal Light Color"))
-      {
-        case 0:
-          color = getString("Amber (Red)");
-          break;
-        case 1:
-          color = getString("Green");
-          break;
-        case 2:
-          color = getString("Blue");
-          break;
-        case 3:
-          color = getString("Infrared");
-          break;
-        case 4:
-          color = getString("Yellow");
-          break;
-        case 5:
-          color = getString("White");
-          break;
-        default:
-          color = "Unknown";
-      }
+      color = getLightColor();
     }
 
-    printout += getString("Color:") + color + "\n";
+    printout += getString("Color:") + color.getDescription() + "\n";
     printout += "\n\t\n";
     printout += getString("line width") + ": ~ 1 mm\n";
-    printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
+    printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
     printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedmxled") + "\n";
     printout += getString("glass pane, see drawing") + "\n";
     printout += getString("shading") + "\n";
@@ -682,16 +760,6 @@ public abstract class CIS
     printout += getString("weight") + ": ~ " + (Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
 
     return printout;
-  }
-
-  public Double[] getMechaSums()
-  {
-    return mechaSums;
-  }
-
-  public Double[] getElectSums()
-  {
-    return electSums;
   }
 
   private boolean isApplicable(String selectCode)
@@ -733,13 +801,15 @@ public abstract class CIS
             proceed = !invert; //!invert ^ invert == true
             break;
           case "RGB": //Color coding
+            proceed = getLedLines() >= 3;
+            break;
           case "AM":
           case "BL":
           case "GR":
           case "IR":
           case "YE":
           case "WH":
-            proceed = getSpec("Internal Light Source") > 0 && (key.split("_")[4].contains(m) || (getSpec("MXCIS") != null && key.split("_")[5].contains(m)));
+            proceed = getLedLines() > 0 && getLightColor().getShortHand().equals(m);
             break;
           case "MONO": //Monochrome only
             proceed = !getTiViKey().contains("RGB");
@@ -755,20 +825,20 @@ public abstract class CIS
           case "600dpi":
           case "1200dpi":
           case "2400dpi":
-            proceed = m.equals(getSpec("res_cp") + "dpi");
+            proceed = m.equals(getSelectedResolution().getBoardResolution() + "dpi");
             break;
           case "GIGE": //GigE only
-            proceed = getSpec("Interface") != null && getSpec("Interface") == 1;
+            proceed = isGigeInterface();
             break;
           case "CL": //CameraLink only
-            proceed = getSpec("Interface") != null && spec.get("Interface") == 0;
+            proceed = !isGigeInterface();
             break;
           case "COAX": //At least one coaxial light
-            proceed = key.split("_")[4].endsWith("C") || (getSpec("MXCIS") != null && key.split("_")[5].endsWith("C"));
+            proceed = key.split("_")[4].endsWith("C") || (this instanceof MXCIS && key.split("_")[5].endsWith("C"));
             break;
           case "DIFF":
-            proceed = !(key.split("_")[4].endsWith("C") || (getSpec("MXCIS") != null && key.split("_")[5].endsWith("C"))) //No coaxial light
-                    || (key.split("_")[4].startsWith("2") || (getSpec("MXCIS") != null && key.split("_")[5].startsWith("2"))); //Twosided => at least one diffuse (2XX oder 2XXC)
+            proceed = !(key.split("_")[4].endsWith("C") || (this instanceof MXCIS && key.split("_")[5].endsWith("C"))) //No coaxial light
+                    || (key.split("_")[4].startsWith("2") || (this instanceof MXCIS && key.split("_")[5].startsWith("2"))); //Twosided => at least one diffuse (2XX oder 2XXC)
             break;
           case "NOCO": //Specific cooling
           case "FAIR":
@@ -780,16 +850,16 @@ public abstract class CIS
             proceed = !key.contains("NOCO") && !key.contains("FAIR") && !key.contains("PAIR") && !key.contains("LICO");
             break;
           case "NOEXT": //No external trigger
-            proceed = getSpec("External Trigger") == 0;
+            proceed = !isExternalTrigger();
             break;
           case "EXT": //With external trigger
-            proceed = getSpec("External Trigger") == 1;
+            proceed = isExternalTrigger();
             break;
           case "L": //MODE: LOW (MXCIS only)
-            proceed = getSpec("MXCIS") != null && getSpec("MODE") == 4;
+            proceed = this instanceof MXCIS && getMode() == 4;
             break;
           case "H": //Mode: HIGH (MXCIS only)
-            proceed = getSpec("MXCIS") != null && getSpec("MODE") == 2;
+            proceed = this instanceof MXCIS && getMode() == 2;
             break;
           default: //Unknown modifier
             proceed = invert; //invert ^ invert == false
@@ -816,7 +886,7 @@ public abstract class CIS
     }
     else
     {
-      String ev = factor.replace("F", "" + numFPGA).replace("S", "" + getSpec("sw_cp") / BASE_LENGTH).replace("N", "" + getSpec("sw_cp")).replace(" ", "").replace("L", "" + getSpec("LEDLines"));
+      String ev = factor.replace("F", "" + numFPGA).replace("S", "" + getScanWidth() / BASE_LENGTH).replace("N", "" + getScanWidth()).replace(" ", "").replace("L", "" + getLedLines());
       return (int) MathEval.evaluate(ev);
     }
   }
@@ -829,12 +899,12 @@ public abstract class CIS
     }
     else if(factor.equals("L"))
     {
-      return getSpec("LEDLines");
+      return getLedLines();
     }
     else if(factor.contains("=="))
     {
       String[] splitted = factor.split("==");
-      if(splitted[0].equals("L") && isInteger(splitted[1]) && getSpec("LEDLines") == Integer.parseInt(splitted[1]))
+      if(splitted[0].equals("L") && isInteger(splitted[1]) && getLedLines() == Integer.parseInt(splitted[1]))
       {
         return 1;
       }
@@ -842,7 +912,7 @@ public abstract class CIS
     else if(factor.contains(">"))
     {
       String[] splitted = factor.split(">");
-      if(splitted[0].equals("L") && isInteger(splitted[1]) && getSpec("LEDLines") > Integer.parseInt(splitted[1]))
+      if(splitted[0].equals("L") && isInteger(splitted[1]) && getLedLines() > Integer.parseInt(splitted[1]))
       {
         return 1;
       }
@@ -850,7 +920,7 @@ public abstract class CIS
     else if(factor.contains("<"))
     {
       String[] splitted = factor.split("<");
-      if(splitted[0].equals("L") && isInteger(splitted[1]) && getSpec("LEDLines") < Integer.parseInt(splitted[1]))
+      if(splitted[0].equals("L") && isInteger(splitted[1]) && getLedLines() < Integer.parseInt(splitted[1]))
       {
         return 1;
       }
@@ -907,7 +977,7 @@ public abstract class CIS
         .append(String.format(getLocale(), "%.2f", electSums[2])).append("\n");
 
     getMechaConfig().forEach((priceRecord, amount) -> mechaOutput.append(priceRecord.getFerixKey()).append("\t")
-        .append(String.format("%05d", priceRecord.getArtNo().intValue())).append("\t")
+        .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
         .append(amount).append("\t")
         .append(String.format(getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
         .append(String.format(getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\n"));
@@ -935,7 +1005,7 @@ public abstract class CIS
       totalOutput.append(getString("Testing")).append(":\t \t \t")
               .append(String.format(getLocale(), "%.2f", electSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
       totalPrices[2] += electSums[1] * calcMap.get("STUNDENSATZ");
-      if(getSpec("Interface") != null && getSpec("Interface") == 1)
+      if(isGigeInterface())
       {
         totalOutput.append(getString("Overhead GigE")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
                 .append(String.format(getLocale(), "%.2f", electSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
@@ -948,9 +1018,9 @@ public abstract class CIS
               .append(String.format(getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
       totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100);
       totalOutput.append(getString("Assembly")).append(":\t \t ")
-              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getSpec("sw_cp") / BASE_LENGTH)).append(" h\t")
-              .append(String.format(getLocale(), "%.2f", (double) (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ"))).append("\t \n");
-      totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (spec.get("sw_cp") / BASE_LENGTH)) * calcMap.get("STUNDENSATZ");
+              .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getScanWidth() / BASE_LENGTH)).append(" h\t")
+              .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getScanWidth() / BASE_LENGTH)) * calcMap.get("STUNDENSATZ"))).append("\t \n");
+      totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * (getScanWidth() / BASE_LENGTH)) * calcMap.get("STUNDENSATZ");
 
       int addition = 0;
       double surcharge = 0.0;
@@ -978,7 +1048,7 @@ public abstract class CIS
               .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
       surcharge += value;
 
-      if(getSpec("MXLED") == null)
+      if(this instanceof MXLED)
       {
         value = calcMap.get(getDpiCode()) / 100.0;
         totalOutput.append(getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
@@ -986,7 +1056,6 @@ public abstract class CIS
                 .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
                 .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
                 .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
-        surcharge += value;
       }
       else
       {
@@ -997,8 +1066,8 @@ public abstract class CIS
                 .append(String.format(getLocale(), "%.2f", totalPrices[1] * value)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[2] * value)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[3] * value)).append("\n");
-        surcharge += value;
       }
+      surcharge += value;
 
       format = "%.2f";
       value = calcMap.get("LIZENZ");
@@ -1069,28 +1138,28 @@ public abstract class CIS
   private int calcNumOfPix()
   {
     int numOfPix;
-    int sensorBoards = getSpec("sw_cp") / BASE_LENGTH;
+    int sensorBoards = getScanWidth() / BASE_LENGTH;
 
-    if(getSpec("MXCIS") != null)
+    if(this instanceof MXCIS)
     {
-      SensorChipRecord sensorChip = ((MXCIS) this).getSensorChip(getSpec("res_cp")).orElseThrow(() -> new CISException("Unknown sensor chip"));
-      SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSpec("res_cp")).orElseThrow(() -> new CISException("Unknown sensor board"));
-      numOfPix = sensorBoard.getChips() * (getSpec("sw_cp") / BASE_LENGTH) * sensorChip.getPixelPerSensor() / getSpec("Binning");
+      SensorChipRecord sensorChip = ((MXCIS) this).getSensorChip(getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
+      SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
+      numOfPix = sensorBoard.getChips() * (getScanWidth() / BASE_LENGTH) * sensorChip.getPixelPerSensor() / getBinning();
     }
-    else if(getSpec("VHCIS") != null || getSpec("VTCIS") != null)
+    else if(this instanceof VHCIS || this instanceof VTCIS || this instanceof VUCIS)
     {
       SensorBoardRecord sensorBoard = getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
-      numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSpec("res_cp2"));
+      numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSelectedResolution().getActualResolution());
     }
     else
     {
       SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
-      numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSpec("res_cp2"));
+      numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSelectedResolution().getActualResolution());
     }
 
-    if((getSpec("Color") * numOfPix * getSpec("Selected line rate") / 1000000 > 80 && getSpec("Interface") == 1))
+    if(getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80 && isGigeInterface())
     {
-      throw new CISException(getString("GIGEERROR") + (getSpec("Color") * numOfPix * getSpec("Selected line rate") / 1000000) + " MByte");
+      throw new CISException(getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
     }
 
     return numOfPix;
@@ -1106,7 +1175,7 @@ public abstract class CIS
     boolean coax = key.contains("C_");
     return 100 * electSums[4]
             * mechaSums[4]
-            * (coax ? 1 : getSpec("LEDLines"))
+            * (coax ? 1 : getLedLines())
             * getGeometry(coax)
             * getSensitivity() / (1.5 * (key.contains("RGB") ? 3 : 1));
   }
@@ -1115,13 +1184,13 @@ public abstract class CIS
 
   public double getSensitivity()
   {
-    if(getSpec("MXCIS") != null)
+    if(this instanceof MXCIS)
     {
       return 30;
     }
-    else if(getSpec("VTCIS") != null)
+    else if(this instanceof VTCIS)
     {
-      switch(getSpec("res_cp"))
+      switch(getSelectedResolution().getBoardResolution())
       {
         case 1200:
           return 500;
@@ -1133,9 +1202,19 @@ public abstract class CIS
           throw new UnsupportedOperationException();
       }
     }
-    else if(getSpec("VDCIS") != null)
+    else if(this instanceof VUCIS)
     {
-      switch(getSpec("res_cp"))
+      switch(getSelectedResolution().getBoardResolution())
+      {
+        case 1000:
+          return 500;
+        default:
+          throw new UnsupportedOperationException();
+      }
+    }
+    else if(this instanceof VDCIS)
+    {
+      switch(getSelectedResolution().getBoardResolution())
       {
         case 1000:
           return 500;
@@ -1173,6 +1252,11 @@ public abstract class CIS
       default:
         return 1;
     }
+  }
+
+  public static String getPortName(int x)
+  {
+    return Character.toString((char) (65 + x));
   }
 
   // Laden von statischen Texten aus dem Bundle (de/en)

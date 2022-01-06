@@ -8,7 +8,6 @@ import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.Map.*;
-import java.util.stream.*;
 import javafx.beans.property.*;
 import javafx.event.*;
 import javafx.fxml.*;
@@ -18,12 +17,14 @@ import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
+import lombok.Getter;
 
-import static de.tichawa.cis.config.CIS.isDouble;
 import static de.tichawa.cis.config.model.Tables.*;
 
 public abstract class MaskController<C extends CIS> implements Initializable
 {
+  @Getter
+  private final List<CIS.Resolution> resolutions;
 
   @FXML
   protected ComboBox<String> Color;
@@ -81,15 +82,18 @@ public abstract class MaskController<C extends CIS> implements Initializable
 
   public MaskController()
   {
+    this.resolutions = setupResolutions();
   }
 
   @Override
   public abstract void initialize(URL url, ResourceBundle rb);
 
+  public abstract List<CIS.Resolution> setupResolutions();
+
   @FXML
-  public void handleCalculation(ActionEvent event)
+  public void handleCalculation(ActionEvent a)
   {
-    if(CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0)
+    if(!(CIS_DATA instanceof MXLED) && MXLED_DATA.getLedLines() > 0)
     {
       try
       {
@@ -116,13 +120,11 @@ public abstract class MaskController<C extends CIS> implements Initializable
         stage.setX(stage.getX() - 20);
         stage.setY(stage.getY() - 20);
 
-        CalculationController controller = loader.<CalculationController>getController();
+        CalculationController controller = loader.getController();
         controller.passData(MXLED_DATA);
       }
-      catch(IOException e)
-      {
-
-      }
+      catch(IOException ignored)
+      {}
     }
 
     try
@@ -147,17 +149,15 @@ public abstract class MaskController<C extends CIS> implements Initializable
       stage.getIcons().add(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png")));
       stage.centerOnScreen();
       stage.show();
-      CalculationController controller = loader.<CalculationController>getController();
+      CalculationController controller = loader.getController();
       controller.passData(CIS_DATA);
     }
-    catch(IOException e)
-    {
-
-    }
+    catch(IOException ignored)
+    {}
   }
 
   @FXML
-  public void handlePartList(ActionEvent event)
+  public void handlePartList(ActionEvent a)
   {
     try
     {
@@ -211,7 +211,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
   @FXML
   public void handleDataSheet(ActionEvent event)
   {
-    if(CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0)
+    if(!(CIS_DATA instanceof MXLED) && MXLED_DATA.getLedLines() > 0)
     {
       try
       {
@@ -238,10 +238,10 @@ public abstract class MaskController<C extends CIS> implements Initializable
         stage.setX(stage.getX() - 20);
         stage.setY(stage.getY() - 20);
 
-        DataSheetController controller = loader.<DataSheetController>getController();
+        DataSheetController controller = loader.getController();
         controller.passData(MXLED_DATA);
 
-        if(((Button) event.getSource()).equals(OEMMode))
+        if(event.getSource().equals(OEMMode))
         {
           controller.getHeader().setEditable(true);
           controller.getSpecs().setEditable(true);
@@ -249,10 +249,8 @@ public abstract class MaskController<C extends CIS> implements Initializable
           controller.getProfilePic().setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg")));
         }
       }
-      catch(IOException e)
-      {
-
-      }
+      catch(IOException ignored)
+      {}
     }
 
     try
@@ -278,10 +276,10 @@ public abstract class MaskController<C extends CIS> implements Initializable
       stage.centerOnScreen();
       stage.show();
 
-      DataSheetController controller = loader.<DataSheetController>getController();
+      DataSheetController controller = loader.getController();
       controller.passData(CIS_DATA);
 
-      if(((Button) event.getSource()).equals(OEMMode))
+      if(event.getSource().equals(OEMMode))
       {
         controller.getHeader().setEditable(true);
         controller.getSpecs().setEditable(true);
@@ -289,20 +287,8 @@ public abstract class MaskController<C extends CIS> implements Initializable
         controller.getProfilePic().setImage(new Image(getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg")));
       }
     }
-    catch(IOException e)
-    {
-    }
-    
-    /*FerixSynchronizer sync = new FerixSynchronizer().setCIS(CIS_DATA);
-    if(sync.insert())
-    {
-      System.out.println("Success");
-    }
-    else
-    {
-      System.out.println("Error");
-    }
-    sync.close();*/
+    catch(IOException ignored)
+    {}
   }
 
   @FXML
@@ -334,7 +320,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
               || Arrays.stream(record.get(EQUIPMENT.SELECT_CODE).split("&"))
               .allMatch(pred -> pred.length() == 0
                   || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred.replace("!", "")))
-                  || (CIS_DATA.getSpec("MXLED") == null && CIS_DATA.getSpec("External Light Source") != null && CIS_DATA.getSpec("External Light Source") > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
+                  || (!(CIS_DATA instanceof MXLED) && MXLED_DATA.getLedLines() > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
           .map(record ->
           {
             Label[] labels = new Label[2];
@@ -361,8 +347,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
 
             pale.set(!pale.get());
             return labels;
-          })
-          .forEach(labels -> printPane.addRow(printPane.getChildren().size() / 2, labels));
+          }).forEach(labels -> printPane.addRow(printPane.getChildren().size() / 2, labels));
 
       printStage.setScene(printScene);
       printStage.show();
