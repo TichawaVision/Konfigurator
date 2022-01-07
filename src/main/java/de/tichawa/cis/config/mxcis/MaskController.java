@@ -40,7 +40,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
   public void initialize(URL url, ResourceBundle rb)
   {
     CIS_DATA.setPhaseCount(1);
-    CIS_DATA.setLightColor(CIS.LightColor.RED);
+    CIS_DATA.getLightColors().add(CIS.LightColor.RED);
     CIS_DATA.setDiffuseLightSources(1);
     CIS_DATA.setCoaxLightSources(0);
     CIS_DATA.setSelectedResolution(getResolutions().get(0));

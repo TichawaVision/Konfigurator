@@ -38,7 +38,9 @@ public class VHCIS extends CIS
     }
     else
     {
-      key += getLightColor().getShortHand();
+      key += getLightColors().stream()
+              .findAny().orElse(LightColor.NONE)
+              .getShortHand();
     }
 
     if(!getLightSources().endsWith("0C"))

@@ -43,6 +43,8 @@ public abstract class CIS
   private final Map<String, AdcBoardRecord> adcBoards;
   private final Map<String, SensorChipRecord> sensChips;
   private final Map<String, SensorBoardRecord> sensBoards;
+  @Getter
+  private final Set<LightColor> lightColors;
 
   protected Map<PriceRecord, Integer> electConfig;
   protected Map<PriceRecord, Integer> mechaConfig;
@@ -64,8 +66,6 @@ public abstract class CIS
   @Getter @Setter
   private Resolution selectedResolution;
   @Getter @Setter
-  private LightColor lightColor;
-  @Getter @Setter
   private int numOfPix;
   @Getter @Setter
   private boolean externalTrigger;
@@ -79,6 +79,12 @@ public abstract class CIS
   private int diffuseLightSources;
   @Getter @Setter
   private int coaxLightSources;
+
+  public void setLightColor(LightColor lightColor)
+  {
+    getLightColors().clear();
+    getLightColors().add(lightColor);
+  }
 
   public enum LightColor
   {
@@ -109,6 +115,7 @@ public abstract class CIS
       return code;
     }
 
+    @SuppressWarnings("unused")
     public String getShortHand()
     {
       return shortHand;
@@ -131,7 +138,7 @@ public abstract class CIS
     public static Optional<LightColor> findByShortHand(String shortHand)
     {
       return Arrays.stream(LightColor.values())
-              .filter(c -> c.getDescription().equals(shortHand))
+              .filter(c -> c.getShortHand().equals(shortHand))
               .findFirst();
     }
 
@@ -210,6 +217,7 @@ public abstract class CIS
 
   protected CIS()
   {
+    this.lightColors = new HashSet<>();
     maxRateForHalfMode = new HashMap<>();
     maxRateForHalfMode.put(25, 27);
     maxRateForHalfMode.put(50, 27);
@@ -395,7 +403,7 @@ public abstract class CIS
                   .replace(" ", "")
                   .replace("L", "" + getLedLines())
                   .replace("F", "" + numFPGA)
-                  .replace("S", "" + getScanWidth() / BASE_LENGTH)
+                  .replace("S", "" + getBoardCount())
                   .replace("N", "" + getScanWidth())));
 
               if(amount > 0)
@@ -433,7 +441,8 @@ public abstract class CIS
         context.selectFrom(MECHANIC)
             .where(MECHANIC.CIS_TYPE.eq(getClass().getSimpleName()))
             .and(MECHANIC.CIS_LENGTH.eq(getScanWidth()))
-            .and(MECHANIC.LIGHTS.eq(getLightSources()))
+            .and(MECHANIC.LIGHTS.eq(getLightSources())
+                    .or(MECHANIC.LIGHTS.isNull()))
             .stream()
             .filter(mechanicRecord -> isApplicable(mechanicRecord.getSelectCode()))
             .forEach(mechanicRecord ->
@@ -571,7 +580,9 @@ public abstract class CIS
       }
       else
       {
-        color = getLightColor().getDescription();
+        color = getLightColors().stream()
+                .findAny().orElse(LightColor.NONE)
+                .getDescription();
       }
 
       switch(getLightSources())
@@ -746,7 +757,8 @@ public abstract class CIS
     }
     else
     {
-      color = getLightColor();
+      color = getLightColors().stream()
+              .findAny().orElse(LightColor.NONE);
     }
 
     printout += getString("Color:") + color.getDescription() + "\n";
@@ -802,15 +814,32 @@ public abstract class CIS
             proceed = !invert; //!invert ^ invert == true
             break;
           case "RGB": //Color coding
-            proceed = getLedLines() >= 3;
+            if(this instanceof VUCIS)
+            {
+              proceed = LightColor.findByShortHand(m)
+                      .map(getLightColors()::contains)
+                      .orElse(false);
+            }
+            else
+            {
+              proceed = getLedLines() >= 3;
+            }
             break;
           case "AM":
           case "BL":
           case "GR":
           case "IR":
+          case "JR":
+          case "UV":
+          case "HI":
           case "YE":
+          case "VE":
           case "WH":
-            proceed = getLedLines() > 0 && getLightColor().getShortHand().equals(m);
+          case "REBEL":
+          case "REBZ8":
+            proceed = LightColor.findByShortHand(m)
+                    .map(getLightColors()::contains)
+                    .orElse(false);
             break;
           case "MONO": //Monochrome only
             proceed = !getTiViKey().contains("RGB");
@@ -1054,16 +1083,7 @@ public abstract class CIS
               .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
       surcharge += value;
 
-      if(this instanceof MXLED)
-      {
-        value = calcMap.get(getDpiCode()) / 100.0;
-        totalOutput.append(getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
-                .append(String.format(getLocale(), format, totalPrices[0] * value)).append("\t")
-                .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
-                .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
-                .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
-      }
-      else
+      if(this instanceof MXCIS)
       {
         String cat = getTiViKey().split("_")[3];
         value = calcMap.get("Z_" + cat) / 100;
@@ -1072,6 +1092,15 @@ public abstract class CIS
                 .append(String.format(getLocale(), "%.2f", totalPrices[1] * value)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[2] * value)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[3] * value)).append("\n");
+      }
+      else if(!(this instanceof MXLED))
+      {
+        value = calcMap.get(getDpiCode()) / 100.0;
+        totalOutput.append(getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
+                .append(String.format(getLocale(), format, totalPrices[0] * value)).append("\t")
+                .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
+                .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
+                .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
       }
       surcharge += value;
 
@@ -1131,14 +1160,14 @@ public abstract class CIS
 
   private String getDpiCode()
   {
-    String key = getTiViKey();
-
-    if(key.split("_")[3].equals("XXXX"))
+    if(getSelectedResolution().isSwitchable())
     {
       return "Z_SWT_DPI";
     }
-
-    return "Z_" + key.split("_")[3] + "_DPI";
+    else
+    {
+      return "Z_" + getSelectedResolution().getActualResolution() + "_DPI";
+    }
   }
 
   private int calcNumOfPix()

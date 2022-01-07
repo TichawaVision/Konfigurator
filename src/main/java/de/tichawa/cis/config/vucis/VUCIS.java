@@ -7,6 +7,7 @@ import de.tichawa.cis.config.model.tables.records.SensorBoardRecord;
 import de.tichawa.cis.config.model.tables.records.SensorChipRecord;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class VUCIS extends CIS
 {
@@ -125,6 +126,16 @@ public class VUCIS extends CIS
   }
 
   @Override
+  public Set<LightColor> getLightColors()
+  {
+    return getLightSources().chars()
+            .mapToObj(c -> LightColor.findByCode((char) c))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toSet());
+  }
+
+  @Override
   public String getLightSources()
   {
     switch(getLightPreset())
@@ -147,9 +158,11 @@ public class VUCIS extends CIS
   @Override
   public int getLedLines()
   {
-    return getLightSources()
-            .replaceAll("X", "")
-            .length();
+    return (int) getLightSources().chars()
+            .mapToObj(c -> LightColor.findByCode((char) c))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .count();
   }
 
   @Override

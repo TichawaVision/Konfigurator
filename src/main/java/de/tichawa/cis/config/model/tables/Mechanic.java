@@ -49,7 +49,7 @@ public class Mechanic extends TableImpl<MechanicRecord> {
     /**
      * The column <code>mechanic.coax_lights</code>.
      */
-    public final TableField<MechanicRecord, String> LIGHTS = createField(DSL.name("lights"), SQLDataType.VARCHAR.nullable(false), this, "");
+    public final TableField<MechanicRecord, String> LIGHTS = createField(DSL.name("lights"), SQLDataType.VARCHAR.nullable(true), this, "");
 
     /**
      * The column <code>mechanic.select_code</code>.
