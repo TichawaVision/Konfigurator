@@ -162,6 +162,7 @@ public class VUCIS extends CIS
             .mapToObj(c -> LightColor.findByCode((char) c))
             .filter(Optional::isPresent)
             .map(Optional::get)
+            .filter(l -> l != LightColor.NONE)
             .count();
   }
 
