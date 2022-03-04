@@ -1,22 +1,32 @@
 package de.tichawa.cis.config;
 
 import de.tichawa.util.*;
-import java.awt.*;
-import java.io.*;
-import java.net.*;
-import java.nio.file.*;
-import java.time.*;
-import java.time.format.*;
-import java.util.*;
-import java.util.List;
-import java.util.stream.*;
-import javafx.event.*;
-import javafx.fxml.*;
-import javafx.scene.*;
-import javafx.scene.control.*;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
 import javafx.scene.image.Image;
-import javafx.stage.*;
+import javafx.stage.Stage;
+
+import java.awt.*;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LauncherController implements Initializable
 {
