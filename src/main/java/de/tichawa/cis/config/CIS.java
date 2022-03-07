@@ -669,7 +669,7 @@ public abstract class CIS
     }
     else
     {
-      printout += getString("scan distance") + ": 9-12 mm " + getString("exactseetypesign") + "\n";
+      printout += getString("scan distance") + ": 10 mm " + getString("exactseetypesign") + "\n";
       if(getSpec("VSCIS") != null || getSpec("VTCIS") != null || getSpec("VHCIS") != null)
       {
         String[] dof = new String[]
