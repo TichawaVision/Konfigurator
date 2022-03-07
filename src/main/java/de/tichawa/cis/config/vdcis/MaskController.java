@@ -1,11 +1,13 @@
 package de.tichawa.cis.config.vdcis;
 
 import de.tichawa.cis.config.CIS;
-import java.net.*;
-import java.util.*;
-import javafx.beans.value.*;
-import javafx.fxml.*;
-import javafx.scene.control.*;
+import javafx.beans.value.ObservableValue;
+import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
+
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.ResourceBundle;
 
 public class MaskController extends de.tichawa.cis.config.MaskController
 {
@@ -37,7 +39,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     CIS_DATA.setSpec("res_cp2", 1000);
     CIS_DATA.setSpec("Scan Width", 0);
     CIS_DATA.setSpec("sw_cp", 1200);
-    CIS_DATA.setSpec("sw_index", 5);
+    CIS_DATA.setSpec("sw_index",3);
     CIS_DATA.setSpec("External Trigger", 0);
     CIS_DATA.setSpec("LEDLines", 2);
 
@@ -84,8 +86,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       SelLineRate.setMax(maxLR * 1000);
       SelLineRate.setValue(maxLR * 1000);
 
-      CIS_DATA.setSpec("Maximum line rate", (int) Math.round(maxLR * 1000));
-      CIS_DATA.setSpec("Speedmms", (int) (pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate")) * 1000);
+        CIS_DATA.setSpec("Maximum line rate", (int) Math.round(maxLR * 1000));
+        CIS_DATA.setSpec("Speedmms", (int) (pixelSize.get(CIS_DATA.getSpec("Resolution")) * CIS_DATA.getSpec("Selected line rate")) * 1000);
     });
     Resolution.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
@@ -175,7 +177,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController
       CIS_DATA.setSpec("Scan Width", ScanWidth.getSelectionModel().getSelectedIndex());
       CIS_DATA.setSpec("sw_cp", sw);
       CIS_DATA.setSpec("sw_index", (int) (sw / CIS.BASE_LENGTH) - 1);
+
     });
+
     SelLineRate.valueProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) ->
     {
       CIS_DATA.setSpec("Selected line rate", newValue.intValue());
@@ -216,8 +220,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     });
     Cooling.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
     {
-      CIS_DATA.setSpec("Cooling", Cooling.getSelectionModel().getSelectedIndex());
-    });
+     CIS_DATA.setSpec("Cooling", Cooling.getSelectionModel().getSelectedIndex());
+     });
     Trigger.selectedProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
     {
       CIS_DATA.setSpec("External Trigger", newValue ? 1 : 0);
@@ -230,7 +234,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     Color.getSelectionModel().selectFirst();
     Resolution.getSelectionModel().selectFirst();
     ScanWidth.getSelectionModel().selectLast();
-    InternalLightSource.getSelectionModel().select(2);
+    InternalLightSource.getSelectionModel().select(1);
     InternalLightColor.getSelectionModel().selectFirst();
     Interface.getSelectionModel().selectFirst();
     Cooling.getSelectionModel().select(1);
