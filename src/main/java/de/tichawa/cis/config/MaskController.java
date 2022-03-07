@@ -1,31 +1,21 @@
 package de.tichawa.cis.config;
 
 import de.tichawa.cis.config.ldstd.LDSTD;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
+import java.io.*;
+import java.net.*;
+import java.nio.charset.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.stream.*;
+import javafx.beans.property.*;
+import javafx.event.*;
+import javafx.fxml.*;
+import javafx.geometry.*;
+import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.stream.Collectors;
+import javafx.scene.image.*;
+import javafx.scene.layout.*;
+import javafx.stage.*;
 
 import static de.tichawa.cis.config.CIS.isDouble;
 

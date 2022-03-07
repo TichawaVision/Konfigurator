@@ -670,7 +670,7 @@ public abstract class CIS
     }
     else
     {
-      printout += getString("scan distance") + ": 10 mm " + getString("exactseetypesign") + "\n";
+      printout += getString("scan distance") + ": 9-12 mm " + getString("exactseetypesign") + "\n";
       if(getSpec("VSCIS") != null || getSpec("VTCIS") != null || getSpec("VHCIS") != null)
       {
         String[] dof = new String[]
@@ -1193,7 +1193,11 @@ public abstract class CIS
     {
       numOfPix = ((MXCIS) this).getBoard(getSpec("res_cp"))[0] * (getSpec("sw_cp") / BASE_LENGTH) * ((MXCIS) this).getChip(getSpec("res_cp2"))[3] / getSpec("Binning");
     }
-    else if((getSpec("VHCIS") != null) || (getSpec("VTCIS") != null))
+    else if(getSpec("VHCIS") != null)
+    {
+      numOfPix = (int) (getSensBoard("SMARDOUB")[0] * sensBoards * 0.72 * getSpec("res_cp2"));
+    }
+    else if(getSpec("VTCIS") != null)
     {
       numOfPix = (int) (getSensBoard("SMARDOUB")[0] * sensBoards * 0.72 * getSpec("res_cp2"));
     }

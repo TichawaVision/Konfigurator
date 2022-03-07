@@ -115,11 +115,12 @@ public class VDCIS extends CIS
     int lval;
     int tapCount;
     StringBuilder printOut = new StringBuilder();
-    System.out.println(numOfPix);
+
     numOfPixNominal = (int) Math.ceil(numOfPix - ((getSpec("sw_cp") / BASE_LENGTH) * getSensBoard("SMARAGD")[7] / (1200 / getSpec("res_cp2"))));
     taps = (int) Math.ceil(1.01 * ((long) numOfPixNominal * getSpec("Selected line rate") / 1000000) / 85.0);
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
+
     boolean mediumMode = getSpec("CLMode") == 1;
 
     printOut.append(getString("datarate")).append(Math.round((getSpec("Color") - 1) * numOfPixNominal * getSpec("Selected line rate") / 100000.0) / 10.0).append(" MByte\n");
@@ -148,7 +149,6 @@ public class VDCIS extends CIS
     highMap.put(6, mediumMap.get(6));
 
     List<Integer> tapConfig = (mediumMode ? mediumMap : highMap).get(getSpec("Color") - 1);
-
     if(taps > tapConfig.stream().mapToInt(x -> x).max().orElse(0))
     {
       throw new CISException("Number of required taps (" + taps * getSpec("Color") + ") is too high. Please reduce the data rate.");
@@ -162,13 +162,11 @@ public class VDCIS extends CIS
     for(tapCount = 0; tapCount < tapConfig.size(); tapCount++)
     {
       int currentTap = tapConfig.get(tapCount);
-
       if(currentTap > 0 && taps >= currentTap)
       {
         if(tapCount % 10 == 0)
         {
           printOut.append("Camera Link ").append((tapCount / 10) + 1).append(":\n");
-
         }
         printOut.append("   Port ").append(getPortName(tapCount % 10)).append(":   ")
             .append(String.format("%05d", (currentTap - 1) * lval)).append("   - ")

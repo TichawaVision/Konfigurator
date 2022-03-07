@@ -1,14 +1,12 @@
 package de.tichawa.cis.config.vtcis;
 
-import de.tichawa.cis.config.CIS;
 import de.tichawa.cis.config.ldstd.LDSTD;
-import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
-
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.ResourceBundle;
+import de.tichawa.cis.config.CIS;
+import java.net.*;
+import java.util.*;
+import javafx.beans.value.*;
+import javafx.fxml.*;
+import javafx.scene.control.*;
 
 public class MaskController extends de.tichawa.cis.config.MaskController
 {
@@ -36,7 +34,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     pixelSize.add(0.25);
     pixelSize.add(0.339);
     pixelSize.add(0.5);
-//    pixelSize.add(1.0);
+    pixelSize.add(1.0);
 
     CIS_DATA.setSpec("Color", 1);
     CIS_DATA.setSpec("Internal Light Source", 1);
@@ -216,13 +214,18 @@ public class MaskController extends de.tichawa.cis.config.MaskController
           break;
         }
         case "One sided":
-        case "Coax": {
+        {
           CIS_DATA.setSpec("LEDLines", 1);
           break;
         }
         case "Two sided":
         {
           CIS_DATA.setSpec("LEDLines", 2);
+          break;
+        }
+        case "Coax":
+        {
+          CIS_DATA.setSpec("LEDLines", 1);
           break;
         }
         case "Two sided plus Coax":
