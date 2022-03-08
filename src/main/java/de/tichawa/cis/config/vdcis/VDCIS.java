@@ -29,35 +29,35 @@ public class VDCIS extends CIS
       key += String.format("_%04d", getSpec("res_cp2"));
     }
 
-    switch(getSpec("Internal Light Source"))
-    {
-      case 0:
-      {
-        key += "_NO";
-        break;
-      }
-      case 1:
-      {
-        key += "_" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      }
-      case 2:
-      {
-        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
-        break;
-      }
-      case 3:
-      {
-        key += "_3" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
-        break;
-      }
-      case 4:
-      {
-        key += "_" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
-        break;
-      }
-    }
-
+//    switch(getSpec("Internal Light Source"))
+//    {
+//      case 0:
+//      {
+//        key += "_NO";
+//        break;
+//      }
+//      case 1:
+//      {
+//        key += "_" + COLOR_CODE[getSpec("Internal Light Color")];
+//        break;
+//      }
+//      case 2:
+//      {
+//        key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
+//        break;
+//      }
+//      case 3:
+//      {
+//        key += "_3" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
+//        break;
+//      }
+//      case 4:
+//      {
+//        key += "_" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
+//        break;
+//      }
+//    }
+    key += "_2" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
     if(getSpec("Color") == 4)
     {
       key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
