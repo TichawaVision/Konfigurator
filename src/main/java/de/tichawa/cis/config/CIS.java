@@ -270,7 +270,7 @@ public abstract class CIS
         .collect(Collectors.toMap(SensorBoardRecord::getName, Function.identity()));
   }
 
-  public abstract String getCLCalc(int numOfPix);
+  public abstract Optional<CameraLink> getCLCalc(int numOfPix);
 
   public abstract String getTiViKey();
 
@@ -731,14 +731,16 @@ public abstract class CIS
     }
     else
     {
-      String clCalc = getCLCalc(numOfPix);
-      if(clCalc == null)
+      Optional<CameraLink> clCalc = getCLCalc(numOfPix);
+      if(clCalc.isPresent())
+      {
+        printout += "\n\t\n";
+        printout += clCalc.toString();
+      }
+      else
       {
         return null;
       }
-
-      printout += "\n\t\n";
-      printout += clCalc;
     }
     return printout;
   }

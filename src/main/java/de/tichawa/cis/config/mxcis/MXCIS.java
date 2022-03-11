@@ -8,19 +8,29 @@ import java.util.*;
 // Alle MXCIS spezifische Funktionen 
 public class MXCIS extends CIS
 {
-  private static HashMap<Integer, String> resToSens;
-
-  public MXCIS()
+  private static final HashMap<Integer, String> resToSens = new HashMap<>();
+  static
   {
-    super();
-
-    resToSens = new HashMap<>();
     resToSens.put(200, "PI3033");
     resToSens.put(300, "PI3041");
     resToSens.put(400, "PI3042");
     resToSens.put(600, "PI3039");
     resToSens.put(1200, "PI5002_1200");
     resToSens.put(2400, "PI5002_2400");
+  }
+
+  private static final HashMap<Integer, Integer> dpiToRate = new HashMap<>();
+  static
+  {
+    dpiToRate.put(25, 27);
+    dpiToRate.put(50, 27);
+    dpiToRate.put(75, 18);
+    dpiToRate.put(100, 27);
+    dpiToRate.put(150, 18);
+    dpiToRate.put(200, 27);
+    dpiToRate.put(300, 18);
+    dpiToRate.put(400, 13);
+    dpiToRate.put(600, 10);
   }
 
   @Override
@@ -96,26 +106,14 @@ public class MXCIS extends CIS
   }
 
   @Override
-  public String getCLCalc(int numOfPix)
+  public Optional<CameraLink> getCLCalc(int numOfPix)
   {
-    HashMap<Integer, Integer> dpiToRate = new HashMap<>();
-    dpiToRate.put(25, 27);
-    dpiToRate.put(50, 27);
-    dpiToRate.put(75, 18);
-    dpiToRate.put(100, 27);
-    dpiToRate.put(150, 18);
-    dpiToRate.put(200, 27);
-    dpiToRate.put(300, 18);
-    dpiToRate.put(400, 13);
-    dpiToRate.put(600, 10);
-
     double fpgaDataRate;
     int tapsPerFpga;
     int lval;
     int pixPerFpga;
     int pixPerTap;
     int sensPerFpga;
-    StringBuilder printOut = new StringBuilder();
 
     if(getSelectedResolution().getActualResolution() > 600)
     {
@@ -148,82 +146,45 @@ public class MXCIS extends CIS
     pixPerTap = (int) ((double) pixPerFpga / (double) tapsPerFpga);
     lval = pixPerTap;
 
-    int portCount = getPhaseCount() == 1 ? (int) Math.ceil(numOfPix / (lval * 1.0)) : (int) Math.ceil(3 * Math.ceil(numOfPix / (lval * 1.0)));
+    int conCount = (int) Math.ceil(numOfPix / (lval * (getPhaseCount() == 1 ? 2.0 : 1.0)));
+    int portCount =  (int) Math.ceil(numOfPix / (lval * (getPhaseCount() == 1 ? 1.0 : 3.0)));
 
-    printOut.append(getString("datarate")).append(Math.round(portCount * Math.min(lval, numOfPix) * getSelectedLineRate() / 100000.0) / 10.0).append(" MByte/s\n");
-    printOut.append(getString("numofpix")).append(numOfPix).append("\n");
-    
-    if(getPhaseCount() == 1)
-    {
-      printOut.append(getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 2.0))).append("\n");
-    }
-    else
-    {
-      printOut.append(getString("numofcons")).append((int) Math.ceil(numOfPix / (lval * 1.0))).append("\n");
-    }
-    printOut.append(getString("numofport")).append(portCount).append("\n");
-    printOut.append("Pixel Clock: 85MHz\n\n");
+    long dataRate = (long) portCount * Math.min(lval, numOfPix) * getSelectedLineRate();
+    CameraLink cameraLink = new CameraLink(dataRate, numOfPix,85000000);
 
-    switch(getPhaseCount())
+    if(getPhaseCount() == 4)
     {
-      case 4:
+      for(int x = 0; x < tapsPerFpga * getNumFPGA(); x++)
       {
-        for(int x = 0; x < tapsPerFpga * getNumFPGA(); x++)
-        {
-          if(lval > numOfPix)
-          {
-            printOut.append("Camera Link ").append(x + 1).append(":\n");
-            printOut.append("   Port A:   ")
-                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", numOfPix - 1)).append("   ")
-                    .append(getString("Red")).append("\n");
-            printOut.append("   Port B:   ")
-                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", numOfPix - 1)).append("   ")
-                    .append(getString("Green")).append("\n");
-            printOut.append("   Port C:   ")
-                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", numOfPix - 1)).append("   ")
-                    .append(getString("Blue")).append("\n");
-          }
-          else
-          {
-            printOut.append("Camera Link ").append(x + 1).append(":\n");
-            printOut.append("   Port A:   ")
-                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                    .append(getString("Red")).append("\n");
-            printOut.append("   Port B:   ")
-                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                    .append(getString("Green")).append("\n");
-            printOut.append("   Port C:   ")
-                    .append(String.format("%05d", x * lval)).append("   - ").append(String.format("%05d", (x + 1) * lval - 1)).append("   ")
-                    .append(getString("Blue")).append("\n");
-          }
-        }
+        int endPixel = lval > numOfPix ? numOfPix - 1 : (x + 1) * lval - 1;
+        CameraLink.Connection conn = new CameraLink.Connection();
+        conn.addPorts(new CameraLink.Port(x * lval, endPixel, "Red"),
+            new CameraLink.Port(x * lval, endPixel, "Green"),
+            new CameraLink.Port(x * lval, endPixel, "Blue"));
 
-        break;
+        cameraLink.addConnection(conn);
       }
-      case 1:
+    }
+    else if(getPhaseCount() == 1)
+    {
+      CameraLink.Connection conn = null;
+      for(int x = 0; x  * lval < numOfPix; x++)
       {
-        for(int x = 1; (x - 1) * lval < numOfPix; x++)
+        if(x % 2 == 0)
         {
-          if(x % 2 == 1)
+          if(conn != null)
           {
-            printOut.append("Camera Link ").append((x + 1) / 2).append(":\n");
+            cameraLink.addConnection(conn);
           }
-
-          if(lval > numOfPix)
-          {
-            printOut.append("   Port ").append(getPortName((x + 1) % 2)).append(":   ")
-                    .append(String.format("%05d", (x - 1) * lval)).append("   - ").append(String.format("%05d", numOfPix - 1)).append("\n");
-          }
-          else
-          {
-            printOut.append("   Port ").append(getPortName((x + 1) % 2)).append(":   ")
-                    .append(String.format("%05d", (x - 1) * lval)).append("   - ").append(String.format("%05d", x * lval - 1)).append("\n");
-          }
+          conn = new CameraLink.Connection();
         }
+
+        int endPixel = lval > numOfPix ? numOfPix - 1 : (x + 1) * lval - 1;
+        conn.addPorts(new CameraLink.Port(x * lval, endPixel));
       }
     }
 
-    return printOut.toString();
+    return Optional.of(cameraLink);
   }
 
   public Optional<SensorBoardRecord> getSensorBoard(int res)
