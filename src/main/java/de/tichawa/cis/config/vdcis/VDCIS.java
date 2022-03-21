@@ -57,46 +57,48 @@ public class VDCIS extends CIS
 //        break;
 //      }
 //    }
-    key += "_2" + COLOR_CODE[getSpec("Internal Light Color")] + "C";
+
     if(getSpec("Color") == 4)
     {
-      key = key.replace(COLOR_CODE[getSpec("Internal Light Color")], "RGB");
-    }
+      key += "_2" + "RGB";
+    }else{
+      key += "_2" + COLOR_CODE[getSpec("Internal Light Color")];
+  }
 
     key += getMechaVersion();
 
-    if(getSpec("Interface") == 1)
-    {
-      key += "GT";
-    }
-
-    switch(getSpec("Cooling"))
-    {
-      case 0:
-      {
-        key += "NOCO";
-        break;
-      }
-      case 1:
-      {
-        break;
-      }
-      case 2:
-      {
-        key += "FAIR";
-        break;
-      }
-      case 3:
-      {
-        key += "PAIR";
-        break;
-      }
-      case 4:
-      {
-        key += "LICO";
-        break;
-      }
-    }
+//    if(getSpec("Interface") == 1)
+//    {
+//      key += "GT";
+//    }
+//
+//    switch(getSpec("Cooling"))
+//    {
+//      case 0:
+//      {
+//        key += "NOCO";
+//        break;
+//      }
+//      case 1:
+//      {
+//        break;
+//      }
+//      case 2:
+//      {
+//        key += "FAIR";
+//        break;
+//      }
+//      case 3:
+//      {
+//        key += "PAIR";
+//        break;
+//      }
+//      case 4:
+//      {
+//        key += "LICO";
+//        break;
+//      }
+//    }
 
     if(key.endsWith("_"))
     {
