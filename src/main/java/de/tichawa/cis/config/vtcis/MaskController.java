@@ -36,7 +36,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController
     pixelSize.add(0.25);
     pixelSize.add(0.339);
     pixelSize.add(0.5);
-//    pixelSize.add(1.0);
+    pixelSize.add(1.0);
 
     CIS_DATA.setSpec("Color", 1);
     CIS_DATA.setSpec("Internal Light Source", 1);
