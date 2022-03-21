@@ -65,38 +65,38 @@ public class VTCIS extends CIS
 
     key += getMechaVersion();
 
-    if(getSpec("Interface") == 1)
-    {
-      key += "GT";
-    }
+//    if(getSpec("Interface") == 1)
+//    {
+//      key += "GT";
+//    }
 
-    switch(getSpec("Cooling"))
-    {
-      case 0:
-      {
-        key += "NOCO";
-        break;
-      }
-      case 1:
-      {
-        break;
-      }
-      case 2:
-      {
-        key += "FAIR";
-        break;
-      }
-      case 3:
-      {
-        key += "PAIR";
-        break;
-      }
-      case 4:
-      {
-        key += "LICO";
-        break;
-      }
-    }
+//    switch(getSpec("Cooling"))
+//    {
+//      case 0:
+//      {
+//        key += "NOCO";
+//        break;
+//      }
+//      case 1:
+//      {
+//        break;
+//      }
+//      case 2:
+//      {
+//        key += "FAIR";
+//        break;
+//      }
+//      case 3:
+//      {
+//        key += "PAIR";
+//        break;
+//      }
+//      case 4:
+//      {
+//        key += "LICO";
+//        break;
+//      }
+//    }
 
     if(key.endsWith("_"))
     {
