@@ -645,7 +645,7 @@ public abstract class CIS
       {
         16.0, 8.0, 6.0, 4.0, 3.0, 2.0, 1.5, 1.0, 1.0, 0.5, 0.5
       };
-      printout += getString("scan distance") + ":  ~ 10 mm " + getString("exactseetypesign") + "\n";
+      printout += getString("scan distance") + ":  10 mm " + getString("exactseetypesign") + "\n";
       printout += getString("DepthofField") + ": ~ +/- " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1 mm\n";
       printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 288) + " mm\n";
       if(getSpec("LEDLines") < 2)
@@ -670,7 +670,7 @@ public abstract class CIS
     }
     else
     {
-      printout += getString("scan distance") + ": 10 mm " + getString("exactseetypesign") + "\n";
+      printout += getString("scan distance") + ": 9-12 mm " + getString("exactseetypesign") + "\n";
       if(getSpec("VSCIS") != null || getSpec("VTCIS") != null || getSpec("VHCIS") != null)
       {
         String[] dof = new String[]
