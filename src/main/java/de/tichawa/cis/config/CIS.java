@@ -1,5 +1,6 @@
 package de.tichawa.cis.config;
 
+import de.tichawa.util.MathEval;
 import de.tichawa.cis.config.mxcis.MXCIS;
 import de.tichawa.util.*;
 import de.tichawa.util.MathEval;
@@ -645,7 +646,7 @@ public abstract class CIS
       {
         16.0, 8.0, 6.0, 4.0, 3.0, 2.0, 1.5, 1.0, 1.0, 0.5, 0.5
       };
-      printout += getString("scan distance") + ":  10 mm " + getString("exactseetypesign") + "\n";
+      printout += getString("scan distance") + ": ~ 10 mm " + getString("exactseetypesign") + "\n";
       printout += getString("DepthofField") + ": ~ +/- " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1 mm\n";
       printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 288) + " mm\n";
       if(getSpec("LEDLines") < 2)
