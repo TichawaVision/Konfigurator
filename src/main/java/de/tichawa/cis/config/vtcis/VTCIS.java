@@ -69,7 +69,7 @@ public class VTCIS extends CIS
 //    {
 //      key += "GT";
 //    }
-
+//
 //    switch(getSpec("Cooling"))
 //    {
 //      case 0:
