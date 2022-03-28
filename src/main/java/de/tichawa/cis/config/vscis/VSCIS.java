@@ -104,50 +104,35 @@ public class VSCIS extends CIS
     CameraLink cl = new CameraLink(portDataRate, numOfPixNominal, pixelClock);
     LinkedList<CameraLink.Connection> connections = new LinkedList<>();
 
-    if(getPhaseCount() == 3)
+    if((getPhaseCount() == 3 && taps > 3)
+        || (getPhaseCount() == 1 && taps > 8))
     {
-      if(taps > 3)
-      {
-        System.out.println("Please select a lower line rate. Currently required number of taps (" + taps * getPhaseCount() + ") is too high.");
-        return Optional.empty();
-      }
-
-      for(int x = 0; x < Math.min(2, taps); x++)
-      {
-        connections.add(new CameraLink.Connection());
-        connections.getLast().addPorts(new CameraLink.Port(x * lval,(x + 1) * lval - 1,"Red"),
-            new CameraLink.Port(x * lval,(x + 1) * lval - 1,"Green"),
-            new CameraLink.Port(x * lval,(x + 1) * lval - 1,"Blue"));
-      }
-
-      if(taps == 3)
-      {
-        connections.getLast().addPorts(new CameraLink.Port(2 * lval, (2 + 1) * lval - 1, "Red"),
-            new CameraLink.Port(2 * lval, (2 + 1) * lval - 1, "Green"),
-            new CameraLink.Port(2 * lval, (2 + 1) * lval - 1, "Blue"));
-      }
+      System.out.println("Please select a lower line rate. Currently required number of taps (" + taps * getPhaseCount() + ") is too high.");
+      return Optional.empty();
     }
-    else if(getPhaseCount() == 1)
+
+    int x = 0;
+    int oddPortLimit = 3;
+    int evenPortLimit = 6;
+
+    while(x < taps)
     {
-      if(taps > 8)
-      {
-        System.out.println("Please select a lower line rate. Currently required number of taps (" + taps * getPhaseCount() + ") is too high.");
-        return Optional.empty();
-      }
-
       connections.add(new CameraLink.Connection());
-      for(int x = 0; x < Math.min(3, taps); x++)
+      int portLimit = connections.size() % 2 == 0 ? evenPortLimit : oddPortLimit;
+      while(connections.getLast().getPortCount() + getPhaseCount() <= portLimit)
       {
-        connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));
-      }
-
-      if(taps > 3)
-      {
-        connections.add(new CameraLink.Connection());
-        for(int x = 3; x < taps; x++)
+        if(getPhaseCount() == 1)
         {
           connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));
         }
+        else
+        {
+          connections.getLast().addPorts(new CameraLink.Port(x * lval,(x + 1) * lval - 1,"Red"),
+              new CameraLink.Port(x * lval,(x + 1) * lval - 1,"Green"),
+              new CameraLink.Port(x * lval,(x + 1) * lval - 1,"Blue"));
+        }
+
+        x++;
       }
     }
 
