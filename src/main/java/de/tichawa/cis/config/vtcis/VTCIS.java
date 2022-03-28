@@ -47,6 +47,11 @@ public class VTCIS extends VSCIS
     printOut.append(getString("clMode")).append(mediumMode ? "Base/Medium/Full" : "Full80").append("\n");
     printOut.append(getString("numPhases")).append(getPhaseCount()).append("\n");
 
+    /* Thoughts on modelling:
+    * 1. Round up phases to next uneven number (1 -> 1, 2 -> 3, 3 -> 3) to get "buffered phase count".
+    * 2. Fill up to eight ports per connection using buffered phase counts.
+    * 3. Only "unbuffered" phases receive an actual assignment, buffers are zero.
+    */
     Map<Integer, List<Integer>> mediumMap = new HashMap<>();
     mediumMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 9, 10, 11, 12, 13, 14, 15, 16, 0, 0));
     mediumMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 4, 4, 0, 0, 0, 0, 0));
@@ -55,6 +60,10 @@ public class VTCIS extends VSCIS
     mediumMap.put(5, Arrays.asList(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0));
     mediumMap.put(6, Arrays.asList(1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0));
 
+    /* Thoughts on modelling:
+    * Like medium, but ten ports per connection.
+    * What about 4 phases? Doesn't fit the scheme.
+     */
     Map<Integer, List<Integer>> highMap = new HashMap<>();
     highMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20));
     highMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 3, 3, 0, 0, 4, 4, 0, 5, 5, 0, 6, 6, 0, 0));
