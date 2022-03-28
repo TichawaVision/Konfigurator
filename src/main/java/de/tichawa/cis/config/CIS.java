@@ -1,15 +1,16 @@
 package de.tichawa.cis.config;
 
-import de.tichawa.util.MathEval;
 import de.tichawa.cis.config.mxcis.MXCIS;
-import de.tichawa.util.*;
+import de.tichawa.util.MathEval;
+import de.tichawa.util.Tuple;
 
-import java.io.*;
-import java.nio.charset.*;
-import java.nio.file.*;
-import java.text.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Date;
 
 // Alle allgemeine CIS Funktionen
 public abstract class CIS
@@ -667,20 +668,6 @@ public abstract class CIS
       printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
       printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
     } else if(getSpec("VTCIS") != null) {
-      String[] dof = new String[]
-              {
-                      "+ 16.0 / -10.0", "+/- 8.0", "+/- 6.0", "+/- 4.0", "+/- 3.0", "+/- 2.0", "+/- 1.5", "+/- 1.0", "+/- 1.0", "+/- 0.5", "+/- 0.25"
-              };
-      printout += getString("scan distance") + ": 10 mm " + "\n";
-      printout += getString("DepthofField") + ": ~ " + dof[dof.length - (getSpec("Resolution") + 1)] + " mm\n" + getString("line width") + ": ~ 1mm\n";
-      printout += getString("case length") + ": ~ " + (getSpec("sw_cp") + 100) + " mm\n";
-      if (getSpec("Internal Light Source") == 3 || getSpec("Internal Light Source") == 4) {
-        printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
-      } else {
-        printout += getString("Aluminium case profile: 86x80mm (HxT) with bonded") + "\n";
-      }
-    }
-    else if(getSpec("VTCIS") != null) {
       String[] dof = new String[]
               {
                       "+ 16.0 / -10.0", "+/- 8.0", "+/- 6.0", "+/- 4.0", "+/- 3.0", "+/- 2.0", "+/- 1.5", "+/- 1.0", "+/- 1.0", "+/- 0.5", "+/- 0.25"
