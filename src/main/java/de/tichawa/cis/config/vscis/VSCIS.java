@@ -16,7 +16,7 @@ public class VSCIS extends CIS
   @Override
   public String getTiViKey()
   {
-    String key = "G_VSCIS";
+    String key = "G_" + getClass().getSimpleName();
     key += String.format("_%04d", getScanWidth());
 
     if(getSelectedResolution().isSwitchable())

@@ -2,63 +2,16 @@ package de.tichawa.cis.config.vhcis;
 
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.model.tables.records.*;
+import de.tichawa.cis.config.vscis.*;
 
 import java.util.*;
 
-public class VHCIS extends CIS
+public class VHCIS extends VSCIS
 {
 
   public VHCIS()
   {
     super();
-  }
-
-  @Override
-  public String getTiViKey()
-  {
-    String key = "G_VHCIS";
-    key += String.format("_%04d", getScanWidth());
-
-    if(getSelectedResolution().isSwitchable())
-    {
-      key += "_XXXX";
-    }
-    else
-    {
-      key += String.format("_%04d", getSelectedResolution().getActualResolution());
-    }
-
-    key += "_";
-    if(getLightSources().equals("0D0C"))
-    {
-      key += "NO";
-    }
-
-    if(getPhaseCount() == 3)
-    {
-      key += "RGB";
-    }
-    else
-    {
-      key += getLightColors().stream()
-              .findAny().orElse(LightColor.NONE)
-              .getShortHand();
-    }
-
-    if(!getLightSources().endsWith("0C"))
-    {
-      key += "C";
-    }
-
-    key += getMechaVersion();
-    key += getCooling().getCode();
-
-    if(key.endsWith("_"))
-    {
-      key = key.substring(0, key.length() - 1);
-    }
-
-    return key;
   }
 
   @Override

@@ -2,12 +2,13 @@ package de.tichawa.cis.config.vtcis;
 
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.model.tables.records.*;
+import de.tichawa.cis.config.vscis.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.*;
 
-public class VTCIS extends CIS
+public class VTCIS extends VSCIS
 {
 
   @Getter @Setter
@@ -16,60 +17,6 @@ public class VTCIS extends CIS
   public VTCIS()
   {
     super();
-  }
-
-  @Override
-  public String getTiViKey()
-  {
-    String key = "G_VTCIS";
-    key += String.format("_%04d", getScanWidth());
-
-    if(getSelectedResolution().isSwitchable())
-    {
-      key += "_XXXX";
-    }
-    else
-    {
-      key += String.format("_%04d", getSelectedResolution().getActualResolution());
-    }
-
-    key += "_";
-    if(getLightSources().equals("0D0C"))
-    {
-      key += "NO";
-    }
-
-    if(getPhaseCount() == 3)
-    {
-      key += "RGB";
-    }
-    else
-    {
-      key += getLightColors().stream()
-              .findAny().orElse(LightColor.NONE)
-              .getShortHand();
-    }
-
-    if(!getLightSources().endsWith("0C"))
-    {
-      key += "C";
-    }
-
-    key += getMechaVersion();
-
-    if(isGigeInterface())
-    {
-      key += "GT";
-    }
-
-    key += getCooling().getCode();
-
-    if(key.endsWith("_"))
-    {
-      key = key.substring(0, key.length() - 1);
-    }
-
-    return key;
   }
 
   @Override
