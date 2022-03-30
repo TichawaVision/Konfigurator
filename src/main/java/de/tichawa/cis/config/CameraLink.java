@@ -2,22 +2,29 @@ package de.tichawa.cis.config;
 
 import lombok.*;
 
-import java.util.*;
-import java.util.stream.*;
+import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 @Value
+@AllArgsConstructor
 public class CameraLink
 {
   long dataRate;
   long pixelCount;
   long pixelClock;
+  String notes;
 
   @Getter(AccessLevel.PRIVATE)
   LinkedList<Connection> connections = new LinkedList<>();
 
+  public CameraLink(long dataRate, long pixelCount, long pixelClock)
+  {
+    this(dataRate, pixelCount, pixelClock, null);
+  }
+
   public void addConnection(Connection connection)
   {
-    int nextCLId = getConnections().isEmpty() ? Connection.DEFAULT_ID : getConnections().getLast().getId();
+    int nextCLId = getConnections().isEmpty() ? Connection.DEFAULT_ID : getConnections().getLast().getId() + 1;
     getConnections().add(connection.withId(nextCLId));
   }
 
@@ -35,28 +42,32 @@ public class CameraLink
 
   //TODO: Load texts from bundle
   @Override
-  public String toString()
-  {
+  public String toString() {
+
     StringBuilder output = new StringBuilder("Data rate: ")
-        .append(Math.round(getDataRate() / 100000.0) / 10.0)
-        .append(" MByte/s\n");
+            .append(Math.round(getDataRate() / 100000.0) / 10.0)
+            .append(" MByte/s\n");
     output.append("Number of pixels: ")
-        .append(getPixelCount())
-        .append("\n");
+            .append(getPixelCount())
+            .append("\n");
     output.append("Number of connections: ")
-        .append(getConnectionCount())
-        .append("\n");
+            .append(getConnectionCount())
+            .append("\n");
     output.append("Number of ports: ")
-        .append(getPortCount())
-        .append("\n");
+            .append(getPortCount())
+            .append("\n");
     output.append("Pixel clock: ")
-        .append(getPixelClock() / 1000000)
-        .append("MHz\n");
+            .append(getPixelClock() / 1000000)
+            .append("MHz\n");
+    if(getNotes() != null)
+    {
+      output.append(getNotes())
+              .append("\n");
+    }
 
     output.append(getConnections().stream()
-        .map(Connection::toString)
-        .collect(Collectors.joining("\n")));
-
+            .map(Connection::toString)
+            .collect(Collectors.joining("\n")));
     return output.toString();
   }
 
@@ -69,14 +80,19 @@ public class CameraLink
     public static final int MAX_PORT_COUNT = 8;
 
     int id;
+    char defaultPort;
+    @Getter(AccessLevel.PRIVATE)
+    LinkedList<Port> ports;
 
     public Connection()
     {
-      this(DEFAULT_ID);
+      this(DEFAULT_ID, Port.DEFAULT_NAME);
     }
 
-    @Getter(AccessLevel.PRIVATE)
-    LinkedList<Port> ports = new LinkedList<>();
+    public Connection(int defaultId, char defaultPort)
+    {
+      this(defaultId, defaultPort, new LinkedList<>());
+    }
 
     public boolean addPorts(Port... ports)
     {
@@ -84,7 +100,7 @@ public class CameraLink
       {
         for(Port port : ports)
         {
-          char nextPortName = getPorts().isEmpty() ? Port.DEFAULT_NAME : (char) (getPorts().getLast().getName() + 1);
+          char nextPortName = getPorts().isEmpty() ? getDefaultPort() : (char) (getPorts().getLast().getName() + 1);
           getPorts().add(port.withName(nextPortName));
         }
 
