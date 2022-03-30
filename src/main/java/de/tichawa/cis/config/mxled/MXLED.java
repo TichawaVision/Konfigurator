@@ -2,6 +2,8 @@ package de.tichawa.cis.config.mxled;
 
 import de.tichawa.cis.config.*;
 
+import java.util.Optional;
+
 public class MXLED extends CIS
 {
 
@@ -56,9 +58,9 @@ public class MXLED extends CIS
   }
 
   @Override
-  public String getCLCalc(int numOfPix)
+  public Optional<CameraLink> getCLCalc(int numOfPix)
   {
-    return " ";
+    return Optional.empty();
   }
 
   @Override
