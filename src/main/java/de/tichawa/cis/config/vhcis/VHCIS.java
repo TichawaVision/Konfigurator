@@ -46,7 +46,9 @@ public class VHCIS extends VSCIS
     {
       int cycleOffset = cycle * cycleLength;
 
-      connections.add(new CameraLink.Connection());
+      connections.add(new CameraLink.Connection(0, (char) (CameraLink.Port.DEFAULT_NAME + connections.stream()
+              .mapToInt(CameraLink.Connection::getPortCount)
+              .sum() - cycleOffset)));
       for(; x < Math.min(3 + cycleOffset, taps); x++)
       {
         connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));

@@ -20,14 +20,12 @@ public class VTCIS extends VSCIS
   }
 
   @Override
-  public String getCLCalc(int numOfPix)
+  public Optional<CameraLink> getCLCalc(int numOfPix)
   {
     int numOfPixNominal;
     int taps;
     int pixPerTap;
     int lval;
-    int tapCount;
-    StringBuilder printOut = new StringBuilder();
 
     SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
     numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
@@ -37,81 +35,58 @@ public class VTCIS extends VSCIS
     lval = pixPerTap - pixPerTap % 8;
 
     boolean mediumMode = !getCLMode().equals("Full80");
+    long datarate = (long) getPhaseCount() * numOfPixNominal * getSelectedLineRate();
+    LinkedList<CameraLink.Connection> connections = new LinkedList<>();
+    int portLimit = mediumMode ? 8 : 10;
 
-    printOut.append(getString("datarate")).append(Math.round(getPhaseCount() * numOfPixNominal * getSelectedLineRate() / 100000.0) / 10.0).append(" MByte\n");
-    printOut.append(getString("numofcons")).append("%%%%%\n");
-    printOut.append(getString("numofport")).append(taps * getPhaseCount()).append("\n");
-    printOut.append("Pixel Clock: 85 MHz\n");
-    printOut.append(getString("nomPix")).append(numOfPixNominal).append("\n");
-    printOut.append("LVAL (Modulo 8): ").append(lval).append("\n");
-    printOut.append(getString("clMode")).append(mediumMode ? "Base/Medium/Full" : "Full80").append("\n");
-    printOut.append(getString("numPhases")).append(getPhaseCount()).append("\n");
-
-    /* Thoughts on modelling:
-    * 1. Round up phases to next uneven number (1 -> 1, 2 -> 3, 3 -> 3) to get "buffered phase count".
-    * 2. Fill up to eight ports per connection using buffered phase counts.
-    * 3. Only "unbuffered" phases receive an actual assignment, buffers are zero.
-    */
-    Map<Integer, List<Integer>> mediumMap = new HashMap<>();
-    mediumMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 9, 10, 11, 12, 13, 14, 15, 16, 0, 0));
-    mediumMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 4, 4, 0, 0, 0, 0, 0));
-    mediumMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 3, 3, 3, 4, 4, 4, 0, 0, 0, 0));
-    mediumMap.put(4, Arrays.asList(1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0));
-    mediumMap.put(5, Arrays.asList(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0));
-    mediumMap.put(6, Arrays.asList(1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0));
-
-    /* Thoughts on modelling:
-    * Like medium, but ten ports per connection.
-    * What about 4 phases? Doesn't fit the scheme.
-     */
-    Map<Integer, List<Integer>> highMap = new HashMap<>();
-    highMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20));
-    highMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 3, 3, 0, 0, 4, 4, 0, 5, 5, 0, 6, 6, 0, 0));
-    highMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 4, 4, 4, 5, 5, 5, 6, 6, 6, 0));
-    highMap.put(4, mediumMap.get(4));
-    highMap.put(5, mediumMap.get(5));
-    highMap.put(6, mediumMap.get(6));
-
-    List<Integer> tapConfig = (mediumMode ? mediumMap : highMap).get(getPhaseCount());
-    if(taps > tapConfig.stream().mapToInt(x -> x).max().orElse(0))
+    int blockSize;
+    if(getPhaseCount() == 1)
     {
-      throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
-    }
-    //Out Of Flash Memory
-    printOut.append("Flash Extension: ");
-    if(getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680)
-    {
-      printOut.append("Required.\n");
+      blockSize = 1;
     }
     else
     {
-      printOut.append("Not required.\n");
-    }
-
-    int cableCount = 0;
-    for(tapCount = 0; tapCount < tapConfig.size(); tapCount++)
-    {
-      int currentTap = tapConfig.get(tapCount);
-      if(currentTap > 0 && taps >= currentTap)
+      blockSize = 3 * (getPhaseCount() / 3);
+      if(blockSize < getPhaseCount())
       {
-        if(tapCount % 10 == 0)
-        {
-          printOut.append("Camera Link ").append((tapCount / 10) + 1).append(":\n");
-        }
-        printOut.append("   Port ").append(getPortName(tapCount % 10)).append(":   ")
-            .append(String.format("%05d", (currentTap - 1) * lval)).append("   - ")
-            .append(String.format("%05d", currentTap * lval - 1)).append("\n");
-
-        if(tapCount % 10 == 0 || tapCount % 10 == 3)
-        {
-          cableCount++;
-        }
+        blockSize += 3;
       }
     }
 
-    printOut.append(getString("configOnRequest"));
-    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, cableCount+ "");
-    return printOut.toString();
+    for(int i = 0; i < taps;)
+    {
+      connections.add(new CameraLink.Connection(0, (char) (CameraLink.Port.DEFAULT_NAME + connections.stream()
+              .mapToInt(CameraLink.Connection::getPortCount)
+              .sum())));
+
+      while (connections.getLast().getPortCount() <= portLimit - blockSize && i < taps)
+      {
+        for (int k = 0; k < blockSize; k++)
+        {
+          if (k < getPhaseCount())
+          {
+            connections.getLast().addPorts(new CameraLink.Port(i * lval, (i + 1) * lval - 1));
+          } else {
+            connections.getLast().addPorts(new CameraLink.Port(0, 0));
+          }
+        }
+        i++;
+      }
+    }
+    boolean flashExtension = getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680;
+    String notes = "LVAL: " + lval + "\n" +
+            getString("clMode") + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
+            getString("numPhases") + getPhaseCount() + "\n" +
+            "Flash Extension: " + (flashExtension ? "Required" : "Not required.") + "\n";
+
+    CameraLink cameraLink = new CameraLink(datarate, numOfPix, 85000000, notes);
+    connections.forEach(cameraLink::addConnection);
+
+    if(taps > cameraLink.getPortCount())
+    {
+      throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
+    }
+    return Optional.of(cameraLink);
   }
 
   @Override

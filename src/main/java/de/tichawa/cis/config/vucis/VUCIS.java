@@ -2,6 +2,7 @@ package de.tichawa.cis.config.vucis;
 
 import de.tichawa.cis.config.CIS;
 import de.tichawa.cis.config.CISException;
+import de.tichawa.cis.config.CameraLink;
 import de.tichawa.cis.config.model.tables.records.AdcBoardRecord;
 import de.tichawa.cis.config.model.tables.records.SensorBoardRecord;
 import de.tichawa.cis.config.model.tables.records.SensorChipRecord;
@@ -167,7 +168,7 @@ public class VUCIS extends CIS
   }
 
   @Override
-  public String getCLCalc(int numOfPix)
+  public Optional<CameraLink> getCLCalc(int numOfPix)
   {
     int numOfPixNominal;
     int taps;
@@ -238,7 +239,7 @@ public class VUCIS extends CIS
 
     printOut.append(getString("configOnRequest"));
     printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, cableCount+ "");
-    return printOut.toString();
+    return Optional.empty();
   }
 
   @Override

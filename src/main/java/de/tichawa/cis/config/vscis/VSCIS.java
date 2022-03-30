@@ -117,7 +117,9 @@ public class VSCIS extends CIS
 
     while(x < taps)
     {
-      connections.add(new CameraLink.Connection());
+      connections.add(new CameraLink.Connection(0, (char) (CameraLink.Port.DEFAULT_NAME + connections.stream()
+              .mapToInt(CameraLink.Connection::getPortCount)
+              .sum())));
       int portLimit = connections.size() % 2 == 0 ? evenPortLimit : oddPortLimit;
       while(connections.getLast().getPortCount() + getPhaseCount() <= portLimit)
       {
