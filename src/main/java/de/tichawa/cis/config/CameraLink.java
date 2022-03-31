@@ -77,7 +77,7 @@ public class CameraLink
   public static class Connection
   {
     public static final int DEFAULT_ID = 1;
-    public static final int MAX_PORT_COUNT = 8;
+    public static final int MAX_PORT_COUNT = 9;
 
     int id;
     char defaultPort;
