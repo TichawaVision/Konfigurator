@@ -93,14 +93,14 @@ public class VDCIS extends CIS
     int portLimit = mediumMode ? 8 : 10;
 
     int blockSize;
-    if(getPhaseCount() == 1)
+    if(getPhaseCount() - 1 == 1)
     {
       blockSize = 1;
     }
     else
     {
       blockSize = 3 * (getPhaseCount() / 3);
-      if(blockSize < getPhaseCount())
+      if(blockSize < getPhaseCount() - 1)
       {
         blockSize += 3;
       }
@@ -116,7 +116,7 @@ public class VDCIS extends CIS
       {
         for (int k = 0; k < blockSize; k++)
         {
-          if (k < getPhaseCount())
+          if (k < getPhaseCount() - 1)
           {
             connections.getLast().addPorts(new CameraLink.Port(i * lval, (i + 1) * lval - 1));
           } else {
@@ -131,10 +131,10 @@ public class VDCIS extends CIS
             getString("clMode") + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
             getString("numPhases") + getPhaseCount() + "\n" ;
 
-    CameraLink cameraLink = new CameraLink(datarate, numOfPix, 85000000, notes);
+    CameraLink cameraLink = new CameraLink(datarate, numOfPixNominal, 85000000, notes);
     connections.forEach(cameraLink::addConnection);
 
-    if(taps > cameraLink.getPortCount())
+    if(taps > (portLimit/blockSize) * 2)
     {
       throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
     }

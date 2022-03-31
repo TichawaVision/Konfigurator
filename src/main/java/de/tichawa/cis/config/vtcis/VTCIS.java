@@ -79,10 +79,10 @@ public class VTCIS extends VSCIS
             getString("numPhases") + getPhaseCount() + "\n" +
             "Flash Extension: " + (flashExtension ? "Required" : "Not required.") + "\n";
 
-    CameraLink cameraLink = new CameraLink(datarate, numOfPix, 85000000, notes);
+    CameraLink cameraLink = new CameraLink(datarate, numOfPixNominal, 85000000, notes);
     connections.forEach(cameraLink::addConnection);
 
-    if(taps > cameraLink.getPortCount())
+    if(taps > (portLimit/blockSize) * 2)
     {
       throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
     }
