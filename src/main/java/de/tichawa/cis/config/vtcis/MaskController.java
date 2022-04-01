@@ -1,12 +1,14 @@
 package de.tichawa.cis.config.vtcis;
 
-import de.tichawa.cis.config.*;
-import de.tichawa.cis.config.mxled.MXLED;
+import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.ldstd.LDSTD;
+import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 
-import java.net.*;
-import java.util.*;
-import javafx.fxml.*;
-import javafx.scene.control.*;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ResourceBundle;
 
 public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
 {
@@ -17,7 +19,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
   public MaskController()
   {
     CIS_DATA = new VTCIS();
-    MXLED_DATA = new MXLED();
+    LDSTD_DATA = new LDSTD();
   }
 
   @Override
@@ -107,7 +109,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
 
       CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
 
-      MXLED_DATA.setPhaseCount(CIS_DATA.getPhaseCount());
+      LDSTD_DATA.setPhaseCount(CIS_DATA.getPhaseCount());
     });
     Resolution.valueProperty().addListener((observable, oldValue, newValue) ->
     {
@@ -137,7 +139,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
       }
 
       CIS_DATA.setScanWidth(sw);
-      MXLED_DATA.setScanWidth(CIS_DATA.getScanWidth());
+      LDSTD_DATA.setScanWidth(CIS_DATA.getScanWidth());
     });
     SelLineRate.valueProperty().addListener((observable, oldValue, newValue) ->
     {
@@ -191,18 +193,18 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
       switch(ExternalLightSource.getSelectionModel().getSelectedIndex())
       {
         case 0:
-          MXLED_DATA.setDiffuseLightSources(0);
-          MXLED_DATA.setCoaxLightSources(0);
+          LDSTD_DATA.setDiffuseLightSources(0);
+          LDSTD_DATA.setCoaxLightSources(0);
           break;
         case 1:
-          MXLED_DATA.setDiffuseLightSources(1);
-          MXLED_DATA.setCoaxLightSources(0);
+          LDSTD_DATA.setDiffuseLightSources(1);
+          LDSTD_DATA.setCoaxLightSources(0);
           break;
       }
     });
     ExternalLightColor.valueProperty().addListener((observable, oldValue, newValue) ->
             CIS.LightColor.findByDescription(newValue)
-              .ifPresent(MXLED_DATA::setLightColor));
+              .ifPresent(LDSTD_DATA::setLightColor));
     Interface.valueProperty().addListener((observable, oldValue, newValue) ->
             CIS_DATA.setGigeInterface(Interface.getSelectionModel().getSelectedIndex() == 1));
     Cooling.valueProperty().addListener((observable, oldValue, newValue) -> CIS.Cooling

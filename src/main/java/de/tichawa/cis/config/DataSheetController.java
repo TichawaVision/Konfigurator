@@ -1,16 +1,17 @@
 package de.tichawa.cis.config;
 
-import java.io.InputStream;
-import java.net.*;
-import java.util.*;
 import javafx.fxml.*;
 import javafx.print.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
-import javafx.scene.transform.*;
-import javafx.stage.*;
+import javafx.scene.transform.Scale;
+import javafx.stage.Stage;
+
+import java.io.InputStream;
+import java.net.URL;
+import java.util.*;
 
 // Datasheet für alle CIS
 public class DataSheetController implements Initializable

@@ -1,25 +1,37 @@
 package de.tichawa.cis.config;
 
-import de.tichawa.cis.config.model.tables.records.*;
-import de.tichawa.cis.config.mxled.MXLED;
-import java.io.*;
-import java.net.*;
-import java.nio.charset.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.Map.*;
-import javafx.beans.property.*;
-import javafx.event.*;
-import javafx.fxml.*;
-import javafx.geometry.*;
-import javafx.scene.*;
+import de.tichawa.cis.config.ldstd.LDSTD;
+import de.tichawa.cis.config.model.tables.records.PriceRecord;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.*;
-import javafx.scene.layout.*;
-import javafx.stage.*;
+import javafx.scene.image.Image;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import lombok.Getter;
 
-import static de.tichawa.cis.config.model.Tables.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.ResourceBundle;
+
+import static de.tichawa.cis.config.model.Tables.EQUIPMENT;
+import static de.tichawa.cis.config.model.Tables.PRICE;
 
 public abstract class MaskController<C extends CIS> implements Initializable
 {
@@ -78,11 +90,12 @@ public abstract class MaskController<C extends CIS> implements Initializable
   protected Button Equip;
 
   protected C CIS_DATA;
-  protected MXLED MXLED_DATA;
+  protected LDSTD LDSTD_DATA;
 
   public MaskController()
   {
     this.resolutions = setupResolutions();
+    this.LDSTD_DATA = new LDSTD();
   }
 
   @Override
@@ -94,11 +107,11 @@ public abstract class MaskController<C extends CIS> implements Initializable
   @SuppressWarnings("unused")
   public void handleCalculation(ActionEvent a)
   {
-    if(!(CIS_DATA instanceof MXLED) && MXLED_DATA.getLedLines() > 0)
+    if(!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0)
     {
       try
       {
-        MXLED_DATA.calculate();
+        LDSTD_DATA.calculate();
       }
       catch(CISException e)
       {
@@ -114,7 +127,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
         Scene scene = new Scene(loader.load());
         Stage stage = new Stage();
         stage.setScene(scene);
-        stage.setTitle("MXLED Calculation");
+        stage.setTitle("LDSTD Calculation");
         InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
         if(icon != null)
         {
@@ -126,7 +139,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
         stage.setY(stage.getY() - 20);
 
         CalculationController controller = loader.getController();
-        controller.passData(MXLED_DATA);
+        controller.passData(LDSTD_DATA);
       }
       catch(IOException ignored)
       {}
@@ -221,11 +234,11 @@ public abstract class MaskController<C extends CIS> implements Initializable
   @FXML
   public void handleDataSheet(ActionEvent a)
   {
-    if(!(CIS_DATA instanceof MXLED) && MXLED_DATA.getLedLines() > 0)
+    if(!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0)
     {
       try
       {
-        MXLED_DATA.calculate();
+        LDSTD_DATA.calculate();
       }
       catch(CISException e)
       {
@@ -241,7 +254,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
         Scene scene = new Scene(loader.load());
         Stage stage = new Stage();
         stage.setScene(scene);
-        stage.setTitle("MXLED Datasheet");
+        stage.setTitle("LDSTD Datasheet");
         InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
         if(icon != null)
         {
@@ -253,7 +266,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
         stage.setY(stage.getY() - 20);
 
         DataSheetController controller = loader.getController();
-        controller.passData(MXLED_DATA);
+        controller.passData(LDSTD_DATA);
 
         if(a.getSource().equals(OEMMode))
         {
@@ -351,7 +364,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
               || Arrays.stream(record.get(EQUIPMENT.SELECT_CODE).split("&"))
               .allMatch(pred -> pred.length() == 0
                   || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred.replace("!", "")))
-                  || (!(CIS_DATA instanceof MXLED) && MXLED_DATA.getLedLines() > 0 && MXLED_DATA.getTiViKey().contains(pred.replace("!", "")))))
+                  || (!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0 && LDSTD_DATA.getTiViKey().contains(pred.replace("!", "")))))
           .map(record ->
           {
             Label[] labels = new Label[2];

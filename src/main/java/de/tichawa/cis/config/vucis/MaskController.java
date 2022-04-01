@@ -1,7 +1,7 @@
 package de.tichawa.cis.config.vucis;
 
 import de.tichawa.cis.config.CIS;
-import de.tichawa.cis.config.mxled.MXLED;
+import de.tichawa.cis.config.ldstd.LDSTD;
 import javafx.fxml.FXML;
 import javafx.scene.control.ChoiceBox;
 
@@ -29,7 +29,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
   public MaskController()
   {
     CIS_DATA = new VUCIS();
-    MXLED_DATA = new MXLED();
+    LDSTD_DATA = new LDSTD();
   }
 
   @Override

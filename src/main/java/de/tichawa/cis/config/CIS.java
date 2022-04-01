@@ -1,7 +1,7 @@
 package de.tichawa.cis.config;
 
 import de.tichawa.cis.config.model.tables.records.*;
-import de.tichawa.cis.config.mxled.MXLED;
+import de.tichawa.cis.config.ldstd.LDSTD;
 import de.tichawa.cis.config.vdcis.VDCIS;
 import de.tichawa.cis.config.vhcis.VHCIS;
 import de.tichawa.cis.config.vscis.VSCIS;
@@ -473,7 +473,7 @@ public abstract class CIS
         throw new CISException("Error in Mechanics");
       }
 
-      if(!(this instanceof MXLED))
+      if(!(this instanceof LDSTD))
       {
         setNumOfPix(calcNumOfPix());
       }
@@ -513,7 +513,7 @@ public abstract class CIS
 
   public String createPrntOut()
   {
-    if(this instanceof MXLED)
+    if(this instanceof LDSTD)
     {
       return createBlPrntOut();
     }
@@ -574,7 +574,8 @@ public abstract class CIS
     {
       String color;
 
-      if (getPhaseCount() == 3 || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4))
+      if (
+              getPhaseCount() == 3 || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4))
       {
         color = "RGB";
       }
@@ -735,7 +736,7 @@ public abstract class CIS
       if(clCalc.isPresent())
       {
         printout += "\n\t\n";
-        printout += clCalc.toString();
+        printout += clCalc.get().toString();
       }
       else
       {
@@ -1095,7 +1096,7 @@ public abstract class CIS
                 .append(String.format(getLocale(), "%.2f", totalPrices[2] * value)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[3] * value)).append("\n");
       }
-      else if(!(this instanceof MXLED))
+      else if(!(this instanceof LDSTD))
       {
         value = calcMap.get(getDpiCode()) / 100.0;
         totalOutput.append(getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")

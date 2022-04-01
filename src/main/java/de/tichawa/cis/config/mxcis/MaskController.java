@@ -1,15 +1,20 @@
 package de.tichawa.cis.config.mxcis;
 
-import de.tichawa.cis.config.*;
-import de.tichawa.cis.config.model.tables.records.*;
-import de.tichawa.cis.config.mxled.MXLED;
-
-import java.net.*;
-import java.util.*;
-import javafx.beans.value.*;
-import javafx.scene.control.*;
+import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.CISException;
+import de.tichawa.cis.config.ldstd.LDSTD;
+import de.tichawa.cis.config.model.tables.records.AdcBoardRecord;
+import de.tichawa.cis.config.model.tables.records.SensorBoardRecord;
+import de.tichawa.cis.config.model.tables.records.SensorChipRecord;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.util.*;
+import javafx.util.StringConverter;
+
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ResourceBundle;
 
 // Funktionen der Maske
 public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
@@ -17,7 +22,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
   public MaskController()
   {
     CIS_DATA = new MXCIS();
-    MXLED_DATA = new MXLED();
+    LDSTD LDSTD_DATA = new LDSTD();
   }
 
   @Override
@@ -50,7 +55,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
 
     Color.valueProperty().addListener((observable, oldValue, newValue) ->
     {
-      if(newValue.equals("RGB") && CIS_DATA.getLedLines() >= 2)
+      if(newValue.equals("RGB") && CIS_DATA.getLedLines() < 2)
       {
         Alert alert = new Alert(AlertType.WARNING);
         alert.setHeaderText("RGB only usable with Two Sided or One Sided plus Coax");
@@ -64,13 +69,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
         case "Monochrome":
         {
           CIS_DATA.setPhaseCount(1);
-          MXLED_DATA.setPhaseCount(1);
+          LDSTD_DATA.setPhaseCount(1);
           break;
         }
         case "RGB":
         {
           CIS_DATA.setPhaseCount(4);
-          MXLED_DATA.setPhaseCount(3);
+          LDSTD_DATA.setPhaseCount(3);
           break;
         }
       }
@@ -220,7 +225,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
       }
 
       CIS_DATA.setScanWidth(sw);
-      MXLED_DATA.setScanWidth(CIS_DATA.getScanWidth());
+      LDSTD_DATA.setScanWidth(CIS_DATA.getScanWidth());
     });
     
     //Wird jedes Mal ausgeführt, wenn sich der Wert des "Selected line rate" Sliders ändert
@@ -301,18 +306,18 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
       switch(ExternalLightSource.getSelectionModel().getSelectedIndex())
       {
         case 0:
-          MXLED_DATA.setDiffuseLightSources(0);
-          MXLED_DATA.setCoaxLightSources(0);
+          LDSTD_DATA.setDiffuseLightSources(0);
+          LDSTD_DATA.setCoaxLightSources(0);
           break;
         case 1:
-          MXLED_DATA.setDiffuseLightSources(1);
-          MXLED_DATA.setCoaxLightSources(0);
+          LDSTD_DATA.setDiffuseLightSources(1);
+          LDSTD_DATA.setCoaxLightSources(0);
           break;
       }
     });
 
     ExternalLightColor.valueProperty().addListener((observable, oldValue, newValue) -> CIS.LightColor.findByDescription(newValue)
-              .ifPresent(MXLED_DATA::setLightColor));
+              .ifPresent(LDSTD_DATA::setLightColor));
     
     Interface.valueProperty().addListener((observable, oldValue, newValue) ->
             CIS_DATA.setGigeInterface(Interface.getSelectionModel().getSelectedIndex() == 1));

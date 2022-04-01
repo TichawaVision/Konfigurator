@@ -1,14 +1,15 @@
 package de.tichawa.cis.config.vdcis;
 
-import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.ldstd.LDSTD;
+import javafx.beans.value.ObservableValue;
+import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 
-import java.net.*;
-import java.util.*;
-
-import de.tichawa.cis.config.mxled.MXLED;
-import javafx.beans.value.*;
-import javafx.fxml.*;
-import javafx.scene.control.*;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ResourceBundle;
 
 public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
 {
@@ -19,7 +20,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
   public MaskController()
   {
     CIS_DATA = new VDCIS();
-    MXLED_DATA = new MXLED();
+    LDSTD_DATA = new LDSTD();
   }
 
   @Override
