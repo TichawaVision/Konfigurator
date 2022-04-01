@@ -159,29 +159,27 @@ public class MXCIS extends CIS
         int endPixel = lval > numOfPix ? numOfPix - 1 : (x + 1) * lval - 1;
         CameraLink.Connection conn = new CameraLink.Connection();
         conn.addPorts(new CameraLink.Port(x * lval, endPixel, "Red"),
-            new CameraLink.Port(x * lval, endPixel, "Green"),
-            new CameraLink.Port(x * lval, endPixel, "Blue"));
+                new CameraLink.Port(x * lval, endPixel, "Green"),
+                new CameraLink.Port(x * lval, endPixel, "Blue"));
 
         cameraLink.addConnection(conn);
       }
     }
     else if(getPhaseCount() == 1)
     {
-      CameraLink.Connection conn = null;
+      LinkedList<CameraLink.Connection> connections = new LinkedList<>();
       for(int x = 0; x  * lval < numOfPix; x++)
       {
         if(x % 2 == 0)
         {
-          if(conn != null)
-          {
-            cameraLink.addConnection(conn);
-          }
-          conn = new CameraLink.Connection();
+          connections.add(new CameraLink.Connection());
         }
 
         int endPixel = lval > numOfPix ? numOfPix - 1 : (x + 1) * lval - 1;
-        conn.addPorts(new CameraLink.Port(x * lval, endPixel));
+        connections.getLast().addPorts(new CameraLink.Port(x * lval, endPixel));
       }
+
+      connections.forEach(cameraLink::addConnection);
     }
 
     return Optional.of(cameraLink);

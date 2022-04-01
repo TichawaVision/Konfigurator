@@ -121,7 +121,7 @@ public class VSCIS extends CIS
               .mapToInt(CameraLink.Connection::getPortCount)
               .sum())));
       int portLimit = connections.size() % 2 == 0 ? evenPortLimit : oddPortLimit;
-      while(connections.getLast().getPortCount() + getPhaseCount() <= portLimit)
+      while(connections.getLast().getPortCount() + getPhaseCount() <= portLimit && x < taps)
       {
         if(getPhaseCount() == 1)
         {
