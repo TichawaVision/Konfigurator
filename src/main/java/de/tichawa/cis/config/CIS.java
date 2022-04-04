@@ -674,11 +674,24 @@ public abstract class CIS
       printout += getString("DepthofField") + ": ~ " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1 mm\n";
       printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
       printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
+    }else if(this instanceof VTCIS) {
+      String[] dof = new String[]
+              {
+                      "+ 16.0 / -10.0", "+/- 8.0", "+/- 6.0", "+/- 4.0", "+/- 3.0", "+/- 2.0", "+/- 1.5", "+/- 1.0", "+/- 1.0", "+/- 0.5", "+/- 0.25"
+              };
+      printout += getString("scan distance") + ": 10 mm " + "\n";
+      printout += getString("DepthofField") + ": ~ " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
+      printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
+      if (!getLightSources().endsWith("0C")) {
+        printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
+      } else {
+        printout += getString("Aluminium case profile: 86x80mm (HxT) with bonded") + "\n";
+      }
     }
     else
     {
       printout += getString("scan distance") + ": 9-12 mm " + getString("exactseetypesign") + "\n";
-      if(this instanceof VSCIS || this instanceof VTCIS || this instanceof VHCIS)
+      if(this instanceof VSCIS ||  this instanceof VHCIS)
       {
         printout += getString("DepthofField") + ": ~ " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
       }
@@ -694,10 +707,6 @@ public abstract class CIS
       else if(!getLightSources().endsWith("0C"))
       {
         printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
-      }
-      else if(this instanceof VTCIS)
-      {
-        printout += getString("Aluminium case profile: 86x80mm (HxT) with bonded") + "\n";
       }
       else
       {
@@ -763,7 +772,6 @@ public abstract class CIS
       color = getLightColors().stream()
               .findAny().orElse(LightColor.NONE);
     }
-
     printout += getString("Color:") + color.getDescription() + "\n";
     printout += "\n\t\n";
     printout += getString("line width") + ": ~ 1 mm\n";
