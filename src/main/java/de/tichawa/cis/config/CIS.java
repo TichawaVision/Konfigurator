@@ -1177,7 +1177,7 @@ public abstract class CIS
     }
     else
     {
-      return "Z_" + getSelectedResolution().getActualResolution() + "_DPI";
+      return getSelectedResolution().getActualResolution() < 100 ? "Z_00" + getSelectedResolution().getActualResolution() + "_DPI" : "Z_0" + getSelectedResolution().getActualResolution() + "_DPI";
     }
   }
 
