@@ -1096,7 +1096,7 @@ public abstract class CIS
 
       if(this instanceof MXCIS)
       {
-        String cat = getTiViKey().split("_")[3];
+        String cat = getTiViKey().split("_")[4];          /* String cat = getTiViKey().split("_")[3]*/
         value = calcMap.get("Z_" + cat) / 100;
         totalOutput.append(getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[0] * value)).append("\t")
