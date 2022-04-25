@@ -1,28 +1,25 @@
 package de.tichawa.cis.config;
 
-import de.tichawa.cis.config.model.tables.records.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
+import de.tichawa.cis.config.model.tables.records.*;
+import de.tichawa.cis.config.mxcis.MXCIS;
 import de.tichawa.cis.config.vdcis.VDCIS;
 import de.tichawa.cis.config.vhcis.VHCIS;
 import de.tichawa.cis.config.vscis.VSCIS;
 import de.tichawa.cis.config.vtcis.VTCIS;
 import de.tichawa.cis.config.vucis.VUCIS;
 import de.tichawa.util.MathEval;
-import de.tichawa.cis.config.mxcis.MXCIS;
 import lombok.*;
-import org.apache.commons.dbcp2.*;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.jooq.*;
-import org.jooq.exception.*;
-import org.jooq.impl.*;
+import org.jooq.exception.DataAccessException;
+import org.jooq.impl.DSL;
 
 import java.io.*;
-import java.io.IOException;
-import java.text.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import java.util.regex.*;
 import java.util.stream.*;
 
 import static de.tichawa.cis.config.model.Tables.*;
@@ -231,17 +228,16 @@ public abstract class CIS
 
     String fullName = this.getClass().getName();
     cisName = fullName.substring(fullName.lastIndexOf('.') + 1);
-
     dbProperties = new Properties();
     dataSource = new BasicDataSource();
     try
     {
-      dbProperties.loadFromXML(new FileInputStream("connection.xml"));
+      dbProperties.loadFromXML(new FileInputStream("U:/SW/PC/Java/Konfigurator/connection.xml"));
 
       switch(dbProperties.getProperty("dbType"))
       {
         case "SQLite":
-          dataSource.setUrl("jdbc:sqlite:" + dbProperties.getProperty("dbFile"));
+          dataSource.setUrl("jdbc:sqlite:" + "U:/SW/PC/Java/Konfigurator" + "/" + dbProperties.getProperty("dbFile"));
           break;
         case "MariaDB":
           dataSource.setUrl("jdbc:mariadb://" + dbProperties.getProperty("dbHost") + ":" + dbProperties.getProperty("dbPort")
@@ -1177,7 +1173,7 @@ public abstract class CIS
     }
     else
     {
-      return getSelectedResolution().getActualResolution() < 100 ? "Z_00" + getSelectedResolution().getActualResolution() + "_DPI" : "Z_0" + getSelectedResolution().getActualResolution() + "_DPI";
+      return "Z_" + getTiViKey().split("_")[3] + "_DPI";
     }
   }
 
