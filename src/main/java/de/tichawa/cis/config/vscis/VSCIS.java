@@ -2,6 +2,7 @@ package de.tichawa.cis.config.vscis;
 
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.model.tables.records.*;
+import de.tichawa.cis.config.vtcis.VTCIS;
 
 import java.util.*;
 
@@ -33,7 +34,14 @@ public class VSCIS extends CIS
     {
       key += "NO";
     }
-
+    if(getLightSources().equals("2D0C"))
+    {
+      key += "2";
+    }
+    if(getLightSources().equals("2D1C"))
+    {
+      key += "3";
+    }
     if(getPhaseCount() == 3)
     {
       key += "RGB";
@@ -56,9 +64,9 @@ public class VSCIS extends CIS
     {
       key += "GT";
     }
-
-    key += getCooling().getCode();
-
+    if(!(this instanceof VTCIS)){
+      key += getCooling().getCode();
+    }
     if(key.endsWith("_"))
     {
       key = key.substring(0, key.length() - 1);
@@ -100,7 +108,7 @@ public class VSCIS extends CIS
     binning = 1 / (sensorChip.getBinning() * ((double) getSelectedResolution().getBoardResolution() / (double) getSelectedResolution().getActualResolution()));
     lval = (int) (chipsPerTap * (ppsbin - (sensorBoard.getOverlap() * binning) / sensorBoard.getChips()));
     lval -= lval % 8;
-
+    portDataRate = getPhaseCount() * numOfPix * getSelectedLineRate();
     CameraLink cl = new CameraLink(portDataRate, numOfPixNominal, pixelClock);
     LinkedList<CameraLink.Connection> connections = new LinkedList<>();
 

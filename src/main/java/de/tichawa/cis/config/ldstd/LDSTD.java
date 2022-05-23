@@ -24,7 +24,6 @@ public class LDSTD extends CIS
     {
         String key = "G_LDSTD";
         key += String.format("_%04d", getScanWidth());
-        key += "_K1";
 
         key += "_";
         if(getLightSources().equals("0D0C"))

@@ -62,6 +62,10 @@ public class MXCIS extends CIS
     {
       key += "NO";
     }
+    if(getLightSources().equals("2D0C") || getLightSources().equals("2D1C"))
+    {
+      key += "2";
+    }
 
     if(getPhaseCount() == 4)
     {
@@ -86,7 +90,7 @@ public class MXCIS extends CIS
       key += "GT";
     }
 
-    key += getCooling().getCode();
+//    key += getCooling().getCode();
 
     if(key.endsWith("_"))
     {
@@ -150,7 +154,10 @@ public class MXCIS extends CIS
     int portCount =  (int) Math.ceil(numOfPix / (lval * (getPhaseCount() == 1 ? 1.0 : 3.0)));
 
     long dataRate = (long) portCount * Math.min(lval, numOfPix) * getSelectedLineRate();
-    CameraLink cameraLink = new CameraLink(dataRate, numOfPix,85000000);
+    if(getSelectedResolution().getActualResolution() <= 150){
+      numOfPix = lval;
+    }
+    CameraLink cameraLink = new CameraLink(dataRate,  numOfPix,85000000);
 
     if(getPhaseCount() == 4)
     {

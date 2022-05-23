@@ -32,11 +32,7 @@ public class VDCIS extends CIS
       key += String.format("_%04d", getSelectedResolution().getActualResolution());
     }
 
-    key += "_";
-    if(getLightSources().equals("0D0C"))
-    {
-      key += "NO";
-    }
+    key += "_2";
 
     if(getPhaseCount() == 4)
     {
@@ -44,7 +40,7 @@ public class VDCIS extends CIS
     }
     else
     {
-      key += getLightColors().stream()
+      key +=  getLightColors().stream()
               .findAny().orElse(LightColor.NONE)
               .getShortHand();
     }
@@ -61,7 +57,7 @@ public class VDCIS extends CIS
       key += "GT";
     }
 
-    key += getCooling().getCode();
+//    key += getCooling().getCode();
 
     if(key.endsWith("_"))
     {
@@ -88,7 +84,7 @@ public class VDCIS extends CIS
     lval = pixPerTap - pixPerTap % 8;
 
     boolean mediumMode = !getCLMode().equals("Full80");
-    long datarate = (long) getPhaseCount() * numOfPixNominal * getSelectedLineRate();
+    long datarate = (long) (getPhaseCount() - 1) * numOfPixNominal * getSelectedLineRate();
     LinkedList<CameraLink.Connection> connections = new LinkedList<>();
     int portLimit = mediumMode ? 8 : 10;
 
@@ -127,7 +123,7 @@ public class VDCIS extends CIS
       }
     }
 
-    String notes = "LVAL: " + lval + "\n" +
+    String notes = "LVAL(Modulo 8): " + lval + "\n" +
             getString("clMode") + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
             getString("numPhases") + getPhaseCount() + "\n" ;
 
