@@ -55,7 +55,8 @@
         <ComboBox fx:id="ScanWidth" promptText="300 mm" GridPane.columnIndex="1" GridPane.rowIndex="1">
           <items>
             <FXCollections fx:factory="observableArrayList">
-              <String fx:value="1580 mm"/>
+              <String fx:value="1820 mm"/>
+              <String fx:value="1560 mm"/>
               <String fx:value="1300 mm"/>
               <String fx:value="1040 mm"/>
               <String fx:value="780 mm"/>
@@ -186,7 +187,7 @@
           </items>
         </ChoiceBox>
         <HBox alignment="BOTTOM_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.rowIndex="1">
-          <Label alignment="CENTER" text="Brightfield Left"/>
+          <Label alignment="CENTER" text="Brightfield Left:"/>
           <ChoiceBox fx:id="BrightFieldLeft" prefWidth="150.0">
             <items>
               <FXCollections fx:factory="observableArrayList">
@@ -208,8 +209,8 @@
             </items>
           </ChoiceBox>
         </HBox>
-        <HBox alignment="BOTTOM_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="5.0"
-              GridPane.columnIndex="2" GridPane.rowIndex="1">
+        <HBox alignment="BOTTOM_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+          <Label alignment="CENTER" text="Brightfield Right:"/>
           <ChoiceBox fx:id="BrightFieldRight" prefWidth="150.0">
             <items>
               <FXCollections fx:factory="observableArrayList">
@@ -230,10 +231,10 @@
               </FXCollections>
             </items>
           </ChoiceBox>
-          <Label alignment="CENTER" text="Brightfield Right"/>
+
         </HBox>
         <HBox alignment="TOP_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.rowIndex="2">
-          <Label alignment="CENTER" text="Darkfield Left"/>
+          <Label alignment="CENTER" text="Darkfield Left:"/>
           <ChoiceBox fx:id="DarkFieldLeft" prefWidth="150.0">
             <items>
               <FXCollections fx:factory="observableArrayList">
@@ -256,6 +257,7 @@
           </ChoiceBox>
         </HBox>
         <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
+          <Label alignment="CENTER" text="Darkfield Right:"/>
           <ChoiceBox fx:id="DarkFieldRight" prefWidth="150.0">
             <items>
               <FXCollections fx:factory="observableArrayList">
@@ -276,11 +278,11 @@
               </FXCollections>
             </items>
           </ChoiceBox>
-          <Label alignment="CENTER" text="Darkfield Right"/>
+
         </HBox>
         <VBox alignment="BOTTOM_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0"
               GridPane.columnIndex="1" GridPane.rowIndex="1">
-          <Label alignment="CENTER" text="Coax"/>
+          <Label alignment="CENTER" text="Coax:"/>
           <ChoiceBox fx:id="Coax" prefWidth="150.0">
             <items>
               <FXCollections fx:factory="observableArrayList">
