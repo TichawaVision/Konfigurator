@@ -29,17 +29,26 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
   public List<CIS.Resolution> setupResolutions()
   {
     return Arrays.asList(
-            new CIS.Resolution(600,600,false,16.0,0.0423),
-            new CIS.Resolution(400,400,false,8.0,0.0635),
-            new CIS.Resolution(300,300,false,4.0,0.0847),
-            new CIS.Resolution(200,200,false,3.0,0.125),
-            new CIS.Resolution(150,300,false,2.0,0.167),
-            new CIS.Resolution(100,300,false,1.5,0.25),
-            new CIS.Resolution(75,300,false,1.0,0.339),
-            new CIS.Resolution(50,300,false,0.5,0.5),
-            new CIS.Resolution(25,300,false,0.5,1.0));
+            new CIS.Resolution(600,600,false,0.5,0.0423),
+            new CIS.Resolution(400,400,false,0.5,0.0635),
+            new CIS.Resolution(300,300,false,1.0,0.0847),
+            new CIS.Resolution(200,200,false,1.0,0.125),
+            new CIS.Resolution(150,300,false,1.5,0.167),
+            new CIS.Resolution(100,300,false,2.0,0.25),
+            new CIS.Resolution(75,300,false,3.0,0.339),
+            new CIS.Resolution(50,300,false,4.0,0.5),
+            new CIS.Resolution(25,300,false,6.0,1.0));
   }
-
+//    return Arrays.asList(
+//            new CIS.Resolution(600,600,false,16.0,0.0423),
+//            new CIS.Resolution(400,400,false,8.0,0.0635),
+//            new CIS.Resolution(300,300,false,6.0,0.0847),
+//            new CIS.Resolution(200,200,false,4.0,0.125),
+//            new CIS.Resolution(150,300,false,3.0,0.167),
+//            new CIS.Resolution(100,300,false,2.0,0.25),
+//            new CIS.Resolution(75,300,false,1.5,0.339),
+//            new CIS.Resolution(50,300,false,1.0,0.5),
+//            new CIS.Resolution(25,300,false,1.0,1.0));
   @Override
   // Initialisiert die graphische Oberfläche
   public void initialize(URL url, ResourceBundle rb)

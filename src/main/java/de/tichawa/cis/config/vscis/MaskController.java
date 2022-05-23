@@ -18,17 +18,17 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS>
   public List<CIS.Resolution> setupResolutions()
   {
     return Arrays.asList(
-            new CIS.Resolution(1200,1200,true,16.0,0.02115),
-            new CIS.Resolution(1200,1200,false,8.0,0.02115),
-            new CIS.Resolution(600,600,false,6.0,0.0423),
-            new CIS.Resolution(400,1200,false,4.0,0.0635),
-            new CIS.Resolution(300,300,false,3.0,0.0847),
+            new CIS.Resolution(1200,1200,true,0.25,0.02115),
+            new CIS.Resolution(1200,1200,false,0.5,0.02115),
+            new CIS.Resolution(600,600,false,1.0,0.0423),
+            new CIS.Resolution(400,1200,false,1.0,0.0635),
+            new CIS.Resolution(300,300,false,1.5,0.0847),
             new CIS.Resolution(200,600,false,2.0,0.125),
-            new CIS.Resolution(150,300,false,1.5,0.167),
-            new CIS.Resolution(100,300,false,1.0,0.25),
-            new CIS.Resolution(75,300,false,1.0,0.339),
-            new CIS.Resolution(50,300,false,0.5,0.5),
-            new CIS.Resolution(25,300,false,0.25,1.0));
+            new CIS.Resolution(150,300,false,3.0,0.167),
+            new CIS.Resolution(100,300,false,4.0,0.25),
+            new CIS.Resolution(75,300,false,6.0,0.339),
+            new CIS.Resolution(50,300,false,8.0,0.5),
+            new CIS.Resolution(25,300,false,10.0,1.0));
   }
 
   @Override
@@ -41,7 +41,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS>
     CIS_DATA.setSelectedResolution(getResolutions().get(0));
     CIS_DATA.setScanWidth(1040);
     CIS_DATA.setExternalTrigger(false);
-    CIS_DATA.setCooling(CIS.Cooling.LICO);
+    CIS_DATA.setCooling(CIS.Cooling.FAIR);
 
     Color.valueProperty().addListener((observable, oldValue, newValue) ->
     {
@@ -68,7 +68,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS>
       InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
       ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
-      MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
+      MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
@@ -80,7 +80,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS>
     {
       CIS_DATA.setSelectedResolution(getResolutions().get(Resolution.getSelectionModel().getSelectedIndex()));
 
-      MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
+      MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 

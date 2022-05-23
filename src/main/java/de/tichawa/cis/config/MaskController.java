@@ -127,7 +127,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
         Scene scene = new Scene(loader.load());
         Stage stage = new Stage();
         stage.setScene(scene);
-        stage.setTitle("LDSTD Calculation");
+        stage.setTitle("LDSTD Calculation_n.v");
         InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
         if(icon != null)
         {
@@ -163,7 +163,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
       Scene scene = new Scene(loader.load());
       Stage stage = new Stage();
       stage.setScene(scene);
-      stage.setTitle(CIS_DATA.cisName + " Calculation");
+      stage.setTitle(CIS_DATA.cisName + " Calculation_n.v");
       InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
       if(icon != null)
       {
@@ -254,7 +254,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
         Scene scene = new Scene(loader.load());
         Stage stage = new Stage();
         stage.setScene(scene);
-        stage.setTitle("LDSTD Datasheet");
+        stage.setTitle("LDSTD Datasheet_n.v");
         InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
         if(icon != null)
         {
@@ -302,7 +302,7 @@ public abstract class MaskController<C extends CIS> implements Initializable
       Scene scene = new Scene(loader.load());
       Stage stage = new Stage();
       stage.setScene(scene);
-      stage.setTitle(CIS_DATA.cisName + " Datasheet");
+      stage.setTitle(CIS_DATA.cisName + " Datasheet_n.v");
       InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
       if(icon != null)
       {

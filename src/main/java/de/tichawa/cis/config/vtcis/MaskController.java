@@ -6,9 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
 {
@@ -26,17 +24,17 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
   public List<CIS.Resolution> setupResolutions()
   {
     return Arrays.asList(
-            new CIS.Resolution(1200,1200,true,16.0,0.02115),
-            new CIS.Resolution(1200,1200,false,8.0,0.02115),
-            new CIS.Resolution(600,600,false,6.0,0.0423),
-            new CIS.Resolution(400,1200,false,4.0,0.0635),
-            new CIS.Resolution(300,300,false,3.0,0.0847),
+            new CIS.Resolution(1200,1200,true,0.25,0.02115),
+            new CIS.Resolution(1200,1200,false,0.5,0.02115),
+            new CIS.Resolution(600,600,false,1.0,0.0423),
+            new CIS.Resolution(400,1200,false,1.0,0.0635),
+            new CIS.Resolution(300,300,false,1.5,0.0847),
             new CIS.Resolution(200,600,false,2.0,0.125),
-            new CIS.Resolution(150,300,false,1.5,0.167),
-            new CIS.Resolution(100,300,false,1.0,0.25),
-            new CIS.Resolution(75,300,false,1.0,0.339),
-            new CIS.Resolution(50,300,false,0.5,0.5),
-            new CIS.Resolution(25,300,false,0.25,1.0));
+            new CIS.Resolution(150,300,false,3.0,0.167),
+            new CIS.Resolution(100,300,false,4.0,0.25),
+            new CIS.Resolution(75,300,false,6.0,0.339),
+            new CIS.Resolution(50,300,false,8.0,0.5),
+            new CIS.Resolution(25,300,false,10.0,1.0));
   }
 
   @Override
@@ -59,7 +57,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
         Color.getSelectionModel().select(oldValue);
         return;
       }
-
+      if(newValue.contains("Three phases (RGB)")){
+        InternalLightColor.getSelectionModel().selectFirst();
+      }
       switch(newValue)
       {
         case "One phase (Monochrome)":
@@ -99,11 +99,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
         Color.getSelectionModel().select(oldValue);
         return;
       }
-
-      InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
+      if(newValue.equals("Three phases (RGB)")){
+        InternalLightColor.getSelectionModel().selectFirst();
+      }
+      InternalLightColor.setDisable(CIS_DATA.getLedLines() == 0);
       ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
-      MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
+      MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
@@ -115,7 +117,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
     {
       CIS_DATA.setSelectedResolution(getResolutions().get(Resolution.getSelectionModel().getSelectedIndex()));
 
-      MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
+      MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
