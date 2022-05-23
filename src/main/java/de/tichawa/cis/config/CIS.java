@@ -91,7 +91,7 @@ public abstract class CIS
     BLUE("Blue","BL",'B'),
     YELLOW("Yellow","YE",'Y'),
     WHITE("White","WH",'W'),
-    IR850("IR 850nm","IR",'I'),
+    IR("IR","IR",'I'),
     IR950("IR 950nm","JR",'J'),
     UVA("UVA 365nm","UV",'U'),
     VERDE("Verde","VE",'V'),
@@ -150,25 +150,29 @@ public abstract class CIS
 
   public enum Cooling
   {
-    NONE("NOCO", "No cooling"),
-    PAIR("PAIR", "Passive air"),
-    FAIR("", "Internal forced air"),
-    EAIR("FAIR", "External forced air"),
-    LICO("LICO", "Liquid cooling");
+    NONE("NOCO", "None", "none"),
+    PAIR("PAIR", "Passive Air", "passair"),
+    FAIR("", "Int. Forced Air(Default)", "intforced"),
+    EAIR("FAIR", "Ext. Forced Air", "extforced"),
+    LICO("LICO", "Liquid Cooling", "lico");
 
     private final String code;
     private final String description;
+    private final String shortHand;
 
-    Cooling(String code, String description)
+    Cooling(String code, String description, String shortHand)
     {
       this.code = code;
       this.description = description;
+      this.shortHand = shortHand;
     }
 
     public String getCode()
     {
       return code;
     }
+
+    public  String getShortHand(){return shortHand;}
 
     public String getDescription()
     {
@@ -413,9 +417,9 @@ public abstract class CIS
                       electSums[2] += priceRecord.getPowerConsumption() * amount;
                       electSums[3] += priceRecord.getWeight() * amount;
 
-                      if(priceRecord.getPhotoValue() != null)
+                      if(priceRecord.getPhotoValue() != 0)
                       {
-                        electSums[4] = Math.min(priceRecord.getPhotoValue(), electSums[4]);
+                        electSums[4] = priceRecord.getPhotoValue();          //Math.min(priceRecord.getPhotoValue(), electSums[4])
                       }
                     });
 
@@ -456,9 +460,9 @@ public abstract class CIS
                       mechaSums[2] += priceRecord.getPowerConsumption() * amount;
                       mechaSums[3] += priceRecord.getWeight() * amount;
 
-                      if(priceRecord.getPhotoValue() != null)
+                      if(priceRecord.getPhotoValue() != 0)
                       {
-                        mechaSums[4] *= priceRecord.getPhotoValue();
+                        mechaSums[4] = priceRecord.getPhotoValue();
                       }
                     });
               }
@@ -517,7 +521,7 @@ public abstract class CIS
     String key = getTiViKey();
     String printout = key;
     printout += "\n\t\n";
-    printout += getScanWidth() + " mm, Trigger: " + (isExternalTrigger() ? "CC1" : "extern (RS422)");
+    printout += getScanWidth() + " mm, Trigger: " + (!isExternalTrigger()? "CC1" : "extern (RS422)");
 
     if(key.contains("MXCIS"))
     {
@@ -541,12 +545,13 @@ public abstract class CIS
       {
         factor = 1;
       }
-
-      printout += ", max. " + getMaxLineRate() * factor / 1000.0 + " kHz\n";
+      double roundLineRate = Math.round((getMaxLineRate() * factor / 1000.0) * 100.0) / 100.0;
+      printout += ", max. " + roundLineRate + " kHz\n";
     }
     else
     {
-      printout += ", max. " + getMaxLineRate() / 1000.0 + " kHz\n";
+      double roundLineRate = Math.round((getMaxLineRate() / 1000.0) * 100.0) / 100.0;
+      printout += ", max. " + roundLineRate + " kHz\n";
     }
     printout += getString("Resolution: ");
 
@@ -671,14 +676,11 @@ public abstract class CIS
       printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
       printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
     }else if(this instanceof VTCIS) {
-      String[] dof = new String[]
-              {
-                      "+ 16.0 / -10.0", "+/- 8.0", "+/- 6.0", "+/- 4.0", "+/- 3.0", "+/- 2.0", "+/- 1.5", "+/- 1.0", "+/- 1.0", "+/- 0.5", "+/- 0.25"
-              };
       printout += getString("scan distance") + ": 10 mm " + "\n";
-      printout += getString("DepthofField") + ": ~ " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
+      printout += getString("DepthofField") + ": ~ +/- " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
       printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
-      if (!getLightSources().endsWith("0C")) {
+
+      if(!getLightSources().endsWith("0C")) {
         printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
       } else {
         printout += getString("Aluminium case profile: 86x80mm (HxT) with bonded") + "\n";
@@ -689,7 +691,7 @@ public abstract class CIS
       printout += getString("scan distance") + ": 9-12 mm " + getString("exactseetypesign") + "\n";
       if(this instanceof VSCIS ||  this instanceof VHCIS)
       {
-        printout += getString("DepthofField") + ": ~ " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
+        printout += getString("DepthofField") + ": ~ +/- "  + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
       }
       else
       {
@@ -714,8 +716,14 @@ public abstract class CIS
     printout += getString("powersource") + "(24 +/- 1) VDC\n";
     printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
     printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
-
-    printout += getCooling().getDescription() + "\n";
+    if(this instanceof VTCIS){
+      printout += getString("lico");
+    }
+    else if(this instanceof VSCIS){
+      printout += getString(getCooling().getShortHand()) + "\n";
+    }else{
+      printout += getString("intforced");
+    }
     printout += getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
     printout += "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m)") + "\n";
 
@@ -829,7 +837,12 @@ public abstract class CIS
             }
             else
             {
-              proceed = getLedLines() >= 3;
+              if(this instanceof MXCIS) {
+                proceed = getLedLines() >= 3;
+              }
+              else{
+                proceed = getLedLines() <=3;
+              }
             }
             break;
           case "AM":
@@ -1181,12 +1194,12 @@ public abstract class CIS
   {
     int numOfPix;
     int sensorBoards = getScanWidth() / BASE_LENGTH;
-
+    int binning = getBinning();
     if(this instanceof MXCIS)
     {
       SensorChipRecord sensorChip = ((MXCIS) this).getSensorChip(getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
       SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
-      numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / getBinning();
+      numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / binning;
     }
     else if(this instanceof VHCIS || this instanceof VTCIS || this instanceof VUCIS)
     {
