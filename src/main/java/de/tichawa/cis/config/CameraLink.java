@@ -1,9 +1,10 @@
 package de.tichawa.cis.config;
 
 import lombok.*;
-
-import java.util.LinkedList;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static de.tichawa.cis.config.CIS.locale;
 
 @Value
 @AllArgsConstructor
@@ -40,20 +41,18 @@ public class CameraLink
         .sum();
   }
 
-  //TODO: Load texts from bundle
   @Override
   public String toString() {
-
     StringBuilder output = new StringBuilder("Data rate: ")
             .append(Math.round(getDataRate() / 100000.0) / 10.0)
             .append(" MByte/s\n");
-    output.append("Number of pixels: ")
+    output.append(getString("nomPix"))
             .append(getPixelCount())
             .append("\n");
-    output.append("Number of connections: ")
+    output.append(getString("numofconnes"))
             .append(getConnectionCount())
             .append("\n");
-    output.append("Number of ports: ")
+    output.append(getString("numofport"))
             .append(getPortCount())
             .append("\n");
     output.append("Pixel clock: ")
@@ -84,10 +83,7 @@ public class CameraLink
     @Getter(AccessLevel.PRIVATE)
     LinkedList<Port> ports;
 
-    public Connection()
-    {
-      this(DEFAULT_ID, Port.DEFAULT_NAME);
-    }
+    public Connection() { this(DEFAULT_ID, Port.DEFAULT_NAME);}
 
     public Connection(int defaultId, char defaultPort)
     {
@@ -161,5 +157,13 @@ public class CameraLink
       return "Port " + getName() + noteString + ": "
           + String.format("%05d", getStartPixel()) + " - " + String.format("%05d", getEndPixel());
     }
+  }
+  public String getString(String key)
+  {
+    return ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString(key);
+  }
+  public Locale getLocale()
+  {
+    return locale;
   }
 }
