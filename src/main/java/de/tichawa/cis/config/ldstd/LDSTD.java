@@ -31,7 +31,7 @@ public class LDSTD extends CIS
             key += "NO";
         }
 
-        if(getPhaseCount() == 4)
+        if(getPhaseCount() == 3)
         {
             key += "RGB";
         }

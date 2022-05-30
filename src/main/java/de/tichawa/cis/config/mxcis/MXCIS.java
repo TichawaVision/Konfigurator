@@ -149,9 +149,9 @@ public class MXCIS extends CIS
 
     pixPerTap = (int) ((double) pixPerFpga / (double) tapsPerFpga);
     lval = pixPerTap;
-
+    int portCount = getPhaseCount() == 1 ? (int) Math.ceil(numOfPix / (lval * 1.0)) : (int) Math.ceil(3 * Math.ceil(numOfPix / (lval * 1.0)));
     int conCount = (int) Math.ceil(numOfPix / (lval * (getPhaseCount() == 1 ? 2.0 : 1.0)));
-    int portCount =  (int) Math.ceil(numOfPix / (lval * (getPhaseCount() == 1 ? 1.0 : 3.0)));
+//    int portCount =  (int) Math.ceil(numOfPix / (lval * (getPhaseCount() == 1 ? 1.0 : 3.0)));
 
     long dataRate = (long) portCount * Math.min(lval, numOfPix) * getSelectedLineRate();
     if(getSelectedResolution().getActualResolution() <= 150){
