@@ -365,7 +365,7 @@ public abstract class CIS
       {
         sensPerFpga = 1;
       }
-      else if(this instanceof VDCIS && getPhaseCount() > 1)
+      else if((this instanceof VDCIS && getPhaseCount() > 1) || (this instanceof  MXCIS && getPhaseCount() == 4))
       {
         //FULL (RGB)
         sensPerFpga = 2;
@@ -717,12 +717,12 @@ public abstract class CIS
     printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
     printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
     if(this instanceof VTCIS){
-      printout += getString("lico");
+      printout += getString("lico") + "\n";
     }
     else if(this instanceof VSCIS){
       printout += getString(getCooling().getShortHand()) + "\n";
     }else{
-      printout += getString("intforced");
+      printout += getString("intforced") + "\n";
     }
     printout += getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
     printout += "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m)") + "\n";
@@ -754,6 +754,9 @@ public abstract class CIS
       else
       {
         return null;
+      }
+      if(this instanceof VTCIS || this instanceof VDCIS){
+        printout += getString("configOnRequest");
       }
     }
     return printout;
@@ -837,12 +840,21 @@ public abstract class CIS
             }
             else
             {
-              if(this instanceof MXCIS) {
-                proceed = getLedLines() >= 3;
+              if(!(this instanceof VDCIS) && !(this instanceof  MXCIS))
+              {
+                proceed = getPhaseCount() == 3;
+              }else
+              {
+                proceed = getPhaseCount() == 4;
               }
-              else{
-                proceed = getLedLines() <=3;
-              }
+//              if(this instanceof MXCIS && getTiViKey().contains("RGB")) {
+//                proceed = getLedLines() >= 3;
+//              }
+//              else if(getTiViKey().contains("RGB") && this instanceof VTCIS && this instanceof VDCIS && this instanceof VSCIS){
+//                proceed = getLedLines() >=3;
+//              }else {
+//                proceed = getLedLines() >= 3;
+//              }
             }
             break;
           case "AM":
