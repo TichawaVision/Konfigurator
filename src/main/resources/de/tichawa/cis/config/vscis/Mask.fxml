@@ -181,6 +181,7 @@
                   GridPane.columnIndex="3" GridPane.rowIndex="1">
           <items>
             <FXCollections fx:factory="observableArrayList">
+              <String fx:value="None"/>
               <String fx:value="Red"/>
               <String fx:value="Green"/>
               <String fx:value="Blue"/>

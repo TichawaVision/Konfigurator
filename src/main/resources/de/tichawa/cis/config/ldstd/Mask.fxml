@@ -70,24 +70,24 @@
         <ComboBox fx:id="ScanWidth" promptText="1040 mm" GridPane.columnIndex="1" GridPane.rowIndex="1">
           <items>
             <FXCollections fx:factory="observableArrayList">
-              <String fx:value="4160 mm"/>
+              <!--String fx:value="4160 mm"/>
               <String fx:value="3900 mm"/>
               <String fx:value="3640 mm"/>
               <String fx:value="3380 mm"/>
               <String fx:value="3120 mm"/>
               <String fx:value="2860 mm"/>
               <String fx:value="2600 mm"/>
-              <String fx:value="2340 mm"/>
+              <String fx:value="2340 mm"/-->
               <String fx:value="2080 mm"/>
               <String fx:value="1820 mm"/>
               <String fx:value="1560 mm"/>
               <String fx:value="1300 mm"/>
               <String fx:value="1040 mm"/>
-              <String fx:value="910 mm"/>
+              <!--String fx:value="910 mm"/-->
               <String fx:value="780 mm"/>
-              <String fx:value="650 mm"/>
+              <!--String fx:value="650 mm"/-->
               <String fx:value="520 mm"/>
-              <String fx:value="390 mm"/>
+              <!--String fx:value="390 mm"/-->
               <String fx:value="260 mm"/>
             </FXCollections>
           </items>
@@ -178,6 +178,7 @@
                   GridPane.columnIndex="1" GridPane.rowIndex="1">
           <items>
             <FXCollections fx:factory="observableArrayList">
+              <String fx:value="None"/>
               <String fx:value="Red"/>
               <String fx:value="Green"/>
               <String fx:value="Blue"/>
