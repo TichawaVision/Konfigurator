@@ -90,6 +90,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
       }
 
       InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
+      if(newValue.equals("RGB")){
+        InternalLightColor.getSelectionModel().selectFirst();
+        ExternalLightColor.getSelectionModel().selectFirst();
+      }
       ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
       SensorChipRecord sensorChip = CIS_DATA.getSensorChip(CIS_DATA.getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
@@ -266,7 +270,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
         return;
       }
 
-      if(CIS_DATA.getPhaseCount() == 4 && !newValue.equals("Coax") && !newValue.equals("Two sided"))
+      if(CIS_DATA.getPhaseCount() == 4 && !newValue.equals("One Sided plus Coax") && !newValue.equals("Two sided"))
       {
         InternalLightSource.getSelectionModel().select(oldValue);
         return;
@@ -298,7 +302,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
           CIS_DATA.setCoaxLightSources(0);
           break;
         case 4:
-          CIS_DATA.setDiffuseLightSources(2);
+          CIS_DATA.setDiffuseLightSources(1);
           CIS_DATA.setCoaxLightSources(1);
           break;
       }
@@ -341,8 +345,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
     ScanWidth.getSelectionModel().selectFirst();
     InternalLightSource.getSelectionModel().select(1);
     ExternalLightSource.getSelectionModel().selectFirst();
-    InternalLightColor.getSelectionModel().selectFirst();
-    ExternalLightColor.getSelectionModel().selectFirst();
+    InternalLightColor.getSelectionModel().select(1);
+    ExternalLightColor.getSelectionModel().select(1);
     Interface.getSelectionModel().selectFirst();
     Cooling.getSelectionModel().select(1);
     Trigger.setSelected(false);

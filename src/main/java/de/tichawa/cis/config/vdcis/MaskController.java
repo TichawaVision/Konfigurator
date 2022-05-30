@@ -187,7 +187,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
     Resolution.getSelectionModel().selectFirst();
     ScanWidth.getSelectionModel().selectLast();
     InternalLightSource.getSelectionModel().select(2);
-    InternalLightColor.getSelectionModel().selectFirst();
+    InternalLightColor.getSelectionModel().select(1);
     Interface.getSelectionModel().selectFirst();
     Cooling.getSelectionModel().select(1);
     Trigger.setSelected(false);

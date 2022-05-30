@@ -47,6 +47,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<LDSTD>
             }
 
             InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
+            if(newValue.equals("RGB")){
+                InternalLightColor.getSelectionModel().selectFirst();
+            }
             ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
         });
         ScanWidth.valueProperty().addListener((observable, oldValue, newValue) ->
@@ -90,7 +93,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<LDSTD>
         Color.getSelectionModel().selectFirst();
         ScanWidth.getSelectionModel().selectFirst();
         InternalLightSource.getSelectionModel().select(1);
-        InternalLightColor.getSelectionModel().selectFirst();
+        InternalLightColor.getSelectionModel().select(1);
     }
 
     @Override

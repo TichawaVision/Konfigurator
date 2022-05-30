@@ -99,8 +99,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
         Color.getSelectionModel().select(oldValue);
         return;
       }
+      InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
       if(newValue.equals("Three phases (RGB)")){
         InternalLightColor.getSelectionModel().selectFirst();
+        ExternalLightColor.getSelectionModel().selectFirst();
       }
       InternalLightColor.setDisable(CIS_DATA.getLedLines() == 0);
       ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
@@ -221,8 +223,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
     ScanWidth.getSelectionModel().selectLast();
     InternalLightSource.getSelectionModel().select(1);
     ExternalLightSource.getSelectionModel().selectFirst();
-    InternalLightColor.getSelectionModel().selectFirst();
-    ExternalLightColor.getSelectionModel().selectFirst();
+    InternalLightColor.getSelectionModel().select(1);
+    ExternalLightColor.getSelectionModel().select(1);
     Interface.getSelectionModel().selectFirst();
     Cooling.getSelectionModel().select(1);
     Trigger.setSelected(false);
