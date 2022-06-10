@@ -42,16 +42,18 @@ public class VSCIS extends CIS
     {
       key += "3";
     }
-    if(getPhaseCount() == 3)
-    {
-      key += "RGB";
-    }
-    else
-    {
-      key += getLightColors().stream()
-              .findAny().orElse(LightColor.NONE)
-              .getShortHand();
-    }
+    if(!getLightSources().equals("0D0C")){
+        if(getPhaseCount() == 3)
+        {
+          key += "RGB";
+        }
+        else
+        {
+          key += getLightColors().stream()
+                  .findAny().orElse(LightColor.NONE)
+                  .getShortHand();
+        }
+  }
 
     if(!getLightSources().endsWith("0C"))
     {
@@ -156,7 +158,7 @@ public class VSCIS extends CIS
     AdcBoardRecord adcBoard = getADC("VARICISC").orElseThrow(() -> new CISException("Unknown ADC board"));
     SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
     SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution() + "_VS").orElseThrow(() -> new CISException("Unknown sensor chip"));
-    return Math.round(1000 * 1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
+    return 1000 * Math.round( 1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
   }
 
   @Override

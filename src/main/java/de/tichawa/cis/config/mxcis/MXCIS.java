@@ -67,15 +67,17 @@ public class MXCIS extends CIS
       key += "2";
     }
 
-    if(getPhaseCount() == 4)
-    {
-      key += "RGB";
-    }
-    else
-    {
-      key += getLightColors().stream()
-              .findAny().orElse(LightColor.NONE)
-              .getShortHand();
+    if(!getLightSources().equals("0D0C")){
+        if(getPhaseCount() == 4)
+        {
+          key += "RGB";
+        }
+        else
+        {
+          key += getLightColors().stream()
+                  .findAny().orElse(LightColor.NONE)
+                  .getShortHand();
+        }
     }
 
     if(!getLightSources().endsWith("0C"))
@@ -106,7 +108,7 @@ public class MXCIS extends CIS
     SensorChipRecord sensorChip = getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
     SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown ADC board"));
     AdcBoardRecord adcBoard = getADC("MODU_ADC(SLOW)").orElseThrow(() -> new CISException("Unknown ADC board."));
-    return Math.round(1000 * 1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
+    return 1000 * Math.round(1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
   }
 
   @Override
@@ -152,11 +154,8 @@ public class MXCIS extends CIS
     int portCount = getPhaseCount() == 1 ? (int) Math.ceil(numOfPix / (lval * 1.0)) : (int) Math.ceil(3 * Math.ceil(numOfPix / (lval * 1.0)));
     int conCount = (int) Math.ceil(numOfPix / (lval * (getPhaseCount() == 1 ? 2.0 : 1.0)));
 //    int portCount =  (int) Math.ceil(numOfPix / (lval * (getPhaseCount() == 1 ? 1.0 : 3.0)));
-
     long dataRate = (long) portCount * Math.min(lval, numOfPix) * getSelectedLineRate();
-    if(getSelectedResolution().getActualResolution() <= 150){
-      numOfPix = lval;
-    }
+
     CameraLink cameraLink = new CameraLink(dataRate,  numOfPix,85000000);
 
     if(getPhaseCount() == 4)
