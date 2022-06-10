@@ -236,7 +236,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
         ScanWidth.getSelectionModel().select(oldValue);
         return;
       }
-
+      InternalLightSource.setDisable(sw > 2080);
       CIS_DATA.setScanWidth(sw);
       LDSTD_DATA.setScanWidth(CIS_DATA.getScanWidth());
     });

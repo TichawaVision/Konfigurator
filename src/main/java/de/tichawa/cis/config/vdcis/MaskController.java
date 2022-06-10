@@ -32,7 +32,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
             new CIS.Resolution(500,500,false,5.0,0.0508),
             new CIS.Resolution(250,250,false,10.0,0.1016),
             new CIS.Resolution(125,250,false,10.0,0.2032),
-            new CIS.Resolution(100,500,false,10.0,0.0254),
+            new CIS.Resolution(100,500,false,10.0,0.254),
             new CIS.Resolution(50,250,false,10.0,0.508),
             new CIS.Resolution(25,250,false,10.0,1.016));
   }
@@ -88,6 +88,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
       if(newValue.equals("Three phases (RGB)")){
         InternalLightColor.getSelectionModel().selectFirst();
       }
+      InternalLightColor.setDisable(newValue.equals("Three phases (RGB)"));
 //      InternalLightColor.setDisable(newValue.equals("Three phases (RGB)"));
       MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());

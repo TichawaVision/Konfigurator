@@ -176,7 +176,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS>
     Interface.valueProperty().addListener((observable, oldValue, newValue) ->
             CIS_DATA.setGigeInterface(Interface.getSelectionModel().getSelectedIndex() == 1));
     Cooling.valueProperty().addListener((observable, oldValue, newValue) -> CIS.Cooling
-            .findByDescription(newValue.split("\\(")[0].trim())
+            .findByDescription(newValue)
             .ifPresent(CIS_DATA::setCooling));
     Trigger.selectedProperty().addListener((observable, oldValue, newValue) ->
             CIS_DATA.setExternalTrigger(newValue));

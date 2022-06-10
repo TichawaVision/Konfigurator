@@ -131,6 +131,11 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
       Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize()* CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
       Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
       Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
+      if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
+      {
+        Resolution.getSelectionModel().select("600");
+        return;
+      }
     });
     ScanWidth.valueProperty().addListener((observable, oldValue, newValue) ->
     {
