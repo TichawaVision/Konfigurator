@@ -4,21 +4,22 @@ import de.tichawa.cis.config.model.Tables;
 import de.tichawa.cis.config.model.tables.Price;
 import de.tichawa.cis.config.model.tables.records.PriceRecord;
 import de.tichawa.cis.config.mxcis.MXCIS;
-import de.tichawa.util.*;
-import java.awt.*;
-import java.io.*;
-import java.net.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.List;
-import java.util.stream.*;
-import javafx.event.*;
+import de.tichawa.util.Tuple;
+import javafx.event.ActionEvent;
 import javafx.fxml.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
-import javafx.stage.*;
+import javafx.stage.Stage;
+
+import java.awt.*;
+import java.io.*;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class LauncherController implements Initializable
 {
@@ -45,7 +46,7 @@ public class LauncherController implements Initializable
         Scene scene = new Scene(root);
         Stage stage = new Stage();
         stage.setScene(scene);
-        stage.setTitle(selectCIS.getSelectionModel().getSelectedItem());
+        stage.setTitle(selectCIS.getSelectionModel().getSelectedItem().concat("_n.v"));
         InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
         if (icon != null) {
           stage.getIcons().add(new Image(icon));

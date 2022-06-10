@@ -1,14 +1,15 @@
 package de.tichawa.cis.config;
 
+import javafx.application.*;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
+
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.*;
-import javafx.application.*;
-import javafx.fxml.*;
-import javafx.scene.*;
-import javafx.scene.image.*;
-import javafx.stage.*;
+import java.util.Properties;
 
 public class Launcher extends Application
 {
@@ -27,7 +28,7 @@ public class Launcher extends Application
     if(launcher != null)
     {
       stage.setScene(new Scene(FXMLLoader.load(launcher)));
-      stage.setTitle("CIS Configurator");
+      stage.setTitle("CIS Configurator_n.v");
       InputStream icon = getClass().getResourceAsStream("TiViCC.png");
       if(icon != null)
       {
