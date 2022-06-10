@@ -152,7 +152,7 @@ public abstract class CIS
   {
     NONE("NOCO", "None", "none"),
     PAIR("PAIR", "Passive Air", "passair"),
-    FAIR("", "Int. Forced Air(Default)", "intforced"),
+    FAIR("", "Int. Forced Air (Default)", "intforced"),
     EAIR("FAIR", "Ext. Forced Air", "extforced"),
     LICO("LICO", "Liquid Cooling", "lico");
 
@@ -545,13 +545,12 @@ public abstract class CIS
       {
         factor = 1;
       }
-      double roundLineRate = Math.round((getMaxLineRate() * factor / 1000.0) * 100.0) / 100.0;
-      printout += ", max. " + roundLineRate + " kHz\n";
+
+      printout += ", max. " + getMaxLineRate() * factor + " kHz\n";
     }
     else
     {
-      double roundLineRate = Math.round((getMaxLineRate() / 1000.0) * 100.0) / 100.0;
-      printout += ", max. " + roundLineRate + " kHz\n";
+      printout += ", max. " + getMaxLineRate() + " kHz\n";
     }
     printout += getString("Resolution: ");
 
@@ -571,17 +570,11 @@ public abstract class CIS
     {
       printout += getLightSources();
     }
-    else
-    {
+    else {
       String color;
-
-      if (
-              getPhaseCount() == 3 || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4))
-      {
+      if (getPhaseCount() == 3 || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4)) {
         color = "RGB";
-      }
-      else
-      {
+      } else {
         color = getLightColors().stream()
                 .findAny().orElse(LightColor.NONE)
                 .getDescription();
@@ -590,7 +583,7 @@ public abstract class CIS
       switch(getLightSources())
       {
         case "0D0C":
-          printout += color + getString("None");
+          printout +=  getString("None");
           break;
         case "1D0C":
           printout += color + getString("onesided");
@@ -646,7 +639,7 @@ public abstract class CIS
       printout += getString("chpltol") + "\n";
       printout += getString("Geocor_opt") + "\n";
     }
-    else if(getSelectedResolution().getActualResolution() >= 1200)
+    else if(getSelectedResolution().getActualResolution() > 400)
     {
       printout += getString("Geometry correction: x and y") + "\n";
     }
@@ -1133,8 +1126,9 @@ public abstract class CIS
                 .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
                 .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
                 .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
+        surcharge += value;
       }
-      surcharge += value;
+
 
       format = "%.2f";
       value = calcMap.get("LIZENZ");
@@ -1207,10 +1201,9 @@ public abstract class CIS
     int numOfPix;
     int sensorBoards = getScanWidth() / BASE_LENGTH;
     int binning = getBinning();
-    if(this instanceof MXCIS)
-    {
-      SensorChipRecord sensorChip = ((MXCIS) this).getSensorChip(getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
-      SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
+    if(this instanceof MXCIS) {
+      SensorChipRecord sensorChip = ((MXCIS) this).getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
+      SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
       numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / binning;
     }
     else if(this instanceof VHCIS || this instanceof VTCIS || this instanceof VUCIS)
