@@ -192,11 +192,11 @@
     </HBox>
     <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="4">
       <Label text="Cooling:"/>
-      <ComboBox promptText="Liquid Cooling (Default)" fx:id="Cooling" disable="true">
+      <ComboBox promptText="Int. Forced Air (Default)" fx:id="Cooling" disable="true">
         <items>
           <FXCollections fx:factory="observableArrayList">
             <String fx:value="None"/>
-            <String fx:value="Liquid Cooling (Default)"/>
+            <String fx:value="Int. Forced Air (Default)"/>
             <String fx:value="Ext. Forced Air"/>
             <String fx:value="Passive Air"/>
             <String fx:value="Liquid Cooling"/>
