@@ -1,20 +1,15 @@
 package de.tichawa.cis.config.mxcis;
 
-import de.tichawa.cis.config.CIS;
-import de.tichawa.cis.config.CISException;
+import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
-import de.tichawa.cis.config.model.tables.records.AdcBoardRecord;
-import de.tichawa.cis.config.model.tables.records.SensorBoardRecord;
-import de.tichawa.cis.config.model.tables.records.SensorChipRecord;
+import de.tichawa.cis.config.model.tables.records.*;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.util.StringConverter;
 
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 // Funktionen der Maske
 public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
@@ -39,16 +34,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
             new CIS.Resolution(50,300,false,4.0,0.5),
             new CIS.Resolution(25,300,false,6.0,1.0));
   }
-//    return Arrays.asList(
-//            new CIS.Resolution(600,600,false,16.0,0.0423),
-//            new CIS.Resolution(400,400,false,8.0,0.0635),
-//            new CIS.Resolution(300,300,false,6.0,0.0847),
-//            new CIS.Resolution(200,200,false,4.0,0.125),
-//            new CIS.Resolution(150,300,false,3.0,0.167),
-//            new CIS.Resolution(100,300,false,2.0,0.25),
-//            new CIS.Resolution(75,300,false,1.5,0.339),
-//            new CIS.Resolution(50,300,false,1.0,0.5),
-//            new CIS.Resolution(25,300,false,1.0,1.0));
   @Override
   // Initialisiert die graphische Oberfläche
   public void initialize(URL url, ResourceBundle rb)
@@ -89,11 +74,11 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
         }
       }
 
-      InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
       if(newValue.equals("RGB")){
         InternalLightColor.getSelectionModel().selectFirst();
         ExternalLightColor.getSelectionModel().selectFirst();
       }
+      InternalLightColor.setDisable(CIS_DATA.getPhaseCount() == 4 || CIS_DATA.getLedLines() == 0);
       ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
       SensorChipRecord sensorChip = CIS_DATA.getSensorChip(CIS_DATA.getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
@@ -233,10 +218,16 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
 
       if(InternalLightSource.getSelectionModel().getSelectedItem() != null && InternalLightSource.getSelectionModel().getSelectedItem().contains("Coax") && sw > 1820)
       {
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setHeaderText("Coax Selected.\nPlease reduce the scanwidth");
+        alert.show();
         ScanWidth.getSelectionModel().select(oldValue);
         return;
       }
-      InternalLightSource.setDisable(sw > 2080);
+      if (sw > 2080) {
+        ExternalLightSource.getSelectionModel().selectFirst();
+      }
+      ExternalLightSource.setDisable(sw > 2080);
       CIS_DATA.setScanWidth(sw);
       LDSTD_DATA.setScanWidth(CIS_DATA.getScanWidth());
     });
@@ -266,13 +257,16 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
     {
       if(newValue.contains("Coax") && CIS_DATA.getScanWidth() > 1820)
       {
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setHeaderText("Coax Selected.\nPlease reduce the scanwidth");
+        alert.show();
         InternalLightSource.getSelectionModel().select(oldValue);
         return;
       }
 
       if(CIS_DATA.getPhaseCount() == 4 && !newValue.equals("One Sided plus Coax") && !newValue.equals("Two sided"))
       {
-        InternalLightSource.getSelectionModel().select(oldValue);
+        InternalLightSource.getSelectionModel().select(4);
         return;
       }
       
@@ -307,9 +301,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
           break;
       }
 
-      InternalLightColor.setDisable(CIS_DATA.getPhaseCount() == 4 || CIS_DATA.getLedLines() == 0);
     });
-    
+
     InternalLightColor.valueProperty().addListener((observable, oldValue, newValue) -> CIS.LightColor.findByDescription(newValue)
             .ifPresent(CIS_DATA::setLightColor));
 

@@ -3,7 +3,7 @@ package de.tichawa.cis.config.vtcis;
 import de.tichawa.cis.config.CIS;
 import de.tichawa.cis.config.ldstd.LDSTD;
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.*;
 
 import java.net.URL;
 import java.util.*;
@@ -54,12 +54,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
       if(newValue.contains("Three phases (RGB)") &&
           (CIS_DATA.getLedLines() == 0 || CIS_DATA.getScanWidth() > 1300))
       {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("RGB not available with the selected scanwidth.");
+        alert.show();
         Color.getSelectionModel().select(oldValue);
         return;
       }
-      if(newValue.contains("Three phases (RGB)")){
-        InternalLightColor.getSelectionModel().selectFirst();
-      }
+
       switch(newValue)
       {
         case "One phase (Monochrome)":
@@ -96,18 +97,20 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
 
       if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
       {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("Number of Phases greater than three.\nPleace Reduce the resolution");
+        alert.show();
         Color.getSelectionModel().select(oldValue);
         return;
       }
-      InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
       if(newValue.equals("Three phases (RGB)")){
         InternalLightColor.getSelectionModel().selectFirst();
         ExternalLightColor.getSelectionModel().selectFirst();
       }
-      InternalLightColor.setDisable(CIS_DATA.getLedLines() == 0);
-      ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
+      InternalLightColor.setDisable(newValue.equals("Three phases (RGB)") || CIS_DATA.getLedLines() == 0);
+      ExternalLightColor.setDisable(newValue.equals("Three phases (RGB)") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
-      MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
+      MaxLineRate.setText(CIS_DATA.getMaxLineRate()/ 1000.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
@@ -119,7 +122,15 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
     {
       CIS_DATA.setSelectedResolution(getResolutions().get(Resolution.getSelectionModel().getSelectedIndex()));
 
-      MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
+      if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
+      {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("Number of Phases greater than three.\nPleace Reduce the resolution");
+        alert.show();
+        Color.getSelectionModel().select(oldValue);
+        return;
+      }
+      MaxLineRate.setText(CIS_DATA.getMaxLineRate()/ 1000.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
@@ -131,11 +142,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
       Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize()* CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
       Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
       Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
-      if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
-      {
-        Resolution.getSelectionModel().select("600");
-        return;
-      }
     });
     ScanWidth.valueProperty().addListener((observable, oldValue, newValue) ->
     {
@@ -143,6 +149,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
 
       if(sw > 1300 && CIS_DATA.getPhaseCount() == 3)
       {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("The selected scanwidth is not available with RGB");
+        alert.show();
         ScanWidth.getSelectionModel().select(oldValue);
         return;
       }

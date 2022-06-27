@@ -71,7 +71,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS>
       InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
       ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
 
-      MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
+      MaxLineRate.setText(CIS_DATA.getMaxLineRate()/ 1000.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
@@ -83,7 +83,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS>
     {
       CIS_DATA.setSelectedResolution(getResolutions().get(Resolution.getSelectionModel().getSelectedIndex()));
 
-      MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
+      MaxLineRate.setText(CIS_DATA.getMaxLineRate()/ 1000.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 

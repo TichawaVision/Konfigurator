@@ -4,7 +4,7 @@ import de.tichawa.cis.config.CIS;
 import de.tichawa.cis.config.ldstd.LDSTD;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.*;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -46,7 +46,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
     CIS_DATA.setScanWidth(1200);
     CIS_DATA.setExternalTrigger(false);
     CIS_DATA.setCLMode("Full80");
-    CIS_DATA.setCooling(CIS.Cooling.LICO);
+    CIS_DATA.setCooling(CIS.Cooling.FAIR);
     CIS_DATA.setDiffuseLightSources(1);
     CIS_DATA.setCoaxLightSources(0);
 
@@ -85,11 +85,20 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
           break;
         }
       }
-      if(newValue.equals("Three phases (RGB)")){
+      if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
+      {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("Not available with the selected Resolution");
+        alert.show();
+        Color.getSelectionModel().select(oldValue);
+        return;
+      }
+      if(newValue.equals("Three phases (RGB)"))
+      {
         InternalLightColor.getSelectionModel().selectFirst();
       }
       InternalLightColor.setDisable(newValue.equals("Three phases (RGB)"));
-//      InternalLightColor.setDisable(newValue.equals("Three phases (RGB)"));
+
       MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
@@ -102,11 +111,14 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
 
       if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
       {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("Number of Phases greater than three.\nPleace Reduce the resolution ");
+        alert.show();
         Resolution.getSelectionModel().select(oldValue);
         return;
       }
 
-      MaxLineRate.setText(Math.round((CIS_DATA.getMaxLineRate()/ 1000.0) * 100.0) / 100.0 + " kHz");
+      MaxLineRate.setText(CIS_DATA.getMaxLineRate()/ 1000.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
@@ -125,6 +137,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
 
       if(sw > 1200)
       {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("Selected scanwidth not available.");
+        alert.show();
         ScanWidth.setValue(oldValue);
         return;
       }
