@@ -40,12 +40,14 @@
                   GridPane.rowIndex="0">
           <items>
             <FXCollections fx:factory="observableArrayList">
-              <String fx:value="Switchable 1000/500/250 dpi"/>
-              <String fx:value="Fixed Resolution 1000 dpi"/>
-              <String fx:value="Fixed Resolution 500 dpi"/>
-              <String fx:value="Fixed Resolution 250 dpi"/>
-              <String fx:value="Fixed Resolution 125 dpi"/>
+              <String fx:value="Fixed Resolution 1200 dpi"/>
+              <String fx:value="Fixed Resolution 600 dpi"/>
+              <String fx:value="Fixed Resolution 400 dpi"/>
+              <String fx:value="Fixed Resolution 300 dpi"/>
+              <String fx:value="Fixed Resolution 200 dpi"/>
+              <String fx:value="Fixed Resolution 150 dpi"/>
               <String fx:value="Fixed Resolution 100 dpi"/>
+              <String fx:value="Fixed Resolution 75 dpi"/>
               <String fx:value="Fixed Resolution 50 dpi"/>
               <String fx:value="Fixed Resolution 25 dpi"/>
             </FXCollections>
@@ -55,7 +57,7 @@
         <ComboBox fx:id="ScanWidth" promptText="300 mm" GridPane.columnIndex="1" GridPane.rowIndex="1">
           <items>
             <FXCollections fx:factory="observableArrayList">
-              <String fx:value="1820 mm"/>
+              <!--String fx:value="1820 mm"/-->
               <String fx:value="1560 mm"/>
               <String fx:value="1300 mm"/>
               <String fx:value="1040 mm"/>
@@ -113,6 +115,7 @@
         <Label fx:id="Speedips" text="0 ips" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
       </GridPane>
     </TitledPane>
+
     <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="2">
       <Label text="Interface:"/>
       <ComboBox fx:id="Interface" disable="true" promptText="CameraLink">
@@ -142,15 +145,15 @@
       <ChoiceBox fx:id="LensType">
         <items>
           <FXCollections fx:factory="observableArrayList">
-            <String fx:value="TC48" />
-            <String fx:value="TC48 with long DOF" />
+            <!--String fx:value="TC48" />
+            <String fx:value="TC48 with long DOF" /-->
             <String fx:value="TC54" />
             <String fx:value="TC54 with long DOF" />
             <String fx:value="TC80" />
             <String fx:value="TC80 with long DOF" />
-            <String fx:value="TC99" />
+            <!--String fx:value="TC99" />
             <String fx:value="TC147" />
-            <String fx:value="OL_OBJ_M12x0.5R_25mm_GLAS_0_ß=1:4" />
+            <String fx:value="OL_OBJ_M12x0.5R_25mm_GLAS_0_ß=1:4" /-->
           </FXCollections>
         </items>
       </ChoiceBox>
@@ -165,7 +168,7 @@
     <Label fx:id="Infotext" text="For special options, please contact sales@tichawa.de" GridPane.columnSpan="3"
            GridPane.rowIndex="6"/>
     <TitledPane animated="false" maxHeight="200.0" minHeight="200.0" prefHeight="200.0"
-                text="Color &amp; Light Sources" GridPane.columnSpan="2147483647">
+          collapsible="false" text="Color &amp; Light Sources" GridPane.columnSpan="2147483647">
       <GridPane>
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
@@ -173,11 +176,27 @@
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
         </columnConstraints>
         <rowConstraints>
+          <RowConstraints minHeight="50.0" prefHeight="50.0" vgrow="SOMETIMES"/>
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
         </rowConstraints>
-        <ChoiceBox fx:id="LightPreset" prefWidth="150.0" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3">
+          <Label text="Color:"/>
+          <ComboBox promptText="One phase (Monochrome)" fx:id="Color">
+            <items>
+              <FXCollections fx:factory="observableArrayList">
+                <String fx:value="One phase (Monochrome)"/>
+                <String fx:value="Two phases"/>
+                <String fx:value="Three phases (RGB)"/>
+                <String fx:value="Four phases"/>
+                <String fx:value="Five phases"/>
+                <String fx:value="Six phases"/>
+              </FXCollections>
+            </items>
+          </ComboBox>
+        </HBox>
+        <ChoiceBox fx:id="LightPreset" prefWidth="150.0" GridPane.columnIndex="1" GridPane.halignment="CENTER"  GridPane.rowIndex="1">
           <items>
             <FXCollections fx:factory="observableArrayList">
               <String fx:value="Manual"/>
@@ -197,14 +216,15 @@
                 <String fx:value="Blue"/>
                 <String fx:value="Yellow"/>
                 <String fx:value="White"/>
-                <String fx:value="IR 850nm"/>
+                <String fx:value="IR"/>
                 <String fx:value="IR 950nm"/>
                 <String fx:value="UVA 365nm"/>
                 <String fx:value="Verde"/>
                 <String fx:value="RGB"/>
+                <String fx:value="RGB8"/>
                 <String fx:value="LEDIRUV"/>
-                <String fx:value="REBZ8LED"/>
-                <String fx:value="REBELMIX"/>
+                <!--String fx:value="REBZ8LED"/>
+                <String fx:value="REBELMIX"/-->
               </FXCollections>
             </items>
           </ChoiceBox>
@@ -220,20 +240,21 @@
                 <String fx:value="Blue"/>
                 <String fx:value="Yellow"/>
                 <String fx:value="White"/>
-                <String fx:value="IR 850nm"/>
+                <String fx:value="IR"/>
                 <String fx:value="IR 950nm"/>
                 <String fx:value="UVA 365nm"/>
                 <String fx:value="Verde"/>
                 <String fx:value="RGB"/>
+                <String fx:value="RGB8"/>
                 <String fx:value="LEDIRUV"/>
-                <String fx:value="REBZ8LED"/>
-                <String fx:value="REBELMIX"/>
+                <!--String fx:value="REBZ8LED"/>
+                <String fx:value="REBELMIX"/-->
               </FXCollections>
             </items>
           </ChoiceBox>
 
         </HBox>
-        <HBox alignment="TOP_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.rowIndex="2">
+        <HBox alignment="TOP_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.rowIndex="3">
           <Label alignment="CENTER" text="Darkfield Left:"/>
           <ChoiceBox fx:id="DarkFieldLeft" prefWidth="150.0">
             <items>
@@ -244,19 +265,20 @@
                 <String fx:value="Blue"/>
                 <String fx:value="Yellow"/>
                 <String fx:value="White"/>
-                <String fx:value="IR 850nm"/>
+                <String fx:value="IR"/>
                 <String fx:value="IR 950nm"/>
                 <String fx:value="UVA 365nm"/>
                 <String fx:value="Verde"/>
                 <String fx:value="RGB"/>
+                <String fx:value="RGB8"/>
                 <String fx:value="LEDIRUV"/>
-                <String fx:value="REBZ8LED"/>
-                <String fx:value="REBELMIX"/>
+                <!--String fx:value="REBZ8LED"/>
+                <String fx:value="REBELMIX"/-->
               </FXCollections>
             </items>
           </ChoiceBox>
         </HBox>
-        <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
+        <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
           <Label alignment="CENTER" text="Darkfield Right:"/>
           <ChoiceBox fx:id="DarkFieldRight" prefWidth="150.0">
             <items>
@@ -267,21 +289,22 @@
                 <String fx:value="Blue"/>
                 <String fx:value="Yellow"/>
                 <String fx:value="White"/>
-                <String fx:value="IR 850nm"/>
+                <String fx:value="IR"/>
                 <String fx:value="IR 950nm"/>
                 <String fx:value="UVA 365nm"/>
                 <String fx:value="Verde"/>
                 <String fx:value="RGB"/>
+                <String fx:value="RGB8"/>
                 <String fx:value="LEDIRUV"/>
-                <String fx:value="REBZ8LED"/>
-                <String fx:value="REBELMIX"/>
+                <!--String fx:value="REBZ8LED"/>
+                <String fx:value="REBELMIX"/-->
               </FXCollections>
             </items>
           </ChoiceBox>
 
         </HBox>
-        <VBox alignment="BOTTOM_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0"
-              GridPane.columnIndex="1" GridPane.rowIndex="1">
+        <HBox alignment="BOTTOM_CENTER" prefHeight="100.0" prefWidth="200.0" spacing="5.0"
+              GridPane.columnIndex="1" GridPane.rowIndex="3">
           <Label alignment="CENTER" text="Coax:"/>
           <ChoiceBox fx:id="Coax" prefWidth="150.0">
             <items>
@@ -292,18 +315,19 @@
                 <String fx:value="Blue"/>
                 <String fx:value="Yellow"/>
                 <String fx:value="White"/>
-                <String fx:value="IR 850nm"/>
+                <String fx:value="IR"/>
                 <String fx:value="IR 950nm"/>
                 <String fx:value="UVA 365nm"/>
                 <String fx:value="Verde"/>
                 <String fx:value="RGB"/>
+                <String fx:value="RGB8"/>
                 <String fx:value="LEDIRUV"/>
-                <String fx:value="REBZ8LED"/>
-                <String fx:value="REBELMIX"/>
+                <!--String fx:value="REBZ8LED"/>
+                <String fx:value="REBELMIX"/-->
               </FXCollections>
             </items>
           </ChoiceBox>
-        </VBox>
+        </HBox>
       </GridPane>
     </TitledPane>
   </GridPane>

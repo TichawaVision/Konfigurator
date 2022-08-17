@@ -1,11 +1,7 @@
 package de.tichawa.cis.config.vucis;
 
-import de.tichawa.cis.config.CIS;
-import de.tichawa.cis.config.CISException;
-import de.tichawa.cis.config.CameraLink;
-import de.tichawa.cis.config.model.tables.records.AdcBoardRecord;
-import de.tichawa.cis.config.model.tables.records.SensorBoardRecord;
-import de.tichawa.cis.config.model.tables.records.SensorChipRecord;
+import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.model.tables.records.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,6 +58,7 @@ public class VUCIS extends CIS
     private final String description;
     private final String code;
 
+
     public String getDescription() {
       return description;
     }
@@ -111,7 +108,7 @@ public class VUCIS extends CIS
     key += "_S";
 
     key += "_";
-    key += getLightSources();
+    key += getLights();
 
     key += "_" + getLensType().getCode();
 
@@ -129,7 +126,7 @@ public class VUCIS extends CIS
   @Override
   public Set<LightColor> getLightColors()
   {
-    return getLightSources().chars()
+    return getLights().chars()
             .mapToObj(c -> LightColor.findByCode((char) c))
             .filter(Optional::isPresent)
             .map(Optional::get)
@@ -139,13 +136,45 @@ public class VUCIS extends CIS
   @Override
   public String getLightSources()
   {
+    switch (getLensType()) {
+      case TC54:
+        return "20";
+      case TC54L:
+        return "2L";
+      case TC80:
+        return "30";
+      case TC80L:
+        return "3L";
+      default:
+        return "";
+    }
+  }
+
+  @Override
+  public String getLights()
+  {
+    String key = "";
     switch(getLightPreset())
     {
-      case CLOUDY_DAY: return "DRXRD";
-      case SHAPE_FROM_SHADING: return "RRSRR";
+      case CLOUDY_DAY:
+      {
+        key += "D";
+        key += getLeftBrightField().getCode();
+        key += getCoaxLight().getCode();
+        key += getRightBrightField().getCode();
+        key += "D";
+        return key;
+      }
+      case SHAPE_FROM_SHADING:
+      {
+        if(getRightBrightField().getCode() == 'R')
+        {
+          return  "RRSRR";
+        }
+        return "WWSWW";
+      }
       default:
       {
-        String key = "";
         key += getLeftDarkField().getCode();
         key += getLeftBrightField().getCode();
         key += getCoaxLight().getCode();
@@ -159,7 +188,7 @@ public class VUCIS extends CIS
   @Override
   public int getLedLines()
   {
-    return (int) getLightSources().chars()
+    return (int) getLights().chars()
             .mapToObj(c -> LightColor.findByCode((char) c))
             .filter(Optional::isPresent)
             .map(Optional::get)
@@ -174,8 +203,6 @@ public class VUCIS extends CIS
     int taps;
     int pixPerTap;
     int lval;
-    int tapCount;
-    StringBuilder printOut = new StringBuilder();
 
     SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
     numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
@@ -184,62 +211,62 @@ public class VUCIS extends CIS
     pixPerTap = numOfPixNominal / taps;
     lval = pixPerTap - pixPerTap % 8;
 
-    printOut.append(getString("datarate")).append(Math.round(getPhaseCount() * numOfPixNominal * getSelectedLineRate() / 100000.0) / 10.0).append(" MByte\n");
-    printOut.append(getString("numofcons")).append("%%%%%\n");
-    printOut.append(getString("numofport")).append(taps * getPhaseCount()).append("\n");
-    printOut.append("Pixel Clock: 85 MHz\n");
-    printOut.append(getString("nomPix")).append(numOfPixNominal).append("\n");
-    printOut.append("LVAL (Modulo 8): ").append(lval).append("\n");
-    printOut.append(getString("numPhases")).append(getPhaseCount()).append("\n");
+    long datarate = (long) getPhaseCount() * numOfPixNominal * getSelectedLineRate();
+    LinkedList<CameraLink.Connection> connections = new LinkedList<>();
+    int portLimit = 10;
 
-    Map<Integer, List<Integer>> highMap = new HashMap<>();
-    highMap.put(1, Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20));
-    highMap.put(2, Arrays.asList(1, 1, 0, 2, 2, 0, 3, 3, 0, 0, 4, 4, 0, 5, 5, 0, 6, 6, 0, 0));
-    highMap.put(3, Arrays.asList(1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 4, 4, 4, 5, 5, 5, 6, 6, 6, 0));
-    highMap.put(4, Arrays.asList(1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0));
-    highMap.put(5, Arrays.asList(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0));
-    highMap.put(6, Arrays.asList(1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0));
-
-    List<Integer> tapConfig = highMap.get(getPhaseCount());
-    if(taps > tapConfig.stream().mapToInt(x -> x).max().orElse(0))
+    int blockSize;
+    if(getPhaseCount()  == 1)
     {
-      throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
-    }
-    //Out Of Flash Memory
-    printOut.append("Flash Extension: ");
-    if(getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680)
-    {
-      printOut.append("Required.\n");
+      blockSize = 1;
     }
     else
     {
-      printOut.append("Not required.\n");
-    }
-
-    int cableCount = 0;
-    for(tapCount = 0; tapCount < tapConfig.size(); tapCount++)
-    {
-      int currentTap = tapConfig.get(tapCount);
-      if(currentTap > 0 && taps >= currentTap)
+      blockSize = 3 * (getPhaseCount() / 3);
+      if(blockSize < getPhaseCount())
       {
-        if(tapCount % 10 == 0)
-        {
-          printOut.append("Camera Link ").append((tapCount / 10) + 1).append(":\n");
-        }
-        printOut.append("   Port ").append(getPortName(tapCount % 10)).append(":   ")
-                .append(String.format("%05d", (currentTap - 1) * lval)).append("   - ")
-                .append(String.format("%05d", currentTap * lval - 1)).append("\n");
-
-        if(tapCount % 10 == 0 || tapCount % 10 == 3)
-        {
-          cableCount++;
-        }
+        blockSize += 3;
       }
     }
 
-    printOut.append(getString("configOnRequest"));
-    printOut.replace(printOut.indexOf("%%%%%"), printOut.indexOf("%%%%%") + 5, cableCount+ "");
-    return Optional.empty();
+    for(int i = 0; i < taps;)
+    {
+      connections.add(new CameraLink.Connection(0, (char) (CameraLink.Port.DEFAULT_NAME + connections.stream()
+              .mapToInt(CameraLink.Connection::getPortCount)
+              .sum())));
+
+      while (connections.getLast().getPortCount() <= portLimit - blockSize && i < taps)
+      {
+        for (int k = 0; k < blockSize; k++)
+        {
+          if (k < getPhaseCount())
+          {
+            connections.getLast().addPorts(new CameraLink.Port(i * lval, (i + 1) * lval - 1));
+          } else {
+            connections.getLast().addPorts(new CameraLink.Port(0, 0));
+          }
+        }
+        i++;
+      }
+    }
+
+    String notes = "LVAL(Modulo 8): " + lval + "\n" +
+            getString("numPhases") + getPhaseCount() + "\n" ;
+
+    CameraLink cameraLink = new CameraLink(datarate, numOfPixNominal, 85000000, notes);
+    connections.forEach(cameraLink::addConnection);
+
+    if(taps > (portLimit/blockSize) * 2)
+    {
+      throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
+    }
+    if(getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680)
+    {
+      throw new CISException("Out of Flash memory. Please reduce the scan width or resolution.");
+    }
+
+    return Optional.of(cameraLink);
+
   }
 
   @Override
@@ -274,7 +301,7 @@ public class VUCIS extends CIS
     this.coaxLight = coaxLight;
   }
 
-  public LightColor getRightBrightField() {
+  public LightColor getRightBrightField()  {
     return rightBrightField;
   }
 
@@ -290,9 +317,7 @@ public class VUCIS extends CIS
     this.leftDarkField = leftDarkField;
   }
 
-  public LightColor getRightDarkField() {
-    return rightDarkField;
-  }
+  public LightColor getRightDarkField() { return rightDarkField; }
 
   public void setRightDarkField(LightColor rightDarkField) {
     this.rightDarkField = rightDarkField;
@@ -312,7 +337,7 @@ public class VUCIS extends CIS
     AdcBoardRecord adcBoard = getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
     SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD_INLINE").orElseThrow(() -> new CISException("Unknown sensor board"));
     SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution() + "_VD").orElseThrow(() -> new CISException("Unknown sensor chip"));
-    return Math.round(1000 * 1000 * sensorBoard.getLines() / (getColorCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
+    return 1000 * Math.round(1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
   }
 
   public int getColorCount()
