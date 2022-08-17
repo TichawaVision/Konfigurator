@@ -96,6 +96,7 @@ public abstract class CIS
     UVA("UVA 365nm","UV",'U'),
     VERDE("Verde","VE",'V'),
     RGB("RGB","RGB",'C'),
+    RGB8("RGB8","RGB8",'D'),
     IRUV("LEDIRUV","HI",'H'),
     REBZ8("REBZ8LED","REBZ8",'8'),
     REBELMIX("REBELMIX","REBEL",'E');
@@ -276,8 +277,10 @@ public abstract class CIS
 
   public String getLightSources()
   {
-    return getDiffuseLightSources() + "D" + getCoaxLightSources() + "C";
+      return getDiffuseLightSources() + "D" + getCoaxLightSources() + "C";
   }
+
+  public abstract String getLights();
 
   public int getLedLines()
   {
@@ -347,7 +350,7 @@ public abstract class CIS
   public void calculate()
   {
     Map<Integer, PriceRecord> priceRecords = new HashMap<>();
-    mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 100.0};
+    mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
     electSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
     totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
     mechaConfig = new HashMap<>();
@@ -546,16 +549,16 @@ public abstract class CIS
         factor = 1;
       }
 
-      printout += ", max. " + getMaxLineRate() * factor + " kHz\n";
+      printout += ", max. " + (getMaxLineRate() / 1000) * factor + " kHz\n";
     }
     else
     {
-      printout += ", max. " + getMaxLineRate() + " kHz\n";
+      printout += ", max. " + getMaxLineRate() / 1000 + " kHz\n";
     }
     printout += getString("Resolution: ");
 
     if(getSelectedResolution().isSwitchable()
-        && (this instanceof VSCIS || this instanceof VTCIS || this instanceof VUCIS || this instanceof VHCIS))
+        && (this instanceof VSCIS || this instanceof VTCIS || this instanceof VUCIS ))
     {
       printout += getString("binning200") + "\n";
     }
@@ -568,16 +571,20 @@ public abstract class CIS
 
     if(this instanceof VUCIS)
     {
-      printout += getLightSources();
+      printout += getLights();
     }
-    else {
+    else
+    {
       String color;
-      if (getPhaseCount() == 3 || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4)) {
+      if ((getPhaseCount() == 3 && !(this instanceof VDCIS))   || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4))
+      {
         color = "RGB";
-      } else {
-        color = getLightColors().stream()
+      }
+      else
+      {
+        color = getString(getLightColors().stream()
                 .findAny().orElse(LightColor.NONE)
-                .getDescription();
+                .getDescription());
       }
 
       switch(getLightSources())
@@ -668,14 +675,19 @@ public abstract class CIS
       printout += getString("DepthofField") + ": ~ " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1 mm\n";
       printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
       printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
-    }else if(this instanceof VTCIS) {
+    }
+    else if(this instanceof VTCIS)
+    {
       printout += getString("scan distance") + ": 10 mm " + "\n";
       printout += getString("DepthofField") + ": ~ +/- " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
       printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
 
-      if(!getLightSources().endsWith("0C")) {
+      if(!getLightSources().endsWith("0C"))
+      {
         printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
-      } else {
+      }
+      else
+      {
         printout += getString("Aluminium case profile: 86x80mm (HxT) with bonded") + "\n";
       }
     }
@@ -709,14 +721,7 @@ public abstract class CIS
     printout += getString("powersource") + "(24 +/- 1) VDC\n";
     printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
     printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
-    if(this instanceof VTCIS){
-      printout += getString("lico") + "\n";
-    }
-    else if(this instanceof VSCIS){
-      printout += getString(getCooling().getShortHand()) + "\n";
-    }else{
-      printout += getString("intforced") + "\n";
-    }
+    printout += getString(getCooling().getShortHand()) + "\n";
     printout += getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
     printout += "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m)") + "\n";
 
@@ -748,7 +753,8 @@ public abstract class CIS
       {
         return null;
       }
-      if(this instanceof VTCIS || this instanceof VDCIS){
+      if(this instanceof VTCIS || this instanceof VDCIS || this instanceof VUCIS){
+        System.out.println(getLedLines());
         printout += getString("configOnRequest");
       }
     }
@@ -772,7 +778,7 @@ public abstract class CIS
       color = getLightColors().stream()
               .findAny().orElse(LightColor.NONE);
     }
-    printout += getString("Color:") + color.getDescription() + "\n";
+    printout += getString("Color:") + getString(color.getDescription()) + "\n";
     printout += "\n\t\n";
     printout += getString("line width") + ": ~ 1 mm\n";
     printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
@@ -808,7 +814,7 @@ public abstract class CIS
       {
         try
         {
-          proceed = getLightSources().matches(m);
+          proceed = getLights().matches(m);
         }
         catch(PatternSyntaxException ex)
         {
@@ -825,6 +831,7 @@ public abstract class CIS
             proceed = !invert; //!invert ^ invert == true
             break;
           case "RGB": //Color coding
+          case "RGB8":
             if(this instanceof VUCIS)
             {
               proceed = LightColor.findByShortHand(m)
@@ -833,21 +840,7 @@ public abstract class CIS
             }
             else
             {
-              if(!(this instanceof VDCIS) && !(this instanceof  MXCIS))
-              {
-                proceed = getPhaseCount() == 3;
-              }else
-              {
-                proceed = getPhaseCount() == 4;
-              }
-//              if(this instanceof MXCIS && getTiViKey().contains("RGB")) {
-//                proceed = getLedLines() >= 3;
-//              }
-//              else if(getTiViKey().contains("RGB") && this instanceof VTCIS && this instanceof VDCIS && this instanceof VSCIS){
-//                proceed = getLedLines() >=3;
-//              }else {
-//                proceed = getLedLines() >= 3;
-//              }
+                  proceed = key.contains(m);
             }
             break;
           case "AM":
@@ -915,6 +908,18 @@ public abstract class CIS
             break;
           case "H": //Mode: HIGH (MXCIS only)
             proceed = this instanceof MXCIS && getMode() == 2;
+            break;
+          case"P==3":
+            proceed = getPhaseCount() == 3;
+            break;
+          case "P==4":
+            proceed = getPhaseCount() == 4;
+            break;
+          case "P==6":
+            proceed = getPhaseCount() == 6;
+            break;
+          case "P>0&P<3":
+            proceed = getPhaseCount() < 3;
             break;
           default: //Unknown modifier
             proceed = invert; //invert ^ invert == false
@@ -1110,13 +1115,14 @@ public abstract class CIS
 
       if(this instanceof MXCIS)
       {
-        String cat = getTiViKey().split("_")[4];          /* String cat = getTiViKey().split("_")[3]*/
+        String cat = getTiViKey().split("_")[4];
         value = calcMap.get("Z_" + cat) / 100;
         totalOutput.append(getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[0] * value)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[1] * value)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[2] * value)).append("\t")
                 .append(String.format(getLocale(), "%.2f", totalPrices[3] * value)).append("\n");
+        surcharge += value;
       }
       else if(!(this instanceof LDSTD))
       {
@@ -1201,7 +1207,8 @@ public abstract class CIS
     int numOfPix;
     int sensorBoards = getScanWidth() / BASE_LENGTH;
     int binning = getBinning();
-    if(this instanceof MXCIS) {
+    if(this instanceof MXCIS)
+    {
       SensorChipRecord sensorChip = ((MXCIS) this).getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
       SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
       numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / binning;
