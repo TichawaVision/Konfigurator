@@ -23,10 +23,9 @@ import java.util.stream.Collectors;
 
 public class LauncherController implements Initializable
 {
-
+  protected CIS CIS_DATA;
   @FXML
   private ComboBox<String> selectCIS;
-
   @Override
   public void initialize(URL url, ResourceBundle rb)
   {
@@ -46,7 +45,7 @@ public class LauncherController implements Initializable
         Scene scene = new Scene(root);
         Stage stage = new Stage();
         stage.setScene(scene);
-        stage.setTitle(selectCIS.getSelectionModel().getSelectedItem().concat("_n.v"));
+        stage.setTitle(selectCIS.getSelectionModel().getSelectedItem() + "_" + ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version"));
         InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
         if (icon != null) {
           stage.getIcons().add(new Image(icon));

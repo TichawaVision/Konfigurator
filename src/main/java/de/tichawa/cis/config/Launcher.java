@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.Properties;
+import java.util.*;
 
 public class Launcher extends Application
 {
@@ -28,7 +28,7 @@ public class Launcher extends Application
     if(launcher != null)
     {
       stage.setScene(new Scene(FXMLLoader.load(launcher)));
-      stage.setTitle("CIS Configurator_n.v");
+      stage.setTitle("CIS Configurator_" + ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version"));
       InputStream icon = getClass().getResourceAsStream("TiViCC.png");
       if(icon != null)
       {
