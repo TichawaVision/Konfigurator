@@ -31,7 +31,21 @@ public class CameraLink
 
   public int getConnectionCount()
   {
-    return getConnections().size();
+    int kabelCount;
+    if(getPortCount() / getConnections().size() <= 2)
+    {
+      kabelCount = getConnections().size();
+    }
+    else if(getPortCount() > 3 && getConnections().size() == 1)
+    {
+      kabelCount = 2 ;
+    }
+    else
+    {
+      kabelCount = getPortCount() / 3;
+    }
+    return kabelCount;
+
   }
 
   public int getPortCount()
@@ -41,19 +55,25 @@ public class CameraLink
         .sum();
   }
 
+  public int getPortNumber(){
+    return getConnections().stream()
+            .mapToInt(Connection::getPortNumber)
+            .sum();
+  }
+
   @Override
   public String toString() {
-    StringBuilder output = new StringBuilder("Data rate: ")
+    StringBuilder output = new StringBuilder(getString("datarate"))
             .append(Math.round(getDataRate() / 100000.0) / 10.0)
             .append(" MByte/s\n");
     output.append(getString("nomPix"))
             .append(getPixelCount())
             .append("\n");
-    output.append(getString("numofconnes"))
+    output.append(getString("numofcons"))
             .append(getConnectionCount())
             .append("\n");
     output.append(getString("numofport"))
-            .append(getPortCount())
+            .append(getPortNumber())
             .append("\n");
     output.append("Pixel clock: ")
             .append(getPixelClock() / 1000000)
@@ -76,7 +96,7 @@ public class CameraLink
   public static class Connection
   {
     public static final int DEFAULT_ID = 1;
-    public static final int MAX_PORT_COUNT = 9;
+    public static final int MAX_PORT_COUNT = 10;
 
     int id;
     char defaultPort;
@@ -85,10 +105,7 @@ public class CameraLink
 
     public Connection() { this(DEFAULT_ID, Port.DEFAULT_NAME);}
 
-    public Connection(int defaultId, char defaultPort)
-    {
-      this(defaultId, defaultPort, new LinkedList<>());
-    }
+    public Connection(int defaultId, char defaultPort) {this(defaultId, defaultPort, new LinkedList<>());}
 
     public boolean addPorts(Port... ports)
     {
@@ -96,7 +113,7 @@ public class CameraLink
       {
         for(Port port : ports)
         {
-          char nextPortName = getPorts().isEmpty() ? getDefaultPort() : (char) (getPorts().getLast().getName() + 1);
+          char nextPortName = getPorts().isEmpty() ? Port.DEFAULT_NAME : (char) (getPorts().getLast().getName() + 1);
           getPorts().add(port.withName(nextPortName));
         }
 
@@ -111,6 +128,19 @@ public class CameraLink
     public int getPortCount()
     {
       return getPorts().size();
+    }
+
+    public int getPortNumber()
+    {
+      int num = 0;
+      for(int i = 0; i < getPortCount(); ++i)
+      {
+        if(!(getPorts().get(i).getEndPixel() == 0))
+        {
+          num++;
+        }
+      }
+      return num;
     }
 
     @Override
@@ -128,7 +158,7 @@ public class CameraLink
   @AllArgsConstructor(access=AccessLevel.PRIVATE)
   public static class Port
   {
-    public static final char DEFAULT_NAME = 'A';
+    public static  char DEFAULT_NAME = 'A';
 
     char name;
     int startPixel;
@@ -154,8 +184,12 @@ public class CameraLink
     public String toString()
     {
       String noteString = getNote() == null ? "" : " (" + getNote() + ")";
+      if(getEndPixel() == 0)
+      {
+        return "Port " + getName() + ": " + "          " + " - " + " ";
+      }
       return "Port " + getName() + noteString + ": "
-          + String.format("%05d", getStartPixel()) + " - " + String.format("%05d", getEndPixel());
+                + String.format("%05d", getStartPixel()) + " - " + String.format("%05d", getEndPixel());
     }
   }
   public String getString(String key)
