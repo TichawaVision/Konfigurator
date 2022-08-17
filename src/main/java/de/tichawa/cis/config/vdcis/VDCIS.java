@@ -57,8 +57,6 @@ public class VDCIS extends CIS
       key += "GT";
     }
 
-//    key += getCooling().getCode();
-
     if(key.endsWith("_"))
     {
       key = key.substring(0, key.length() - 1);
@@ -123,7 +121,7 @@ public class VDCIS extends CIS
       }
     }
 
-    String notes = "LVAL(Modulo 8): " + lval + "\n" +
+    String notes = "LVAL (Modulo 8): " + lval + "\n" +
             getString("clMode") + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
             getString("numPhases") + getPhaseCount() + "\n" ;
 
@@ -156,5 +154,9 @@ public class VDCIS extends CIS
     SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution() + "_VD").orElseThrow(() -> new CISException("Unknown sensor chip"));
     return 1000 * Math.round(1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
 
+  }
+  @Override
+  public String getLights(){
+    return "";
   }
 }

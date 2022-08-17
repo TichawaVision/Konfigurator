@@ -58,16 +58,19 @@ public class MXCIS extends CIS
     }
 
     key += "_";
-    if(getLightSources().equals("0D0C"))
+    switch (getLightSources())
     {
-      key += "NO";
-    }
-    if(getLightSources().equals("2D0C") || getLightSources().equals("2D1C"))
-    {
-      key += "2";
+      case "0D0C":
+        key += "NO";
+        break;
+      case "2D0C":
+      case "1D1C":
+        key += getLedLines();
+        break;
     }
 
-    if(!getLightSources().equals("0D0C")){
+    if(!getLightSources().equals("0D0C"))
+    {
         if(getPhaseCount() == 4)
         {
           key += "RGB";
@@ -91,9 +94,6 @@ public class MXCIS extends CIS
     {
       key += "GT";
     }
-
-//    key += getCooling().getCode();
-
     if(key.endsWith("_"))
     {
       key = key.substring(0, key.length() - 1);
@@ -213,7 +213,11 @@ public class MXCIS extends CIS
 
     return getSensorChip(resToSens.get(res * z));
   }
-  
+  @Override
+  public String getLights(){
+    return "";
+  }
+
   @Override
   public double getGeometry(boolean coax)
   {

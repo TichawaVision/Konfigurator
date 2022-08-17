@@ -74,7 +74,7 @@ public class VTCIS extends VSCIS
       }
     }
     boolean flashExtension = getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680;
-    String notes = "LVAL(Modulo 8): " + lval + "\n" +
+    String notes = "LVAL (Modulo 8): " + lval + "\n" +
             getString("clMode") + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
             getString("numPhases") + getPhaseCount() + "\n" +
             "Flash Extension: " + (flashExtension ? "Required" : "Not required.") + "\n";
@@ -103,5 +103,9 @@ public class VTCIS extends VSCIS
   public double getGeometry(boolean coax)
   {
     return coax ? 0.229 : 0.252;
+  }
+  @Override
+  public String getLights(){
+    return "";
   }
 }

@@ -30,19 +30,19 @@ public class VSCIS extends CIS
     }
 
     key += "_";
-    if(getLightSources().equals("0D0C"))
+    switch(getLightSources())
     {
-      key += "NO";
+      case "0D0C":
+        key += "NO";
+        break;
+      case "2D0C":
+      case "2D1C":
+        key += getLedLines();
+        break;
     }
-    if(getLightSources().equals("2D0C"))
+
+    if(!getLightSources().equals("0D0C"))
     {
-      key += "2";
-    }
-    if(getLightSources().equals("2D1C"))
-    {
-      key += "3";
-    }
-    if(!getLightSources().equals("0D0C")){
         if(getPhaseCount() == 3)
         {
           key += "RGB";
@@ -53,7 +53,7 @@ public class VSCIS extends CIS
                   .findAny().orElse(LightColor.NONE)
                   .getShortHand();
         }
-  }
+    }
 
     if(!getLightSources().endsWith("0C"))
     {
@@ -66,7 +66,8 @@ public class VSCIS extends CIS
     {
       key += "GT";
     }
-    if(!(this instanceof VTCIS)){
+    if(!(this instanceof VTCIS))
+    {
       key += getCooling().getCode();
     }
     if(key.endsWith("_"))
@@ -110,7 +111,7 @@ public class VSCIS extends CIS
     binning = 1 / (sensorChip.getBinning() * ((double) getSelectedResolution().getBoardResolution() / (double) getSelectedResolution().getActualResolution()));
     lval = (int) (chipsPerTap * (ppsbin - (sensorBoard.getOverlap() * binning) / sensorBoard.getChips()));
     lval -= lval % 8;
-    portDataRate = getPhaseCount() * numOfPix * getSelectedLineRate();
+    portDataRate = (long) getPhaseCount() * numOfPix * getSelectedLineRate();
     CameraLink cl = new CameraLink(portDataRate, numOfPixNominal, pixelClock);
     LinkedList<CameraLink.Connection> connections = new LinkedList<>();
 
@@ -130,7 +131,8 @@ public class VSCIS extends CIS
       connections.add(new CameraLink.Connection(0, (char) (CameraLink.Port.DEFAULT_NAME + connections.stream()
               .mapToInt(CameraLink.Connection::getPortCount)
               .sum())));
-      int portLimit = connections.size() % 2 == 0 ? evenPortLimit : oddPortLimit;
+//      int portLimit = connections.size() % 2 == 0 ? evenPortLimit : oddPortLimit;
+      int portLimit = 9;
       while(connections.getLast().getPortCount() + getPhaseCount() <= portLimit && x < taps)
       {
         if(getPhaseCount() == 1)
@@ -165,5 +167,10 @@ public class VSCIS extends CIS
   public double getGeometry(boolean coax)
   {
     return coax ? 0.105 : 0.128;
+  }
+
+  @Override
+  public String getLights(){
+    return "";
   }
 }
