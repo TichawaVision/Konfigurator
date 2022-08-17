@@ -85,7 +85,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
           break;
         }
       }
-      if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
+      if(CIS_DATA.getPhaseCount() > 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
       {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setHeaderText("Not available with the selected Resolution");
@@ -109,10 +109,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
     {
       CIS_DATA.setSelectedResolution(getResolutions().get(Resolution.getSelectionModel().getSelectedIndex()));
 
-      if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
+      if(CIS_DATA.getPhaseCount() > 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
       {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setHeaderText("Number of Phases greater than three.\nPleace Reduce the resolution ");
+        alert.setHeaderText("Number of Phases greater than three.\nPlease reduce the resolution ");
         alert.show();
         Resolution.getSelectionModel().select(oldValue);
         return;
@@ -138,7 +138,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VDCIS>
       if(sw > 1200)
       {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setHeaderText("Selected scanwidth not available.");
+        alert.setHeaderText("Selected scan width not available.");
         alert.show();
         ScanWidth.setValue(oldValue);
         return;

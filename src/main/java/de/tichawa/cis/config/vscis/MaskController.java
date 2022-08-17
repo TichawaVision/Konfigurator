@@ -2,6 +2,7 @@ package de.tichawa.cis.config.vscis;
 
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
+import javafx.scene.control.Alert;
 
 import java.net.*;
 import java.util.*;
@@ -47,6 +48,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS>
     {
       if(newValue.equals("RGB") && CIS_DATA.getLedLines() == 0)
       {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("RGB not available with Lightsource None");
+        alert.show();
         Color.getSelectionModel().select(oldValue);
         return;
       }
@@ -118,6 +122,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS>
     {
       if(CIS_DATA.getPhaseCount() == 3 && newValue.equals("None") && LDSTD_DATA.getLedLines() == 0)
       {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("RGB not available with the selected Lightsource");
+        alert.show();
         InternalLightSource.getSelectionModel().select(oldValue);
         return;
       }

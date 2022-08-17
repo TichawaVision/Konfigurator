@@ -264,9 +264,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS>
         return;
       }
 
-      if(CIS_DATA.getPhaseCount() == 4 && !newValue.equals("One Sided plus Coax") && !newValue.equals("Two sided"))
+      if(CIS_DATA.getPhaseCount() == 4 && !newValue.equals("One sided plus Coax") && !newValue.equals("Two sided"))
       {
-        InternalLightSource.getSelectionModel().select(4);
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setHeaderText("RGB not available with the selected Lightsource");
+        alert.show();
+        InternalLightSource.getSelectionModel().select(oldValue);
         return;
       }
       

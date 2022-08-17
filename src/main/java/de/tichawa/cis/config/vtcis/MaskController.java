@@ -52,10 +52,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
     Color.valueProperty().addListener((observable, oldValue, newValue) ->
     {
       if(newValue.contains("Three phases (RGB)") &&
-          (CIS_DATA.getLedLines() == 0 || CIS_DATA.getScanWidth() > 1300))
+          CIS_DATA.getScanWidth() > 1300)
       {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setHeaderText("RGB not available with the selected scanwidth.");
+        alert.setHeaderText("RGB not available with the selected scan width.");
         alert.show();
         Color.getSelectionModel().select(oldValue);
         return;
@@ -94,11 +94,11 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
           break;
         }
       }
-
-      if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
+      if((CIS_DATA.getPhaseCount() == 4 && CIS_DATA.getScanWidth() > 1040) || (CIS_DATA.getPhaseCount() == 5 && CIS_DATA.getScanWidth() > 780) ||
+       (CIS_DATA.getPhaseCount() == 6 && CIS_DATA.getScanWidth() > 520))
       {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setHeaderText("Number of Phases greater than three.\nPleace Reduce the resolution");
+        alert.setHeaderText("Not available with the selected scan width.Please reduce it.");
         alert.show();
         Color.getSelectionModel().select(oldValue);
         return;
@@ -122,14 +122,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
     {
       CIS_DATA.setSelectedResolution(getResolutions().get(Resolution.getSelectionModel().getSelectedIndex()));
 
-      if(CIS_DATA.getPhaseCount() >= 4 && CIS_DATA.getSelectedResolution().getActualResolution() > 600)
-      {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setHeaderText("Number of Phases greater than three.\nPleace Reduce the resolution");
-        alert.show();
-        Color.getSelectionModel().select(oldValue);
-        return;
-      }
       MaxLineRate.setText(CIS_DATA.getMaxLineRate()/ 1000.0 + " kHz");
       SelLineRate.setMax(CIS_DATA.getMaxLineRate());
       SelLineRate.setValue(CIS_DATA.getMaxLineRate());
@@ -147,15 +139,23 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
     {
       int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(' ')).trim());
 
-      if(sw > 1300 && CIS_DATA.getPhaseCount() == 3)
+      if((sw > 1300 && CIS_DATA.getPhaseCount() == 3) || (sw > 1040 && CIS_DATA.getPhaseCount() == 4) ||
+              (sw > 780 && CIS_DATA.getPhaseCount() == 5)  || (sw > 520 && CIS_DATA.getPhaseCount() == 6))
       {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setHeaderText("The selected scanwidth is not available with RGB");
+        alert.setHeaderText("The selected scan width is not available");
         alert.show();
         ScanWidth.getSelectionModel().select(oldValue);
         return;
       }
-
+      if(sw >= 1300 && InternalLightSource.getSelectionModel().getSelectedItem().contains("Coax"))
+      {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("The selected scan width is not available");
+        alert.show();
+        ScanWidth.getSelectionModel().select(oldValue);
+        return;
+      }
       CIS_DATA.setScanWidth(sw);
       LDSTD_DATA.setScanWidth(CIS_DATA.getScanWidth());
     });
@@ -194,6 +194,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VTCIS>
           CIS_DATA.setDiffuseLightSources(0);
           CIS_DATA.setCoaxLightSources(1);
           break;
+      }
+      if(newValue.contains("Coax") && CIS_DATA.getScanWidth() >= 1300){
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("Coax not available with the selected scan width");
+        alert.show();
+        InternalLightSource.getSelectionModel().select(oldValue);
+        return;
       }
       InternalLightColor.setDisable(CIS_DATA.getPhaseCount() == 3 || CIS_DATA.getLedLines() == 0);
     });
