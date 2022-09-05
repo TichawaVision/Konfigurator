@@ -754,7 +754,6 @@ public abstract class CIS
         return null;
       }
       if(this instanceof VTCIS || this instanceof VDCIS || this instanceof VUCIS){
-        System.out.println(getLedLines());
         printout += getString("configOnRequest");
       }
     }
@@ -920,6 +919,21 @@ public abstract class CIS
             break;
           case "P>0&P<3":
             proceed = getPhaseCount() < 3;
+            break;
+          case "L > 0":
+            proceed= this instanceof VUCIS && getLedLines() > 0;
+            break;
+          case "L>0 & L<3":
+            proceed= this instanceof VUCIS && getLedLines() > 0 && getLedLines() < 3;
+            break;
+          case "L==6":
+            proceed= this instanceof VUCIS && getLedLines() == 6;
+            break;
+          case "L==4":
+            proceed= this instanceof VUCIS && getLedLines() == 4;
+            break;
+          case "L==3":
+            proceed= this instanceof VUCIS && getLedLines() == 3;
             break;
           default: //Unknown modifier
             proceed = invert; //invert ^ invert == false
@@ -1198,7 +1212,7 @@ public abstract class CIS
     }
     else
     {
-      return "Z_" + getTiViKey().split("_")[3] + "_DPI";
+      return "Z_" + String.format("%04d", getSelectedResolution().getActualResolution()) + "_DPI";
     }
   }
 
@@ -1215,6 +1229,7 @@ public abstract class CIS
     }
     else if(this instanceof VHCIS || this instanceof VTCIS || this instanceof VUCIS)
     {
+      System.out.println(String.format("%04d", getSelectedResolution().getActualResolution()));
       SensorBoardRecord sensorBoard = getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
       numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSelectedResolution().getActualResolution());
     }
@@ -1255,7 +1270,7 @@ public abstract class CIS
     {
       return 30;
     }
-    else if(this instanceof VTCIS)
+    else if(this instanceof VTCIS || this instanceof VUCIS)
     {
       switch(getSelectedResolution().getBoardResolution())
       {
@@ -1269,17 +1284,17 @@ public abstract class CIS
           throw new UnsupportedOperationException();
       }
     }
-    else if(this instanceof VUCIS)
-    {
-      if(getSelectedResolution().getBoardResolution() == 1000)
-      {
-        return 500;
-      }
-      else
-      {
-        throw new UnsupportedOperationException();
-      }
-    }
+//    else if(this instanceof VUCIS)
+//    {
+//      if(getSelectedResolution().getBoardResolution() == 1000)
+//      {
+//        return 500;
+//      }
+//      else
+//      {
+//        throw new UnsupportedOperationException();
+//      }
+//    }
     else if(this instanceof VDCIS)
     {
       switch(getSelectedResolution().getBoardResolution())

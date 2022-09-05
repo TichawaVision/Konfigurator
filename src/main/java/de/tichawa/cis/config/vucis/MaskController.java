@@ -34,14 +34,16 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
   public List<CIS.Resolution> setupResolutions()
   {
     return Arrays.asList(
-            new CIS.Resolution(1000,1000,true,0,0.025),
-            new CIS.Resolution(1000,1000,false,0,0.025),
-            new CIS.Resolution(500,1000,false,0,0.05),
-            new CIS.Resolution(250,1000,false,0,0.1),
-            new CIS.Resolution(125,1000,false,0,0.02),
-            new CIS.Resolution(100,1000,false,0,0.25),
-            new CIS.Resolution(50,1000,false,0,0.5),
-            new CIS.Resolution(25,1000,false,0,1.0));
+            new CIS.Resolution(1200,1200,false,0.5,0.02115),
+            new CIS.Resolution(600,600,false,1.0,0.0423),
+            new CIS.Resolution(400,1200,false,1.0,0.0635),
+            new CIS.Resolution(300,300,false,1.5,0.0847),
+            new CIS.Resolution(200,600,false,2.0,0.125),
+            new CIS.Resolution(150,300,false,3.0,0.167),
+            new CIS.Resolution(100,300,false,4.0,0.25),
+            new CIS.Resolution(75,300,false,6.0,0.339),
+            new CIS.Resolution(50,300,false,8.0,0.5),
+            new CIS.Resolution(25,300,false,10.0,1.0));
   }
 
   @Override
@@ -81,8 +83,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
             break;
           }
         }
-        if((CIS_DATA.getPhaseCount() == 3) && (!CIS_DATA.getLights().equals("CCCCC")) && (!CIS_DATA.getLights().equals("DCCCD")) &&
-                (!CIS_DATA.getLights().equals("DDDDD")))
+        boolean rgb = CIS_DATA.getLights().matches("[C|D]+");
+
+        if((CIS_DATA.getPhaseCount() == 3) && !rgb)
         {
           Alert alert = new Alert(Alert.AlertType.WARNING);
           alert.setHeaderText("Three phases available only with RGB or RGB8");
@@ -121,15 +124,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
       Optional<VUCIS.LightPreset> lightPreset = VUCIS.LightPreset.findByDescription(newValue);
       lightPreset.ifPresent(CIS_DATA::setLightPreset);
 
-      boolean disable = CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.CLOUDY_DAY);
-      DarkFieldLeft.setDisable(disable);
-      DarkFieldRight.setDisable(disable);
-
-      boolean dis = CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING);
-      BrightFieldLeft.setDisable(dis);
-      Coax.setDisable(dis);
-      DarkFieldLeft.setDisable(dis);
-      DarkFieldRight.setDisable(dis);
+      DarkFieldRight.setDisable(newValue.equals("Cloudy Day") || newValue.equals("Shape from Shading"));
+      DarkFieldLeft.setDisable(newValue.equals("Cloudy Day") || newValue.equals("Shape from Shading"));
+      Coax.setDisable(newValue.equals("Shape from Shading"));
+      BrightFieldLeft.setDisable(newValue.equals("Shape from Shading"));
 
       if(CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING))
       {
@@ -185,8 +183,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
         alert.show();
         Coax.getSelectionModel().select(oldValue);
       }
-      if(CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB)
-              && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB8)) {
+      if(CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getCoaxLight().equals(CIS.LightColor.RGB)
+              && !CIS_DATA.getCoaxLight().equals(CIS.LightColor.RGB8)) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setHeaderText("Three phases available only with RGB or RGB8");
         alert.show();
@@ -201,12 +199,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
               && (!CIS_DATA.getRightBrightField().equals(CIS.LightColor.RED) && !CIS_DATA.getRightBrightField().equals(CIS.LightColor.WHITE)))
       {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setHeaderText("Shape from Shading only\nwith Red or White ");
+        alert.setHeaderText("Shape from Shading only with Red or White ");
         alert.show();
         BrightFieldRight.getSelectionModel().select(oldValue);
       }
-      if(CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB)
-              && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB8)) {
+      if(CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getRightBrightField().equals(CIS.LightColor.RGB)
+              && !CIS_DATA.getRightBrightField().equals(CIS.LightColor.RGB8)) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setHeaderText("Three phases available only with RGB or RGB8");
         alert.show();
@@ -217,8 +215,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
     {
       VUCIS.LightColor.findByDescription(newValue)
               .ifPresent(CIS_DATA::setLeftDarkField);
-      if(CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB)
-              && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB8)) {
+      if(CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getLeftDarkField().equals(CIS.LightColor.RGB)
+              && !CIS_DATA.getLeftDarkField().equals(CIS.LightColor.RGB8)) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setHeaderText("Three phases available only with RGB or RGB8");
         alert.show();
@@ -230,8 +228,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
       VUCIS.LightColor.findByDescription(newValue)
               .ifPresent(CIS_DATA::setRightDarkField);
 
-      if(CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB)
-              && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB8)) {
+      if(CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getRightDarkField().equals(CIS.LightColor.RGB)
+              && !CIS_DATA.getRightDarkField().equals(CIS.LightColor.RGB8)) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setHeaderText("Three phases available only with RGB or RGB8");
         alert.show();
@@ -248,7 +246,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
         alert.setHeaderText("Shape from Shading only available with TC54 with long DOF or TC54");
         alert.show();
         LensType.getSelectionModel().select(oldValue);
-        return;
+//        return;
       }
     });
 
