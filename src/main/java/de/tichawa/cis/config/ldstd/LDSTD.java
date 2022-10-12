@@ -68,4 +68,9 @@ public class LDSTD extends CIS
     {
         return 1;
     }
+
+    @Override
+    public String getLights(){
+        return "";
+    }
 }
