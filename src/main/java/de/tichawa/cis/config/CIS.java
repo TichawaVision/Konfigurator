@@ -96,9 +96,8 @@ public abstract class CIS
     UVA("UVA 365nm","UV",'U'),
     VERDE("Verde","VE",'V'),
     RGB("RGB","RGB",'C'),
-    RGB8("RGB8","RGB8",'D'),
     IRUV("LEDIRUV","HI",'H'),
-    REBZ8("REBZ8LED","REBZ8",'8'),
+    RGB8("RGB8","REBZ8",'8'),
     REBELMIX("REBELMIX","REBEL",'E');
 
     private final String description;
@@ -571,7 +570,7 @@ public abstract class CIS
 
     if(this instanceof VUCIS)
     {
-      printout += getLights();
+      printout += getLights();     //all Color description
     }
     else
     {
@@ -1148,7 +1147,6 @@ public abstract class CIS
                 .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
         surcharge += value;
       }
-
 
       format = "%.2f";
       value = calcMap.get("LIZENZ");
