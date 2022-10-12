@@ -83,7 +83,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
             break;
           }
         }
-        boolean rgb = CIS_DATA.getLights().matches("[C|D]+");
+        boolean rgb = CIS_DATA.getLights().matches("[C|8]+");
 
         if((CIS_DATA.getPhaseCount() == 3) && !rgb)
         {
@@ -127,7 +127,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
       DarkFieldRight.setDisable(newValue.equals("Cloudy Day") || newValue.equals("Shape from Shading"));
       DarkFieldLeft.setDisable(newValue.equals("Cloudy Day") || newValue.equals("Shape from Shading"));
       Coax.setDisable(newValue.equals("Shape from Shading"));
-      BrightFieldLeft.setDisable(newValue.equals("Shape from Shading"));
+      BrightFieldRight.setDisable(newValue.equals("Shape from Shading"));
 
       if(CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING))
       {
@@ -171,6 +171,14 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
         alert.show();
         BrightFieldLeft.getSelectionModel().select(oldValue);
       }
+      if((CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING))
+              && (!CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RED) && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.WHITE)))
+      {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("Shape from Shading only with Red or White ");
+        alert.show();
+        BrightFieldLeft.getSelectionModel().select(oldValue);
+      }
     });
     Coax.valueProperty().addListener((observable, oldValue, newValue) ->
     {
@@ -195,14 +203,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
     {
       VUCIS.LightColor.findByDescription(newValue)
               .ifPresent(CIS_DATA::setRightBrightField);
-      if((CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING))
-              && (!CIS_DATA.getRightBrightField().equals(CIS.LightColor.RED) && !CIS_DATA.getRightBrightField().equals(CIS.LightColor.WHITE)))
-      {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setHeaderText("Shape from Shading only with Red or White ");
-        alert.show();
-        BrightFieldRight.getSelectionModel().select(oldValue);
-      }
+
       if(CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getRightBrightField().equals(CIS.LightColor.RGB)
               && !CIS_DATA.getRightBrightField().equals(CIS.LightColor.RGB8)) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
