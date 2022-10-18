@@ -141,22 +141,27 @@
       </ComboBox>
     </HBox>
     <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="4">
-      <Label text="Lens type:" />
+      <Label text="Lens working distance:" />
       <ChoiceBox fx:id="LensType">
         <items>
           <FXCollections fx:factory="observableArrayList">
             <!--String fx:value="TC48" />
             <String fx:value="TC48 with long DOF" /-->
-            <String fx:value="TC54" />
+            <!--<String fx:value="TC54" />
             <String fx:value="TC54 with long DOF" />
             <String fx:value="TC80" />
-            <String fx:value="TC80 with long DOF" />
+            <String fx:value="TC80 with long DOF" /> -->
             <!--String fx:value="TC99" />
             <String fx:value="TC147" />
             <String fx:value="OL_OBJ_M12x0.5R_25mm_GLAS_0_ß=1:4" /-->
+            <String fx:value="10mm" />
+            <String fx:value="23mm" />
           </FXCollections>
         </items>
       </ChoiceBox>
+      <CheckBox mnemonicParsing="false"
+                text="Long/High DOF"
+                GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" fx:id="LensDOF"/>
     </HBox>
     <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="6">
       <Button fx:id="Calculation" mnemonicParsing="false" onAction="#handleCalculation" text="Calculation" />

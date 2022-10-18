@@ -1,6 +1,6 @@
 package de.tichawa.cis.config.vucis;
 
-import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -14,6 +14,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
   public ChoiceBox<String> LightPreset;
   @FXML
   public ChoiceBox<String> LensType;
+  @FXML
+  public CheckBox LensDOF;
   @FXML
   private ChoiceBox<String> BrightFieldLeft;
   @FXML
@@ -140,7 +142,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
         }
         if (!(CIS_DATA.getLensType().equals(VUCIS.LensType.TC54)) && !(CIS_DATA.getLensType().equals(VUCIS.LensType.TC54L))) {
           Alert alert = new Alert(Alert.AlertType.WARNING);
-          alert.setHeaderText("Shape from Shading only available with TC54 with long DOF or TC54");
+          alert.setHeaderText("Shape from Shading only available with 10mm working distance");
           alert.show();
           LightPreset.getSelectionModel().select(oldValue);
           return;
@@ -238,18 +240,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
       }
     });
     LensType.valueProperty().addListener((observable, oldValue, newValue) ->
-    {
-      Optional<VUCIS.LensType> lensType = VUCIS.LensType.findByDescription(newValue);
-      lensType.ifPresent(CIS_DATA::setLensType);
-      if(CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING) && !CIS_DATA.getLensType().equals(VUCIS.LensType.TC54L)
-              && !CIS_DATA.getLensType().equals(VUCIS.LensType.TC54)){
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setHeaderText("Shape from Shading only available with TC54 with long DOF or TC54");
-        alert.show();
-        LensType.getSelectionModel().select(oldValue);
-//        return;
-      }
-    });
+            handleLensTypeChange(oldValue, newValue,LensDOF.isSelected(),LensDOF.isSelected()));
+    LensDOF.selectedProperty().addListener((observable,oldValue,newValue) ->
+            handleLensTypeChange(LensType.getValue(), LensType.getValue(), oldValue, newValue));
+
 
     Resolution.valueProperty().addListener((observable, oldValue, newValue) ->
     {
@@ -309,7 +303,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
         alert.setHeaderText("Shape from Shading not available with the selected scan width");
         alert.show();
         ScanWidth.getSelectionModel().select((Integer) oldValue);
-        return;
       }
     });
 
@@ -331,5 +324,41 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS>
     Interface.getSelectionModel().selectFirst();
     Cooling.getSelectionModel().select(1);
     LensType.getSelectionModel().selectFirst();
+    LensDOF.setSelected(false);
+  }
+
+  /**
+   * Helper method to handle changes to the lens options. Creates an alert and resets values if shape from shading is selected with 23mm.
+   * Internally creates a description String from the given new values that should match VUCIS.LensType
+   * @param oldDistanceValue old value for working distance
+   * @param newDistanceValue new value for working distance, must be 10mm or 23mm
+   * @param oldDOFValue old boolean value for DOF
+   * @param newDOFValue new boolean value for DOF
+   */
+  private void handleLensTypeChange(String oldDistanceValue, String newDistanceValue, boolean oldDOFValue, boolean newDOFValue){
+    String description = "";
+    switch (newDistanceValue){
+      case "10mm":
+        description += "TC54";
+        break;
+      case "23mm":
+        description += "TC80";
+        break;
+      default:
+        throw new CISException("Unsupported lens type");
+    }
+    if(newDOFValue){
+      description += " with long DOF";
+    }
+    Optional<VUCIS.LensType> lensType = VUCIS.LensType.findByDescription(description);
+    lensType.ifPresent(CIS_DATA::setLensType);
+    if(CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING) && !CIS_DATA.getLensType().equals(VUCIS.LensType.TC54L)
+            && !CIS_DATA.getLensType().equals(VUCIS.LensType.TC54)){
+      Alert alert = new Alert(Alert.AlertType.WARNING);
+      alert.setHeaderText("Shape from Shading only available with long working distance");
+      alert.show();
+      LensType.getSelectionModel().select(oldDistanceValue);
+      LensDOF.setSelected(oldDOFValue);
+    }
   }
 }
