@@ -3,7 +3,7 @@
   <jdbc>
     <driver>org.sqlite.JDBC</driver>
     <url>jdbc:sqlite:/home/florian/Repositories/Konfigurator/tivicc.sqlite</url>
-    
+
     <!-- You can also pass user/password and other JDBC properties in the optional properties tag: -->
   </jdbc>
 
@@ -11,9 +11,9 @@
     <database>
       <!-- The database dialect from jooq-meta. Available dialects are
            named org.jooq.meta.[database].[database]Database.
-            
+
            Natively supported values are:
-    
+
                org.jooq.meta.ase.ASEDatabase
                org.jooq.meta.auroramysql.AuroraMySQLDatabase
                org.jooq.meta.aurorapostgres.AuroraPostgresDatabase
@@ -37,30 +37,30 @@
                org.jooq.meta.sybase.SybaseDatabase
                org.jooq.meta.teradata.TeradataDatabase
                org.jooq.meta.vertica.VerticaDatabase
-            
+
            This value can be used to reverse-engineer generic JDBC DatabaseMetaData (e.g. for MS Access)
-           
+
                org.jooq.meta.jdbc.JDBCDatabase
-                
+
            This value can be used to reverse-engineer standard jOOQ-meta XML formats
-            
+
                org.jooq.meta.xml.XMLDatabase
-    
+
            This value can be used to reverse-engineer schemas defined by SQL files
            (requires jooq-meta-extensions dependency)
 
                org.jooq.meta.extensions.ddl.DDLDatabase
-                   
+
            This value can be used to reverse-engineer schemas defined by JPA annotated entities
            (requires jooq-meta-extensions-hibernate dependency)
-                   
+
                org.jooq.meta.extensions.jpa.JPADatabase
-                   
+
            This value can be used to reverse-engineer schemas defined by JPA annotated entities
            (requires jooq-meta-extensions-liquibase dependency)
-                   
+
                org.jooq.meta.extensions.liquibase.LiquibaseDatabase
-    
+
            You can also provide your own org.jooq.meta.Database implementation
            here, if your database is currently not supported -->
       <name>org.jooq.meta.sqlite.SQLiteDatabase</name>
@@ -69,9 +69,9 @@
            Use the pipe to separate several expressions) Watch out for
            case-sensitivity. Depending on your database, this might be
            important!
-           
+
            You can create case-insensitive regular expressions using this syntax: (?i:expr)
-           
+
            Whitespace is ignored and comments are possible.
            -->
       <includes>.*</includes>
@@ -100,7 +100,7 @@
     <target>
       <!-- The destination package of your generated classes (within the
            destination directory)
-           
+
            jOOQ may append the schema name to this package if generating multiple schemas,
            e.g. org.jooq.your.packagename.schema1
                 org.jooq.your.packagename.schema2 -->
