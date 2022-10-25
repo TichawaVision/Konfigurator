@@ -384,7 +384,11 @@ public abstract class CIS {
                                 Optional.ofNullable(priceRecords.get(electronicRecord.getArtNo()))
                                         .ifPresent(priceRecord ->
                                         {
-                                            electConfig.put(priceRecord, amount);
+                                            if (electConfig.containsKey(priceRecord)) {
+                                                electConfig.put(priceRecord, amount + electConfig.get(priceRecord));
+                                            } else {
+                                                electConfig.put(priceRecord, amount);
+                                            }
                                             electSums[0] += priceRecord.getPrice() * amount;
                                             electSums[1] += priceRecord.getAssemblyTime() * amount;
                                             electSums[2] += priceRecord.getPowerConsumption() * amount;
@@ -421,7 +425,11 @@ public abstract class CIS {
                                 Optional.ofNullable(priceRecords.get(mechanicRecord.getArtNo()))
                                         .ifPresent(priceRecord ->
                                         {
-                                            mechaConfig.put(priceRecord, amount);
+                                            if (mechaConfig.containsKey(priceRecord)) { //already contains this item -> add amount
+                                                mechaConfig.put(priceRecord, amount + mechaConfig.get(priceRecord));
+                                            } else {
+                                                mechaConfig.put(priceRecord, amount);
+                                            }
                                             mechaSums[0] += priceRecord.getPrice() * amount;
                                             mechaSums[1] += priceRecord.getAssemblyTime() * amount;
                                             mechaSums[2] += priceRecord.getPowerConsumption() * amount;
@@ -694,7 +702,7 @@ public abstract class CIS {
             // Regex pattern, apply to light code
             if (m.startsWith("^") && m.endsWith("$")) {
                 try {
-                    proceed = getLights().matches(m);
+                    proceed = getLights().matches(m.replaceAll("\\s", ""));
                 } catch (PatternSyntaxException ex) {
                     //Not a valid expression, ignore and proceed
                     proceed = !invert; //!invert ^ invert == true
