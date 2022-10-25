@@ -688,11 +688,11 @@ public abstract class CIS {
         if (selectCode == null) {
             return true;
         }
+        selectCode = selectCode.replaceAll("\\s", "");
 
         boolean proceed;
         String key = getTiViKey();
         String[] multiplier = selectCode.split("&");
-        System.out.println("sel code: " + selectCode);
 
         boolean invert;
         for (String m : multiplier) {
@@ -702,7 +702,7 @@ public abstract class CIS {
             // Regex pattern, apply to light code
             if (m.startsWith("^") && m.endsWith("$")) {
                 try {
-                    proceed = getLights().matches(m.replaceAll("\\s", ""));
+                    proceed = getLights().matches(m);
                 } catch (PatternSyntaxException ex) {
                     //Not a valid expression, ignore and proceed
                     proceed = !invert; //!invert ^ invert == true
@@ -789,20 +789,8 @@ public abstract class CIS {
                     case "H": //Mode: HIGH (MXCIS only)
                         proceed = this instanceof MXCIS && getMode() == 2;
                         break;
-                    case "P==3":
-                        proceed = getPhaseCount() == 3;
-                        break;
-                    case "P==4":
-                        proceed = getPhaseCount() == 4;
-                        break;
-                    case "P==6":
-                        proceed = getPhaseCount() == 6;
-                        break;
-                    case "P>0&P<3":
-                        proceed = getPhaseCount() < 3;
-                        break;
-                    default: //Unknown modifier -> maybe find it in subclass checking
-                        proceed = checkSpecificApplicability(m);
+                    default: //Unknown modifier -> maybe find it in P code or subclass checking
+                        proceed = isValidPCode(m) || checkSpecificApplicability(m);
                         break;
                 } //end switch
             } // end else
@@ -823,6 +811,29 @@ public abstract class CIS {
      */
     protected boolean checkSpecificApplicability(String code) {
         return false;
+    }
+
+    /**
+     * checks whether the given code matches the current phase count
+     */
+    private boolean isValidPCode(String code) {
+        if (code.charAt(0) != 'P')
+            return false;
+        try {
+            switch (code.charAt(1)) {
+                case '>':
+                    return getPhaseCount() > Integer.parseInt(code.split(">")[1]);
+                case '<':
+                    return getPhaseCount() < Integer.parseInt(code.split("<")[1]);
+                case '=': // -> '=='
+                    return getPhaseCount() == Integer.parseInt(code.split("==")[1]);
+                default: // unknown code
+                    System.err.println("unknown P clause: " + code);
+                    return false;
+            }
+        } catch (NumberFormatException e) { //not a number behind the math operator
+            return false;
+        }
     }
 
     private int getMechaFactor(String factor) {
@@ -1077,7 +1088,6 @@ public abstract class CIS {
             SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
             numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / binning;
         } else if (this instanceof VHCIS || this instanceof VTCIS || this instanceof VUCIS) {
-            System.out.println(String.format("%04d", getSelectedResolution().getActualResolution()));
             SensorBoardRecord sensorBoard = getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
             numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSelectedResolution().getActualResolution());
         } else {

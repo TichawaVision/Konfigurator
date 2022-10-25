@@ -188,7 +188,8 @@ public class VUCIS extends CIS {
     @Override
     protected String prepareMechaFactor(String factor) {
         //small n: "LED in middle...", !X: "...that exists" (is not X)
-        return factor.replace("n(?!X)", getLEDsInMiddle() + "");
+        return factor.replace("n(?!X)", getLEDsInMiddle() + "")
+                .replace("C", getCoolingCount() + "");
     }
 
     /**
@@ -341,6 +342,13 @@ public class VUCIS extends CIS {
         this.coolingRight = coolingRight;
     }
 
+    /**
+     * calculates the number of coolings (one left and one right if it is selected)
+     */
+    public int getCoolingCount() {
+        return (coolingLeft ? 1 : 0) + (coolingRight ? 1 : 0);
+    }
+
     @Override
     public double getMaxLineRate() {
         AdcBoardRecord adcBoard = getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
@@ -360,27 +368,38 @@ public class VUCIS extends CIS {
     //should return false if code is unknown
     @Override
     protected boolean checkSpecificApplicability(String code) {
-        return isValidLCode(code);
+        return isValidLCode(code) || isValidCCode(code);
         //TODO expand
+    }
+
+    /**
+     * checks whether the given code matches the current cooling selection
+     */
+    protected boolean isValidCCode(String code) {
+        System.out.println("checking code for C:" + code + ", result: " + ("C".equals(code) && getCoolingCount() > 0));
+        return "C".equals(code) && getCoolingCount() > 0;
     }
 
     /**
      * checks whether the given code matches the current led selection
      */
     private boolean isValidLCode(String code) {
-        switch (code.replaceAll("\\s", "")) {
-            case "L>0":
-                return getLedLines() > 0;
-            case "L>0∧L<3":
-                return getLedLines() > 0 && getLedLines() < 3;
-            case "L==6":
-                return getLedLines() == 6;
-            case "L==4":
-                return getLedLines() == 4;
-            case "L==3":
-                return getLedLines() == 3;
-            default:
-                return false;// no valid L code
+        if (code.charAt(0) != 'L')
+            return false;
+        try {
+            switch (code.charAt(1)) {
+                case '>':
+                    return getLedLines() > Integer.parseInt(code.split(">")[1]);
+                case '<':
+                    return getLedLines() < Integer.parseInt(code.split("<")[1]);
+                case '=': // -> '=='
+                    return getLedLines() == Integer.parseInt(code.split("==")[1]);
+                default: // unknown code
+                    System.err.println("unknown L clause: " + code);
+                    return false;
+            }
+        } catch (NumberFormatException e) { //not a number behind the math operator
+            return false;
         }
     }
 }
