@@ -15,6 +15,8 @@ public class VUCIS extends CIS {
     private LightColor leftDarkField;
     private LightColor rightDarkField;
     private LensType lensType;
+    private boolean coolingLeft;
+    private boolean coolingRight;
 
     public enum LightPreset {
         MANUAL("Manual"),
@@ -89,6 +91,9 @@ public class VUCIS extends CIS {
         this.rightBrightField = LightColor.RED;
         this.leftDarkField = LightColor.NONE;
         this.rightDarkField = LightColor.NONE;
+        this.lensType = LensType.TC54;
+        this.coolingLeft = true;
+        this.coolingRight = true;
     }
 
     @Override
@@ -318,6 +323,22 @@ public class VUCIS extends CIS {
 
     public void setLensType(LensType lensType) {
         this.lensType = lensType;
+    }
+
+    public boolean hasCoolingLeft() {
+        return coolingLeft;
+    }
+
+    public void setCoolingLeft(boolean coolingLeft) {
+        this.coolingLeft = coolingLeft;
+    }
+
+    public boolean hasCoolingRight() {
+        return coolingRight;
+    }
+
+    public void setCoolingRight(boolean coolingRight) {
+        this.coolingRight = coolingRight;
     }
 
     @Override
