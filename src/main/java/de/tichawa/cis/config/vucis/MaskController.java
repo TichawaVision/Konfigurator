@@ -87,37 +87,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                     break;
                 }
             }
-            boolean rgb = CIS_DATA.getLights().matches("[C|8]+");
 
-            if ((CIS_DATA.getPhaseCount() == 3) && !rgb) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Three phases available only with RGB or RGB8");
-                alert.show();
-                Color.getSelectionModel().select(oldValue);
-                return;
-            }
-
-            if ((CIS_DATA.getPhaseCount() == 3 && CIS_DATA.getScanWidth() > 1300) || (CIS_DATA.getPhaseCount() == 4 && CIS_DATA.getScanWidth() > 1040) ||
-                    (CIS_DATA.getPhaseCount() == 5 && CIS_DATA.getScanWidth() > 780) || (CIS_DATA.getPhaseCount() == 6 && CIS_DATA.getScanWidth() > 520)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Not available with the selected scan width.Please reduce it.");
-                alert.show();
-                Color.getSelectionModel().select(oldValue);
-                return;
-            }
-            if (CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING) && !(CIS_DATA.getPhaseCount() == 4 || CIS_DATA.getPhaseCount() == 1)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Shape from shading not available with the selected color.");
-                alert.show();
-                Color.getSelectionModel().select(oldValue);
-                return;
-            }
             MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000.0 + " kHz");
             SelLineRate.setMax(CIS_DATA.getMaxLineRate());
             SelLineRate.setValue(CIS_DATA.getMaxLineRate());
 
             CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
-
         });
 
         LightPreset.valueProperty().addListener((observable, oldValue, newValue) ->
@@ -125,59 +100,14 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             Optional<VUCIS.LightPreset> lightPreset = VUCIS.LightPreset.findByDescription(newValue);
             lightPreset.ifPresent(CIS_DATA::setLightPreset);
 
-            DarkFieldRight.setDisable(newValue.equals("Cloudy Day") || newValue.equals("Shape from Shading"));
-            DarkFieldLeft.setDisable(newValue.equals("Cloudy Day") || newValue.equals("Shape from Shading"));
             Coax.setDisable(newValue.equals("Shape from Shading"));
             BrightFieldRight.setDisable(newValue.equals("Shape from Shading"));
-
-            if (CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING)) {
-                if (CIS_DATA.getScanWidth() > 1040 || CIS_DATA.getScanWidth() < 520) {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setHeaderText("Shape from Shading not available with the selected scan width");
-                    alert.show();
-                    LightPreset.getSelectionModel().select(oldValue);
-                    return;
-                }
-                if (!(CIS_DATA.getLensType().equals(VUCIS.LensType.TC54)) && !(CIS_DATA.getLensType().equals(VUCIS.LensType.TC54L))) {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setHeaderText("Shape from Shading only available with 10mm working distance");
-                    alert.show();
-                    LightPreset.getSelectionModel().select(oldValue);
-                    return;
-                }
-                if (!(CIS_DATA.getPhaseCount() == 1) && !(CIS_DATA.getPhaseCount() == 4)) {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setHeaderText("Shape from Shading not available with the selected color");
-                    alert.show();
-                    LightPreset.getSelectionModel().select(oldValue);
-                    return;
-                }
-                if (!(CIS_DATA.getRightBrightField().equals(CIS.LightColor.RED)) && (!CIS_DATA.getRightBrightField().equals(CIS.LightColor.WHITE))) {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setHeaderText("Shape from Shading not available with the selected lightcolor");
-                    alert.show();
-                    LightPreset.getSelectionModel().select(oldValue);
-                }
-            }
         });
+
         BrightFieldLeft.valueProperty().addListener((observable, oldValue, newValue) -> {
 
             VUCIS.LightColor.findByDescription(newValue)
                     .ifPresent(CIS_DATA::setLeftBrightField);
-            if (CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB)
-                    && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RGB8)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Three phases available only with RGB or RGB8");
-                alert.show();
-                BrightFieldLeft.getSelectionModel().select(oldValue);
-            }
-            if ((CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING))
-                    && (!CIS_DATA.getLeftBrightField().equals(CIS.LightColor.RED) && !CIS_DATA.getLeftBrightField().equals(CIS.LightColor.WHITE))) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Shape from Shading only with Red or White ");
-                alert.show();
-                BrightFieldLeft.getSelectionModel().select(oldValue);
-            }
             //update cooling
             updateCooling(CIS_DATA.getLeftDarkField().getDescription(), CIS_DATA.getLeftDarkField().getDescription(), // left dark field
                     oldValue, BrightFieldLeft.getSelectionModel().getSelectedItem(),                                  // left bright field
@@ -195,14 +125,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 alert.setHeaderText("Coax Selected.\nPlease reduce the scanwidth");
                 alert.show();
                 Coax.getSelectionModel().select(oldValue);
-            }
-            if (CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getCoaxLight().equals(CIS.LightColor.RGB)
-                    && !CIS_DATA.getCoaxLight().equals(CIS.LightColor.RGB8)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Three phases available only with RGB or RGB8");
-                alert.show();
-                Coax.getSelectionModel().select(oldValue);
-            }
+            } //TODO replace Alert with enforcing (only offer smaller scan widths)
             //update cooling
             updateCooling(CIS_DATA.getLeftDarkField().getDescription(), CIS_DATA.getLeftDarkField().getDescription(), // left dark field
                     CIS_DATA.getLeftBrightField().getDescription(), CIS_DATA.getLeftBrightField().getDescription(),   // left bright field
@@ -216,13 +139,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             VUCIS.LightColor.findByDescription(newValue)
                     .ifPresent(CIS_DATA::setRightBrightField);
 
-            if (CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getRightBrightField().equals(CIS.LightColor.RGB)
-                    && !CIS_DATA.getRightBrightField().equals(CIS.LightColor.RGB8)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Three phases available only with RGB or RGB8");
-                alert.show();
-                BrightFieldRight.getSelectionModel().select(oldValue);
-            }
             //update cooling
             updateCooling(CIS_DATA.getLeftDarkField().getDescription(), CIS_DATA.getLeftDarkField().getDescription(), // left dark field
                     CIS_DATA.getLeftBrightField().getDescription(), CIS_DATA.getLeftBrightField().getDescription(),   // left bright field
@@ -235,13 +151,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         {
             VUCIS.LightColor.findByDescription(newValue)
                     .ifPresent(CIS_DATA::setLeftDarkField);
-            if (CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getLeftDarkField().equals(CIS.LightColor.RGB)
-                    && !CIS_DATA.getLeftDarkField().equals(CIS.LightColor.RGB8)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Three phases available only with RGB or RGB8");
-                alert.show();
-                DarkFieldLeft.getSelectionModel().select(oldValue);
-            }
             //update cooling
             updateCooling(oldValue, DarkFieldLeft.getSelectionModel().getSelectedItem(),                              // left dark field
                     CIS_DATA.getLeftBrightField().getDescription(), CIS_DATA.getLeftBrightField().getDescription(),   // left bright field
@@ -255,13 +164,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             VUCIS.LightColor.findByDescription(newValue)
                     .ifPresent(CIS_DATA::setRightDarkField);
 
-            if (CIS_DATA.getPhaseCount() == 3 && !CIS_DATA.getRightDarkField().equals(CIS.LightColor.RGB)
-                    && !CIS_DATA.getRightDarkField().equals(CIS.LightColor.RGB8)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Three phases available only with RGB or RGB8");
-                alert.show();
-                DarkFieldRight.getSelectionModel().select(oldValue);
-            }
             //update cooling
             updateCooling(CIS_DATA.getLeftDarkField().getDescription(), CIS_DATA.getLeftDarkField().getDescription(), // left dark field
                     CIS_DATA.getLeftBrightField().getDescription(), CIS_DATA.getLeftBrightField().getDescription(),   // left bright field
@@ -299,24 +201,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         {
             CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim()));
 
-
-            int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(' ')).trim());
-
-            if ((sw > 1300 && CIS_DATA.getPhaseCount() == 3) || (sw > 1040 && CIS_DATA.getPhaseCount() == 4) ||
-                    (sw > 780 && CIS_DATA.getPhaseCount() == 5) || (sw > 520 && CIS_DATA.getPhaseCount() == 6)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("The selected scan width is not available");
-                alert.show();
-                ScanWidth.getSelectionModel().select(oldValue);
-                return;
-            }
-
             if (!(CIS_DATA.getCoaxLight().equals(CIS.LightColor.NONE)) && CIS_DATA.getScanWidth() > 1040) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setHeaderText("Coax Selected.\nPlease reduce the scanwidth");
                 alert.show();
                 ScanWidth.getSelectionModel().select(oldValue);
-            }
+            } //TODO remove once this is not a valid option any more (see TODO above)
         });
 
         SelLineRate.valueProperty().addListener((observable, oldValue, newValue) ->
@@ -329,13 +219,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
             Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
             Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
-
-            if (CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING) && (CIS_DATA.getScanWidth() > 1040 || CIS_DATA.getScanWidth() < 520)) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Shape from Shading not available with the selected scan width");
-                alert.show();
-                ScanWidth.getSelectionModel().select((Integer) oldValue);
-            }
         });
 
         Interface.valueProperty().addListener((observable, oldValue, newValue) ->
@@ -465,10 +348,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         if (CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING) && !CIS_DATA.getLensType().equals(VUCIS.LensType.TC54L)
                 && !CIS_DATA.getLensType().equals(VUCIS.LensType.TC54)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setHeaderText("Shape from Shading only available with long working distance");
+            alert.setHeaderText("Shape from Shading only available with short working distance");
             alert.show();
             LensType.getSelectionModel().select(oldDistanceValue);
             LensDOF.setSelected(oldDOFValue);
-        }
+        }//TODO replace Alert with enforcing the lense (disable choicebox)
     }
 }

@@ -376,7 +376,6 @@ public class VUCIS extends CIS {
      * checks whether the given code matches the current cooling selection
      */
     protected boolean isValidCCode(String code) {
-        System.out.println("checking code for C:" + code + ", result: " + ("C".equals(code) && getCoolingCount() > 0));
         return "C".equals(code) && getCoolingCount() > 0;
     }
 
