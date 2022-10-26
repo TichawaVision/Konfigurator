@@ -335,7 +335,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 description += "TC54";
                 break;
             case "23mm":
-                description += "TC80";
+                // if shape from shading: 23mm not valid -> change to other lens (should not be possible to reach this anyway)
+                if (CIS_DATA.getLightPreset() == VUCIS.LightPreset.SHAPE_FROM_SHADING) {
+                    System.err.println("Cannot choose 23mm with shape from shading. This line should not have been reached.");
+                    description += "TC54";
+                    LensType.getSelectionModel().select(oldDistanceValue);
+                } else
+                    description += "TC80";
                 break;
             default:
                 throw new CISException("Unsupported lens type");
@@ -345,13 +351,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         }
         Optional<VUCIS.LensType> lensType = VUCIS.LensType.findByDescription(description);
         lensType.ifPresent(CIS_DATA::setLensType);
-        if (CIS_DATA.getLightPreset().equals(VUCIS.LightPreset.SHAPE_FROM_SHADING) && !CIS_DATA.getLensType().equals(VUCIS.LensType.TC54L)
-                && !CIS_DATA.getLensType().equals(VUCIS.LensType.TC54)) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setHeaderText("Shape from Shading only available with short working distance");
-            alert.show();
-            LensType.getSelectionModel().select(oldDistanceValue);
-            LensDOF.setSelected(oldDOFValue);
-        }//TODO replace Alert with enforcing the lense (disable choicebox)
+        //TODO disable choicebox if shape from shading
     }
 }
