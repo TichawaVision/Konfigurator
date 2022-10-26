@@ -29,6 +29,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     private CheckBox CoolingLeft;
     @FXML
     private CheckBox CoolingRight;
+    @FXML
+    private CheckBox CloudyDay;
 
     public MaskController() {
         CIS_DATA = new VUCIS();
@@ -342,6 +344,26 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 .findByDescription(newValue.split("\\(")[0].trim())
                 .ifPresent(CIS_DATA::setCooling));
 
+        CloudyDay.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) { //selected cloudy day
+                // set value in model
+                CIS_DATA.setLightPreset(VUCIS.LightPreset.CLOUDY_DAY);
+                // no dark field
+                // - set to NONE in model
+                CIS_DATA.setLeftDarkField(CIS.LightColor.NONE);
+                CIS_DATA.setRightDarkField(CIS.LightColor.NONE);
+                // - update GUI
+                DarkFieldRight.getSelectionModel().select(CIS.LightColor.NONE.getDescription());
+                DarkFieldLeft.getSelectionModel().select(CIS.LightColor.NONE.getDescription());
+            } else {
+                // reset value in model to manual
+                CIS_DATA.setLightPreset(VUCIS.LightPreset.MANUAL);
+            }
+            //enable/disable fields
+            DarkFieldRight.setDisable(newValue);
+            DarkFieldLeft.setDisable(newValue);
+        });
+
         Color.getSelectionModel().selectFirst();
         LightPreset.getSelectionModel().selectFirst();
         BrightFieldLeft.getSelectionModel().select(1);
@@ -359,6 +381,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         CoolingRight.setSelected(true);
         CoolingLeft.setDisable(true);
         CoolingRight.setDisable(true);
+        CloudyDay.setSelected(false);
     }
 
     /**
