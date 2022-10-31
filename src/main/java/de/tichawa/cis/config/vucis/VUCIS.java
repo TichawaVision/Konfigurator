@@ -34,6 +34,7 @@ public class VUCIS extends CIS {
             case UVA:
             case VERDE:
             case RGB:
+            case RGB_S:
             case RGB8:
             case IRUV:
             case WHITE_SFS:

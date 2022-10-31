@@ -269,6 +269,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         ScanWidth.getItems().clear();
         ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
         ScanWidth.getSelectionModel().select(1);
+        CIS_DATA.setScanWidth(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.get(1));
         ScanWidth.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue != null && newValue != null)
                 CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim()));

@@ -105,12 +105,13 @@ public abstract class CIS {
         IR950("IR 950nm", "JR", 'J'),
         UVA("UVA 365nm", "UV", 'U'),
         VERDE("Verde", "VE", 'V'),
-        RGB("RGB", "RGB", 'C'),
+        RGB_S("RGB (strong)", "RGB_S", 'C'),
+        RGB("RGB", "RGB", 'P'),
         IRUV("LEDIRUV", "HI", 'H'),
         RGB8("RGB8", "REBZ8", '8'),
         REBELMIX("REBELMIX", "REBEL", 'E'),
-        RED_SFS("Red (Shape from Shading", "RS", 'R'),//TODO replace code, shorthand?
-        WHITE_SFS("White (Shape from Shading)", "WS", 'W');//TODO replace code, shorthand?
+        RED_SFS("Red (Shape from Shading", "RS", 'R'),
+        WHITE_SFS("White (Shape from Shading)", "WS", 'W');
 
 
         private final String description;
@@ -722,6 +723,7 @@ public abstract class CIS {
                         break;
                     case "RGB": //Color coding
                     case "RGB8":
+                    case "RGB_S":
                         if (this instanceof VUCIS) {
                             proceed = LightColor.findByShortHand(m)
                                     .map(getLightColors()::contains)
