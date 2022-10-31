@@ -6,11 +6,15 @@ import javafx.scene.control.*;
 
 import java.net.URL;
 import java.util.*;
+import java.util.stream.*;
 
 public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> {
 
-    @FXML
-    public ChoiceBox<String> LightPreset;
+    private static final List<String> LIGHT_COLOR_OPTIONS_WITH_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor)
+            .map(CIS.LightColor::getDescription).collect(Collectors.toList());
+    private static final List<String> LIGHT_COLOR_OPTIONS_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor).filter(c -> !c.isShapeFromShading())
+            .map(CIS.LightColor::getDescription).collect(Collectors.toList());
+
     @FXML
     public ChoiceBox<String> LensType;
     @FXML
@@ -95,15 +99,11 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
         });
 
-        LightPreset.valueProperty().addListener((observable, oldValue, newValue) ->
-        {
-            Optional<VUCIS.LightPreset> lightPreset = VUCIS.LightPreset.findByDescription(newValue);
-            lightPreset.ifPresent(CIS_DATA::setLightPreset);
-
-            Coax.setDisable(newValue.equals("Shape from Shading"));
-            BrightFieldRight.setDisable(newValue.equals("Shape from Shading"));
-        });
-
+        //set light color options
+        BrightFieldLeft.getItems().clear();
+        BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
+        BrightFieldLeft.getSelectionModel().select(1);
+        // add listener for value changes
         BrightFieldLeft.valueProperty().addListener((observable, oldValue, newValue) -> {
 
             VUCIS.LightColor.findByDescription(newValue)
@@ -115,7 +115,15 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                     CIS_DATA.getRightBrightField().getDescription(), CIS_DATA.getRightBrightField().getDescription(), // right bright field
                     CIS_DATA.getCoaxLight().getDescription(), CIS_DATA.getCoaxLight().getDescription());              // coax
             updateCoolingCheckboxes();
+
+            handleShapeFromShading();
         });
+
+        //set light color options
+        Coax.getItems().clear();
+        Coax.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
+        Coax.getSelectionModel().selectFirst();
+        // add listener for value changes
         Coax.valueProperty().addListener((observable, oldValue, newValue) ->
         {
             VUCIS.LightColor.findByDescription(newValue)
@@ -133,7 +141,33 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                     CIS_DATA.getRightBrightField().getDescription(), CIS_DATA.getRightBrightField().getDescription(), // right bright field
                     oldValue, Coax.getSelectionModel().getSelectedItem());                                            // coax
             updateCoolingCheckboxes();
+
+            // if coax: no left side shape from shading, also no left side dark field
+            if (CIS_DATA.hasCoax()) {
+                if (CIS_DATA.getLeftBrightField().isShapeFromShading()) {
+                    CIS_DATA.setLeftBrightField(CIS.LightColor.NONE);
+                }
+                // set choice box options to ones without sfs
+                String selected = CIS_DATA.getLeftBrightField().getDescription();
+                BrightFieldLeft.getItems().clear();
+                BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
+                BrightFieldLeft.getSelectionModel().select(selected);
+                CIS_DATA.setLeftDarkField(CIS.LightColor.NONE);
+                DarkFieldLeft.getSelectionModel().select(CIS.LightColor.NONE.getDescription());
+            } else {// set choice box options to ones with sfs
+                String selected = CIS_DATA.getLeftBrightField().getDescription();
+                BrightFieldLeft.getItems().clear();
+                BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
+                BrightFieldLeft.getSelectionModel().select(selected);
+            }
+            DarkFieldLeft.setDisable(CIS_DATA.hasCoax());
         });
+
+        //set light color options
+        BrightFieldRight.getItems().clear();
+        BrightFieldRight.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
+        BrightFieldRight.getSelectionModel().select(1);
+        // add listener for value changes
         BrightFieldRight.valueProperty().addListener((observable, oldValue, newValue) ->
         {
             VUCIS.LightColor.findByDescription(newValue)
@@ -146,7 +180,15 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                     oldValue, BrightFieldRight.getSelectionModel().getSelectedItem(),                                 // right bright field
                     CIS_DATA.getCoaxLight().getDescription(), CIS_DATA.getCoaxLight().getDescription());              // coax
             updateCoolingCheckboxes();
+
+            handleShapeFromShading();
         });
+
+        //set light color options
+        DarkFieldLeft.getItems().clear();
+        DarkFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
+        DarkFieldLeft.getSelectionModel().selectFirst();
+        // add listener for value changes
         DarkFieldLeft.valueProperty().addListener((observable, oldValue, newValue) ->
         {
             VUCIS.LightColor.findByDescription(newValue)
@@ -158,7 +200,15 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                     CIS_DATA.getRightBrightField().getDescription(), CIS_DATA.getRightBrightField().getDescription(), // right bright field
                     CIS_DATA.getCoaxLight().getDescription(), CIS_DATA.getCoaxLight().getDescription());              // coax
             updateCoolingCheckboxes();
+
+            handleShapeFromShading();
         });
+
+        //set light color options
+        DarkFieldRight.getItems().clear();
+        DarkFieldRight.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
+        DarkFieldRight.getSelectionModel().selectFirst();
+        // add listener for value changes
         DarkFieldRight.valueProperty().addListener((observable, oldValue, newValue) ->
         {
             VUCIS.LightColor.findByDescription(newValue)
@@ -171,6 +221,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                     CIS_DATA.getRightBrightField().getDescription(), CIS_DATA.getRightBrightField().getDescription(), // right bright field
                     CIS_DATA.getCoaxLight().getDescription(), CIS_DATA.getCoaxLight().getDescription());              // coax
             updateCoolingCheckboxes();
+
+            handleShapeFromShading();
         });
         LensType.valueProperty().addListener((observable, oldValue, newValue) ->
                 handleLensTypeChange(oldValue, newValue, LensDOF.isSelected(), LensDOF.isSelected()));
@@ -229,8 +281,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
 
         CloudyDay.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) { //selected cloudy day
-                // set value in model
-                CIS_DATA.setLightPreset(VUCIS.LightPreset.CLOUDY_DAY);
                 // no dark field
                 // - set to NONE in model
                 CIS_DATA.setLeftDarkField(CIS.LightColor.NONE);
@@ -238,22 +288,15 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 // - update GUI
                 DarkFieldRight.getSelectionModel().select(CIS.LightColor.NONE.getDescription());
                 DarkFieldLeft.getSelectionModel().select(CIS.LightColor.NONE.getDescription());
-            } else {
-                // reset value in model to manual
-                CIS_DATA.setLightPreset(VUCIS.LightPreset.MANUAL);
             }
+            //set value in model
+            CIS_DATA.setCloudyDay(true);
             //enable/disable fields
             DarkFieldRight.setDisable(newValue);
             DarkFieldLeft.setDisable(newValue);
         });
 
         Color.getSelectionModel().selectFirst();
-        LightPreset.getSelectionModel().selectFirst();
-        BrightFieldLeft.getSelectionModel().select(1);
-        Coax.getSelectionModel().selectFirst();
-        BrightFieldRight.getSelectionModel().select(1);
-        DarkFieldLeft.getSelectionModel().selectFirst();
-        DarkFieldRight.getSelectionModel().selectFirst();
         Resolution.getSelectionModel().selectFirst();
         ScanWidth.getSelectionModel().selectLast();
         Interface.getSelectionModel().selectFirst();
@@ -268,6 +311,16 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     }
 
     /**
+     * handles shape from shading light color: enforces 10mm working distance selection
+     */
+    private void handleShapeFromShading() {
+        //if shape from shading -> enforce 10mm working distance
+        if (CIS_DATA.isShapeFromShading())
+            handleLensTypeChange(LensType.getValue(), "10mm", LensDOF.isSelected(), LensDOF.isSelected());
+        LensType.setDisable(CIS_DATA.isShapeFromShading());
+    }
+
+    /**
      * if there is a LED on one sight it gets cooling. If you change from LED to NONE resulting in no LEDs on this side default value will be no cooling
      * "new" parameters must be what will get actually set (so don't feed it here if it gets reset immediately after)
      */
@@ -275,7 +328,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                                String oldDarkFieldRight, String newDarkFieldRight, String oldBrightFieldRight, String newBrightFieldRight,
                                String oldCoax, String newCoax) {
         /* if changes left */
-        if (oldDarkFieldLeft != null && oldBrightFieldLeft != null && oldCoax != null) {
+        if (oldDarkFieldLeft != null && oldBrightFieldLeft != null && oldCoax != null && newDarkFieldLeft != null && newBrightFieldLeft != null && newCoax != null) {
             if (!oldDarkFieldLeft.equals(newDarkFieldLeft) || !oldBrightFieldLeft.equals(newBrightFieldLeft) || !oldCoax.equals(newCoax)) {
                 // all NONE -> default no cooling
                 // there is an LED now -> cooling
@@ -285,7 +338,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             }
         }
         /* if changes right */
-        if (oldDarkFieldRight != null && oldBrightFieldRight != null) {
+        if (oldDarkFieldRight != null && oldBrightFieldRight != null && newDarkFieldRight != null && newBrightFieldRight != null) {
             if (!oldDarkFieldRight.equals(newDarkFieldRight) || !oldBrightFieldRight.equals(newBrightFieldRight)) {
                 // both NONE -> default no cooling
                 // there is an LED now -> cooling
@@ -293,7 +346,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                         || !newBrightFieldRight.equals(CIS.LightColor.NONE.getDescription()));
             }
         }
-        //TODO where goes coax/middle? -> left for now
     }
 
     /**
@@ -316,7 +368,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             CoolingRight.setSelected(false);
             CoolingRight.setDisable(false);
         }
-        //TODO where goes coax/middle? -> left for now
     }
 
     /**
@@ -333,10 +384,11 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         switch (newDistanceValue) {
             case "10mm":
                 description += "TC54";
+                LensType.getSelectionModel().select(newDistanceValue);
                 break;
             case "23mm":
                 // if shape from shading: 23mm not valid -> change to other lens (should not be possible to reach this anyway)
-                if (CIS_DATA.getLightPreset() == VUCIS.LightPreset.SHAPE_FROM_SHADING) {
+                if (CIS_DATA.isShapeFromShading()) {
                     System.err.println("Cannot choose 23mm with shape from shading. This line should not have been reached.");
                     description += "TC54";
                     LensType.getSelectionModel().select(oldDistanceValue);
@@ -351,6 +403,5 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         }
         Optional<VUCIS.LensType> lensType = VUCIS.LensType.findByDescription(description);
         lensType.ifPresent(CIS_DATA::setLensType);
-        //TODO disable choicebox if shape from shading
     }
 }

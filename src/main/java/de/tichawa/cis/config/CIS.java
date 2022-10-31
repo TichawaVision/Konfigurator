@@ -96,11 +96,11 @@ public abstract class CIS {
 
     public enum LightColor {
         NONE("None", "NO", 'X'),
-        RED("Red", "AM", 'R'),
+        RED("Red", "AM", 'A'),
         GREEN("Green", "GR", 'G'),
         BLUE("Blue", "BL", 'B'),
         YELLOW("Yellow", "YE", 'Y'),
-        WHITE("White", "WH", 'W'),
+        WHITE("White", "WH", 'L'),
         IR("IR", "IR", 'I'),
         IR950("IR 950nm", "JR", 'J'),
         UVA("UVA 365nm", "UV", 'U'),
@@ -108,7 +108,10 @@ public abstract class CIS {
         RGB("RGB", "RGB", 'C'),
         IRUV("LEDIRUV", "HI", 'H'),
         RGB8("RGB8", "REBZ8", '8'),
-        REBELMIX("REBELMIX", "REBEL", 'E');
+        REBELMIX("REBELMIX", "REBEL", 'E'),
+        RED_SFS("Red (Shape from Shading", "RS", 'R'),//TODO replace code, shorthand?
+        WHITE_SFS("White (Shape from Shading)", "WS", 'W');//TODO replace code, shorthand?
+
 
         private final String description;
         private final String shortHand;
@@ -151,6 +154,10 @@ public abstract class CIS {
             return Arrays.stream(LightColor.values())
                     .filter(c -> c.getCode() == code)
                     .findFirst();
+        }
+
+        public boolean isShapeFromShading() {
+            return this == WHITE_SFS || this == RED_SFS;
         }
     }
 

@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 public class VUCIS extends CIS {
 
-    private LightPreset lightPreset;
     private LightColor leftBrightField;
     private LightColor coaxLight;
     private LightColor rightBrightField;
@@ -17,27 +16,41 @@ public class VUCIS extends CIS {
     private LensType lensType;
     private boolean coolingLeft;
     private boolean coolingRight;
+    private boolean cloudyDay;
 
-    public enum LightPreset {
-        MANUAL("Manual"),
-        SHAPE_FROM_SHADING("Shape from Shading"),
-        CLOUDY_DAY("Cloudy Day");
-
-        private final String description;
-
-        LightPreset(String description) {
-            this.description = description;
+    /**
+     * returns whether the given light color is a valid option for VUCIS
+     */
+    public static boolean isVUCISLightColor(LightColor lightColor) {
+        switch (lightColor) {
+            case NONE:
+            case RED:
+            case GREEN:
+            case BLUE:
+            case YELLOW:
+            case WHITE:
+            case IR:
+            case IR950:
+            case UVA:
+            case VERDE:
+            case RGB:
+            case RGB8:
+            case IRUV:
+            case WHITE_SFS:
+            case RED_SFS:
+                return true;
+            default:
+                return false;
         }
+    }
 
-        public String getDescription() {
-            return this.description;
-        }
-
-        public static Optional<LightPreset> findByDescription(String description) {
-            return Arrays.stream(LightPreset.values())
-                    .filter(c -> c.getDescription().equals(description))
-                    .findFirst();
-        }
+    /**
+     * determines if there is a shape from shading by checking if any light color is a shape from shading one
+     */
+    public boolean isShapeFromShading() {
+        return leftBrightField.isShapeFromShading() || leftDarkField.isShapeFromShading()
+                || rightBrightField.isShapeFromShading() || rightDarkField.isShapeFromShading()
+                || coaxLight.isShapeFromShading(); //coax sfs should not be possible anyway
     }
 
     public enum LensType {
@@ -85,7 +98,6 @@ public class VUCIS extends CIS {
     public VUCIS() {
         super();
 
-        this.lightPreset = LightPreset.MANUAL;
         this.leftBrightField = LightColor.RED;
         this.coaxLight = LightColor.NONE;
         this.rightBrightField = LightColor.RED;
@@ -142,33 +154,47 @@ public class VUCIS extends CIS {
         }
     }
 
+    /**
+     * creates the lights code for the current selection by concatenation of single light codes from left dark field, left bright field, coax, right bright field, right dark field.
+     * Special code for cloudy day: 'D' replacing both dark field light codes.
+     * Special code for shape from shading: 'S' in middle if there is no coax light, on left dark field otherwise (coax is left so there can be no left dark field)
+     */
     @Override
     public String getLights() {
         String key = "";
-        switch (getLightPreset()) {
-            case CLOUDY_DAY: {
-                key += "D";
-                key += getLeftBrightField().getCode();
-                key += getCoaxLight().getCode();
-                key += getRightBrightField().getCode();
-                key += "D";
-                return key;
-            }
-            case SHAPE_FROM_SHADING: {
-                if (getLeftBrightField().getCode() == 'R') {
-                    return "RRSRR";
-                }
-                return "WWSWW";
-            }
-            default: {
+        if (cloudyDay) {
+            key += "D";
+            key += getLeftBrightField().getCode();
+            key += getCoaxLight().getCode();
+            key += getRightBrightField().getCode();
+            key += "D";
+            return key;
+        }
+        if (isShapeFromShading()) {
+            // if no coax -> S in middle
+            if (!hasCoax()) {
                 key += getLeftDarkField().getCode();
                 key += getLeftBrightField().getCode();
-                key += getCoaxLight().getCode();
+                key += 'S';
                 key += getRightBrightField().getCode();
                 key += getRightDarkField().getCode();
                 return key;
             }
+            //else: (there is coax light) -> (sfs only on right side) -> S on dark field left (no coax and dark field so dark is free)
+            key += 'S';
+            key += getLeftBrightField().getCode();
+            key += getCoaxLight().getCode();
+            key += getRightBrightField().getCode();
+            key += getRightDarkField().getCode();
+            return key;
         }
+        //default: just take the code from the lights
+        key += getLeftDarkField().getCode();
+        key += getLeftBrightField().getCode();
+        key += getCoaxLight().getCode();
+        key += getRightBrightField().getCode();
+        key += getRightDarkField().getCode();
+        return key;
     }
 
     @Override
@@ -270,14 +296,6 @@ public class VUCIS extends CIS {
         return coax ? 0.229 : 0.252;
     }
 
-    public LightPreset getLightPreset() {
-        return this.lightPreset;
-    }
-
-    public void setLightPreset(LightPreset lightPreset) {
-        this.lightPreset = lightPreset;
-    }
-
     public LightColor getLeftBrightField() {
         return leftBrightField;
     }
@@ -342,6 +360,19 @@ public class VUCIS extends CIS {
         this.coolingRight = coolingRight;
     }
 
+    public boolean isCloudyDay() {
+        return cloudyDay;
+    }
+
+    public void setCloudyDay(boolean cloudyDay) {
+        this.cloudyDay = cloudyDay;
+    }
+
+    public boolean hasCoax() {
+        return coaxLight != LightColor.NONE;
+    }
+
+
     /**
      * calculates the number of coolings (one left and one right if it is selected)
      */
@@ -369,7 +400,7 @@ public class VUCIS extends CIS {
     @Override
     protected boolean checkSpecificApplicability(String code) {
         return isValidLCode(code) || isValidCCode(code);
-        //TODO expand
+        //expand if necessary
     }
 
     /**

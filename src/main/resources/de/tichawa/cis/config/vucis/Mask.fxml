@@ -191,139 +191,30 @@
                         </items>
                     </ComboBox>
                 </HBox>
-                <ChoiceBox fx:id="LightPreset" prefWidth="150.0" GridPane.columnIndex="1" GridPane.halignment="CENTER"
-                           GridPane.rowIndex="1">
-                    <items>
-                        <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="Manual"/>
-                            <String fx:value="Shape from Shading"/>
-                        </FXCollections>
-                    </items>
-                </ChoiceBox>
                 <CheckBox mnemonicParsing="false"
                           text="Cloudy Day"
                           GridPane.halignment="LEFT" GridPane.columnIndex="2" fx:id="CloudyDay"/>
                 <HBox alignment="CENTER_RIGHT" prefHeight="50.0" prefWidth="200.0" spacing="5.0" GridPane.rowIndex="1">
                     <Label alignment="CENTER" text="Brightfield Left:"/>
-                    <ChoiceBox fx:id="BrightFieldLeft" prefWidth="150.0">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="None"/>
-                                <String fx:value="Red"/>
-                                <String fx:value="Green"/>
-                                <String fx:value="Blue"/>
-                                <String fx:value="Yellow"/>
-                                <String fx:value="White"/>
-                                <String fx:value="IR"/>
-                                <String fx:value="IR 950nm"/>
-                                <String fx:value="UVA 365nm"/>
-                                <String fx:value="Verde"/>
-                                <String fx:value="RGB"/>
-                                <String fx:value="RGB8"/>
-                                <String fx:value="LEDIRUV"/>
-                                <!--String fx:value="REBZ8LED"/>
-                                <String fx:value="REBELMIX"/-->
-                            </FXCollections>
-                        </items>
-                    </ChoiceBox>
+                    <ChoiceBox fx:id="BrightFieldLeft" prefWidth="150.0"></ChoiceBox>
                 </HBox>
                 <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="200.0" spacing="5.0"
                       GridPane.columnIndex="2" GridPane.rowIndex="1">
                     <Label alignment="CENTER" text="Brightfield Right:"/>
-                    <ChoiceBox fx:id="BrightFieldRight" prefWidth="150.0">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="None"/>
-                                <String fx:value="Red"/>
-                                <String fx:value="Green"/>
-                                <String fx:value="Blue"/>
-                                <String fx:value="Yellow"/>
-                                <String fx:value="White"/>
-                                <String fx:value="IR"/>
-                                <String fx:value="IR 950nm"/>
-                                <String fx:value="UVA 365nm"/>
-                                <String fx:value="Verde"/>
-                                <String fx:value="RGB"/>
-                                <String fx:value="RGB8"/>
-                                <String fx:value="LEDIRUV"/>
-                                <!--String fx:value="REBZ8LED"/>
-                                <String fx:value="REBELMIX"/-->
-                            </FXCollections>
-                        </items>
-                    </ChoiceBox>
+                    <ChoiceBox fx:id="BrightFieldRight" prefWidth="150.0"></ChoiceBox>
                 </HBox>
                 <HBox alignment="CENTER_RIGHT" prefWidth="200.0" spacing="5.0" GridPane.rowIndex="3">
                     <Label alignment="CENTER" text="Darkfield Left:"/>
-                    <ChoiceBox fx:id="DarkFieldLeft" prefWidth="150.0">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="None"/>
-                                <String fx:value="Red"/>
-                                <String fx:value="Green"/>
-                                <String fx:value="Blue"/>
-                                <String fx:value="Yellow"/>
-                                <String fx:value="White"/>
-                                <String fx:value="IR"/>
-                                <String fx:value="IR 950nm"/>
-                                <String fx:value="UVA 365nm"/>
-                                <String fx:value="Verde"/>
-                                <String fx:value="RGB"/>
-                                <String fx:value="RGB8"/>
-                                <String fx:value="LEDIRUV"/>
-                                <!--String fx:value="REBZ8LED"/>
-                                <String fx:value="REBELMIX"/-->
-                            </FXCollections>
-                        </items>
-                    </ChoiceBox>
+                    <ChoiceBox fx:id="DarkFieldLeft" prefWidth="150.0"></ChoiceBox>
                 </HBox>
                 <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
                     <Label alignment="CENTER" text="Darkfield Right:"/>
-                    <ChoiceBox fx:id="DarkFieldRight" prefWidth="150.0">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="None"/>
-                                <String fx:value="Red"/>
-                                <String fx:value="Green"/>
-                                <String fx:value="Blue"/>
-                                <String fx:value="Yellow"/>
-                                <String fx:value="White"/>
-                                <String fx:value="IR"/>
-                                <String fx:value="IR 950nm"/>
-                                <String fx:value="UVA 365nm"/>
-                                <String fx:value="Verde"/>
-                                <String fx:value="RGB"/>
-                                <String fx:value="RGB8"/>
-                                <String fx:value="LEDIRUV"/>
-                                <!--String fx:value="REBZ8LED"/>
-                                <String fx:value="REBELMIX"/-->
-                            </FXCollections>
-                        </items>
-                    </ChoiceBox>
+                    <ChoiceBox fx:id="DarkFieldRight" prefWidth="150.0"></ChoiceBox>
                 </HBox>
                 <HBox alignment="CENTER" prefWidth="200.0" spacing="5.0"
                       GridPane.columnIndex="1" GridPane.rowIndex="3">
                     <Label alignment="CENTER" text="Coax:"/>
-                    <ChoiceBox fx:id="Coax" prefWidth="150.0">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="None"/>
-                                <String fx:value="Red"/>
-                                <String fx:value="Green"/>
-                                <String fx:value="Blue"/>
-                                <String fx:value="Yellow"/>
-                                <String fx:value="White"/>
-                                <String fx:value="IR"/>
-                                <String fx:value="IR 950nm"/>
-                                <String fx:value="UVA 365nm"/>
-                                <String fx:value="Verde"/>
-                                <String fx:value="RGB"/>
-                                <String fx:value="RGB8"/>
-                                <String fx:value="LEDIRUV"/>
-                                <!--String fx:value="REBZ8LED"/>
-                                <String fx:value="REBELMIX"/-->
-                            </FXCollections>
-                        </items>
-                    </ChoiceBox>
+                    <ChoiceBox fx:id="Coax" prefWidth="150.0"></ChoiceBox>
                 </HBox>
                 <HBox alignment="CENTER_RIGHT" prefWidth="200.0" spacing="5.0" minHeight="30"
                       GridPane.columnIndex="0" GridPane.rowIndex="4">
