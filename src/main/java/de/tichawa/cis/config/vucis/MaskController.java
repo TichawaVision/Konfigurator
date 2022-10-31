@@ -14,6 +14,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             .map(CIS.LightColor::getDescription).collect(Collectors.toList());
     private static final List<String> LIGHT_COLOR_OPTIONS_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor).filter(c -> !c.isShapeFromShading())
             .map(CIS.LightColor::getDescription).collect(Collectors.toList());
+    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_COAX = Stream.of(260, 520, 780, 1040).collect(Collectors.toList());
+    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITHOUT_COAX = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820, 2080).collect(Collectors.toList());
 
     @FXML
     public ChoiceBox<String> LensType;
@@ -128,12 +130,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         {
             VUCIS.LightColor.findByDescription(newValue)
                     .ifPresent(CIS_DATA::setCoaxLight);
-            if (!(CIS_DATA.getCoaxLight().equals(CIS.LightColor.NONE)) && CIS_DATA.getScanWidth() > 1040) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Coax Selected.\nPlease reduce the scanwidth");
-                alert.show();
-                Coax.getSelectionModel().select(oldValue);
-            } //TODO replace Alert with enforcing (only offer smaller scan widths)
+
             //update cooling
             updateCooling(CIS_DATA.getLeftDarkField().getDescription(), CIS_DATA.getLeftDarkField().getDescription(), // left dark field
                     CIS_DATA.getLeftBrightField().getDescription(), CIS_DATA.getLeftBrightField().getDescription(),   // left bright field
@@ -142,24 +139,43 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                     oldValue, Coax.getSelectionModel().getSelectedItem());                                            // coax
             updateCoolingCheckboxes();
 
-            // if coax: no left side shape from shading, also no left side dark field
             if (CIS_DATA.hasCoax()) {
+                //if coax: only allow valid scan widths
+                String selected; //save currently selected scan width (if valid afterwards)
+                if (SCAN_WIDTH_OPTIONS_WITH_COAX.contains(CIS_DATA.getScanWidth())) {
+                    selected = CIS_DATA.getScanWidth() + " mm";
+                } else {
+                    selected = SCAN_WIDTH_OPTIONS_WITH_COAX.get(1) + " mm";
+                    CIS_DATA.setScanWidth(SCAN_WIDTH_OPTIONS_WITH_COAX.get(1));
+                }
+                ScanWidth.getItems().clear(); // remove and add new scan widths for coax
+                ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                ScanWidth.getSelectionModel().select(selected); //restore currently selected scan width
+
+                //if coax -> no left sided shape from shading
                 if (CIS_DATA.getLeftBrightField().isShapeFromShading()) {
                     CIS_DATA.setLeftBrightField(CIS.LightColor.NONE);
                 }
-                // set choice box options to ones without sfs
-                String selected = CIS_DATA.getLeftBrightField().getDescription();
-                BrightFieldLeft.getItems().clear();
+                // set choice box options to ones without shape from shading
+                selected = CIS_DATA.getLeftBrightField().getDescription(); //save currently selected left side (only bright since no dark and coax is possible)
+                BrightFieldLeft.getItems().clear(); //remove and add new left side color options (without shade from shading colors)
                 BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
                 BrightFieldLeft.getSelectionModel().select(selected);
-                CIS_DATA.setLeftDarkField(CIS.LightColor.NONE);
+                CIS_DATA.setLeftDarkField(CIS.LightColor.NONE); // set dark field to NONE since there cannot be dark field and coax
                 DarkFieldLeft.getSelectionModel().select(CIS.LightColor.NONE.getDescription());
-            } else {// set choice box options to ones with sfs
-                String selected = CIS_DATA.getLeftBrightField().getDescription();
+            } else { // deselected coax
+                //-> bigger scan widths possible
+                String selected = CIS_DATA.getScanWidth() + " mm";
+                ScanWidth.getItems().clear();
+                ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                ScanWidth.getSelectionModel().select(selected);
+                // -> shape from shading colors possible
+                selected = CIS_DATA.getLeftBrightField().getDescription();
                 BrightFieldLeft.getItems().clear();
                 BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
                 BrightFieldLeft.getSelectionModel().select(selected);
             }
+            // enable/disable dark field (no coax + dark field)
             DarkFieldLeft.setDisable(CIS_DATA.hasCoax());
         });
 
@@ -249,16 +265,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
             Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
-        ScanWidth.valueProperty().addListener((observable, oldValue, newValue) ->
-        {
-            CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim()));
 
-            if (!(CIS_DATA.getCoaxLight().equals(CIS.LightColor.NONE)) && CIS_DATA.getScanWidth() > 1040) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Coax Selected.\nPlease reduce the scanwidth");
-                alert.show();
-                ScanWidth.getSelectionModel().select(oldValue);
-            } //TODO remove once this is not a valid option any more (see TODO above)
+        ScanWidth.getItems().clear();
+        ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+        ScanWidth.getSelectionModel().select(1);
+        ScanWidth.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (oldValue != null && newValue != null)
+                CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim()));
         });
 
         SelLineRate.valueProperty().addListener((observable, oldValue, newValue) ->
@@ -298,7 +311,6 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
 
         Color.getSelectionModel().selectFirst();
         Resolution.getSelectionModel().selectFirst();
-        ScanWidth.getSelectionModel().selectLast();
         Interface.getSelectionModel().selectFirst();
         Cooling.getSelectionModel().select(1);
         LensType.getSelectionModel().selectFirst();
