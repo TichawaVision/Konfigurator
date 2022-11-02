@@ -2,6 +2,7 @@ package de.tichawa.cis.config.vucis;
 
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.model.tables.records.*;
+import de.tichawa.util.MathEval;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -198,25 +199,57 @@ public class VUCIS extends CIS {
         return key;
     }
 
+    /**
+     * determines the L value for the current light selection (sum of individual L values)
+     */
     @Override
     public int getLedLines() {
-        return (int) getLights().chars()
-                .mapToObj(c -> LightColor.findByCode((char) c))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(l -> l != LightColor.NONE)
-                .count();
+        return getLights().chars().mapToObj(c -> LightColor.findByCode((char) c))
+                .filter(Optional::isPresent).map(Optional::get)
+                .mapToInt(this::getLValue).sum();
+    }
+
+    /**
+     * determine L value for each light: RGB = 3, IRUV = 2, Rebz8 = 8, other = 1
+     */
+    private int getLValue(LightColor lightColor) {
+        switch (lightColor) {
+            case NONE:
+                return 0;
+            case IRUV:
+                return 2;
+            case RGB:
+            case RGB_S:
+                return 3;
+            case RGB8:
+                return 8;
+            default:
+                return 1;
+        }
     }
 
     /**
      * replaces parts of the mecha factor for VUCIS calculation:
-     * - n(
+     * - n(?!X) replaced with number of LEDs in the middle
+     * - C replaced with number of coolings
      */
     @Override
     protected String prepareMechaFactor(String factor) {
         //small n: "LED in middle...", !X: "...that exists" (is not X)
         return factor.replace("n(?!X)", getLEDsInMiddle() + "")
                 .replace("C", getCoolingCount() + "");
+    }
+
+    /**
+     * replaces parts of the elect factor for VUCIS calculation:
+     * - Light Code with the number of lights (e.g. AM with number of red lights)
+     */
+    @Override
+    protected String prepareElectFactor(String factor) {
+        if (Arrays.stream(LightColor.values()).map(LightColor::getShortHand).anyMatch(factor::equals)) {
+            return getLights().chars().mapToObj(c -> LightColor.findByCode((char) c)).filter(LightColor.findByShortHand(factor)::equals).count() + "";
+        }
+        return factor;
     }
 
     /**
@@ -400,14 +433,36 @@ public class VUCIS extends CIS {
     //should return false if code is unknown
     @Override
     protected boolean checkSpecificApplicability(String code) {
-        return isValidLCode(code) || isValidCCode(code);
+        return isValidLCode(code) || isValidCCode(code) || isValidMathExpression(code);
         //expand if necessary
+    }
+
+    /**
+     * checks whether the given math code matches the current selection.
+     * currently only checks for <
+     */
+    private boolean isValidMathExpression(String code) {
+        String expression = code.replace("N", getScanWidth() + "")
+                .replace("C", getCoolingCount() + "");
+        //expand if necessary
+        String[] splitted = expression.split("<");
+        if (splitted.length < 2)
+            return false;
+        for (int i = 0; i < splitted.length - 1; i++) {
+            try {
+                if (MathEval.evaluate(splitted[i]) > MathEval.evaluate(splitted[i + 1]))
+                    return false;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
      * checks whether the given code matches the current cooling selection
      */
-    protected boolean isValidCCode(String code) {
+    private boolean isValidCCode(String code) {
         return "C".equals(code) && getCoolingCount() > 0;
     }
 

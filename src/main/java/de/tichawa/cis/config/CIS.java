@@ -867,7 +867,16 @@ public abstract class CIS {
         return factor;
     }
 
+    /**
+     * Method for CIS specific Elect calculations. To be overwritten by subclasses if specific calculations are required.
+     * Default implementation returns the given String unchanged.
+     */
+    protected String prepareElectFactor(String factor) {
+        return factor;
+    }
+
     private int getElectFactor(String factor) {
+        factor = prepareElectFactor(factor); // do CIS specific calculations
         if (isInteger(factor)) {
             return Integer.parseInt(factor);
         } else if (factor.equals("L")) {
@@ -888,7 +897,6 @@ public abstract class CIS {
                 return 1;
             }
         }
-
         return -1;
     }
 
