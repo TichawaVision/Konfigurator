@@ -692,126 +692,143 @@ public abstract class CIS {
         return printout;
     }
 
+    /**
+     * Determines whether a given select code matches the current CIS setting.
+     * The select code can consist of different alternatives separated by ||. If one alternate matches the whole select code is applicable.
+     * Each alternative can consist of different multipliers separated by &. All multipliers must match for the alternate to match.
+     * Every single multiplier will get checked by {@link #isApplicableMultiplier(String)}
+     */
     private boolean isApplicable(String selectCode) {
         if (selectCode == null) {
-            return true;
+            return true; // node code -> this matches
         }
         selectCode = selectCode.replaceAll("\\s", "");
 
+        String[] alternates = selectCode.split("\\|\\|");
+        alternate:
+        //label for continue jump
+        for (String alternate : alternates) { //handle alternates first (as || has priority over &)
+            String[] multiplier = alternate.split("&");
+            for (String m : multiplier) {// proceed inner calculation as long as every multiplier is applicable
+                if (!isApplicableMultiplier(m)) { //not applicable -> whole alternate cannot be true (but other alternates still could be)
+                    continue alternate; //continue with next alternate
+                }
+            } // all multipliers applicable -> alternate is true -> whole select code matches
+            return true;
+        } //found no alternate that matches
+        return false;
+    }
+
+    /**
+     * determines whether a single multiplier is applicable for the current CIS setting.
+     * If a multiplier starts with ^ and ends with $, the current light code will be matched with the regex between ^ and $.
+     * A multiplier can start with ! for negation.
+     */
+    private boolean isApplicableMultiplier(String multiplier) {
         boolean proceed;
         String key = getTiViKey();
-        String[] multiplier = selectCode.split("&");
+        boolean invert = multiplier.startsWith("!");
+        multiplier = (invert ? multiplier.substring(1) : multiplier);
 
-        boolean invert;
-        for (String m : multiplier) {
-            invert = m.startsWith("!");
-            m = (invert ? m.substring(1) : m);
-
-            // Regex pattern, apply to light code
-            if (m.startsWith("^") && m.endsWith("$")) {
-                try {
-                    proceed = getLights().matches(m);
-                } catch (PatternSyntaxException ex) {
-                    //Not a valid expression, ignore and proceed
+        // Regex pattern, apply to light code
+        if (multiplier.startsWith("^") && multiplier.endsWith("$")) {
+            try {
+                proceed = getLights().matches(multiplier);
+            } catch (PatternSyntaxException ex) {
+                //Not a valid expression, ignore and proceed
+                proceed = !invert; //!invert ^ invert == true
+            }
+        } else {
+            switch (multiplier) {
+                case "": //No code
+                case "FPGA": //Notifier for FPGA parts, ignore and proceed
                     proceed = !invert; //!invert ^ invert == true
-                }
-            } else {
-                switch (m) {
-                    case "": //No code
-                    case "FPGA": //Notifier for FPGA parts, ignore and proceed
-                        proceed = !invert; //!invert ^ invert == true
-                        break;
-                    case "RGB": //Color coding
-                    case "RGB8":
-                    case "RGB_S":
-                        if (this instanceof VUCIS) {
-                            proceed = LightColor.findByShortHand(m)
-                                    .map(getLightColors()::contains)
-                                    .orElse(false);
-                        } else {
-                            proceed = key.contains(m);
-                        }
-                        break;
-                    case "AM":
-                    case "BL":
-                    case "GR":
-                    case "IR":
-                    case "JR":
-                    case "UV":
-                    case "HI":
-                    case "YE":
-                    case "VE":
-                    case "WH":
-                    case "REBEL":
-                    case "REBZ8":
-                        proceed = LightColor.findByShortHand(m)
+                    break;
+                case "RGB": //Color coding
+                case "RGB8":
+                case "RGB_S":
+                    if (this instanceof VUCIS) {
+                        proceed = LightColor.findByShortHand(multiplier)
                                 .map(getLightColors()::contains)
                                 .orElse(false);
-                        break;
-                    case "MONO": //Monochrome only
-                        proceed = !getTiViKey().contains("RGB");
-                        break;
-                    case "25dpi": //Specific resolution
-                    case "50dpi":
-                    case "75dpi":
-                    case "100dpi":
-                    case "150dpi":
-                    case "200dpi":
-                    case "300dpi":
-                    case "400dpi":
-                    case "600dpi":
-                    case "1200dpi":
-                    case "2400dpi":
-                        proceed = m.equals(getSelectedResolution().getBoardResolution() + "dpi");
-                        break;
-                    case "GIGE": //GigE only
-                        proceed = isGigeInterface();
-                        break;
-                    case "CL": //CameraLink only
-                        proceed = !isGigeInterface();
-                        break;
-                    case "COAX": //At least one coaxial light
-                        proceed = key.split("_")[4].endsWith("C") || (this instanceof MXCIS && key.split("_")[5].endsWith("C"));
-                        break;
-                    case "DIFF":
-                        proceed = !(key.split("_")[4].endsWith("C") || (this instanceof MXCIS && key.split("_")[5].endsWith("C"))) //No coaxial light
-                                || (key.split("_")[4].startsWith("2") || (this instanceof MXCIS && key.split("_")[5].startsWith("2"))); //Twosided => at least one diffuse (2XX oder 2XXC)
-                        break;
-                    case "NOCO": //Specific cooling
-                    case "FAIR":
-                    case "PAIR":
-                    case "LICO":
-                        proceed = key.contains(m);
-                        break;
-                    case "default": //Default cooling
-                        proceed = !key.contains("NOCO") && !key.contains("FAIR") && !key.contains("PAIR") && !key.contains("LICO");
-                        break;
-                    case "NOEXT": //No external trigger
-                        proceed = !isExternalTrigger();
-                        break;
-                    case "EXT": //With external trigger
-                        proceed = isExternalTrigger();
-                        break;
-                    case "L": //MODE: LOW (MXCIS only)
-                        proceed = this instanceof MXCIS && getMode() == 4;
-                        break;
-                    case "H": //Mode: HIGH (MXCIS only)
-                        proceed = this instanceof MXCIS && getMode() == 2;
-                        break;
-                    default: //Unknown modifier -> maybe find it in P code or subclass checking
-                        proceed = isValidPCode(m) || checkSpecificApplicability(m);
-                        break;
-                } //end switch
-            } // end else
+                    } else {
+                        proceed = key.contains(multiplier);
+                    }
+                    break;
+                case "AM":
+                case "BL":
+                case "GR":
+                case "IR":
+                case "JR":
+                case "UV":
+                case "HI":
+                case "YE":
+                case "VE":
+                case "WH":
+                case "REBEL":
+                case "REBZ8":
+                    proceed = LightColor.findByShortHand(multiplier)
+                            .map(getLightColors()::contains)
+                            .orElse(false);
+                    break;
+                case "MONO": //Monochrome only
+                    proceed = !getTiViKey().contains("RGB");
+                    break;
+                case "25dpi": //Specific resolution
+                case "50dpi":
+                case "75dpi":
+                case "100dpi":
+                case "150dpi":
+                case "200dpi":
+                case "300dpi":
+                case "400dpi":
+                case "600dpi":
+                case "1200dpi":
+                case "2400dpi":
+                    proceed = multiplier.equals(getSelectedResolution().getBoardResolution() + "dpi");
+                    break;
+                case "GIGE": //GigE only
+                    proceed = isGigeInterface();
+                    break;
+                case "CL": //CameraLink only
+                    proceed = !isGigeInterface();
+                    break;
+                case "COAX": //At least one coaxial light
+                    proceed = key.split("_")[4].endsWith("C") || (this instanceof MXCIS && key.split("_")[5].endsWith("C"));
+                    break;
+                case "DIFF":
+                    proceed = !(key.split("_")[4].endsWith("C") || (this instanceof MXCIS && key.split("_")[5].endsWith("C"))) //No coaxial light
+                            || (key.split("_")[4].startsWith("2") || (this instanceof MXCIS && key.split("_")[5].startsWith("2"))); //Twosided => at least one diffuse (2XX oder 2XXC)
+                    break;
+                case "NOCO": //Specific cooling
+                case "FAIR":
+                case "PAIR":
+                case "LICO":
+                    proceed = key.contains(multiplier);
+                    break;
+                case "default": //Default cooling
+                    proceed = !key.contains("NOCO") && !key.contains("FAIR") && !key.contains("PAIR") && !key.contains("LICO");
+                    break;
+                case "NOEXT": //No external trigger
+                    proceed = !isExternalTrigger();
+                    break;
+                case "EXT": //With external trigger
+                    proceed = isExternalTrigger();
+                    break;
+                case "L": //MODE: LOW (MXCIS only)
+                    proceed = this instanceof MXCIS && getMode() == 4;
+                    break;
+                case "H": //Mode: HIGH (MXCIS only)
+                    proceed = this instanceof MXCIS && getMode() == 2;
+                    break;
+                default: //Unknown modifier -> maybe find it in P code or subclass checking
+                    proceed = isValidPCode(multiplier) || checkSpecificApplicability(multiplier);
+                    break;
+            } //end switch
+        } // end else
 
-            proceed = invert ^ proceed;
-
-            if (!proceed) {
-                return false;
-            }
-        }
-
-        return true;
+        proceed = invert ^ proceed;
+        return proceed;
     }
 
     /**

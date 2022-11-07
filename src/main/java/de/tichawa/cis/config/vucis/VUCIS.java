@@ -475,7 +475,16 @@ public class VUCIS extends CIS {
      * checks whether the given code matches the current cooling selection
      */
     private boolean isValidCCode(String code) {
-        return "C".equals(code) && getCoolingCount() > 0;
+        switch (code) {
+            case "C":
+                return getCoolingCount() > 0;
+            case "C_L":
+                return hasCoolingLeft();
+            case "C_R":
+                return hasCoolingRight();
+            default:
+                return false;
+        }
     }
 
     /**
