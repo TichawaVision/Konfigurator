@@ -31,9 +31,9 @@ public class VUCIS extends CIS {
             case YELLOW:
             case WHITE:
             case IR:
-            case IR950:
+                //case IR950: //maybe later
             case UVA:
-            case VERDE:
+                //case VERDE: //maybe later
             case RGB:
             case RGB_S:
             case RGB8:
@@ -43,6 +43,18 @@ public class VUCIS extends CIS {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    /**
+     * returns whether the given light color is a valid option for coax lighting for VUCIS
+     */
+    public static boolean isVUCISCoaxLightColor(LightColor lightColor) {
+        switch (lightColor) {
+            case RGB8: // no rebz 8 for coax
+                return false;
+            default: // rest same as for other positions
+                return isVUCISLightColor(lightColor);
         }
     }
 

@@ -14,6 +14,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             .map(CIS.LightColor::getDescription).collect(Collectors.toList());
     private static final List<String> LIGHT_COLOR_OPTIONS_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor).filter(c -> !c.isShapeFromShading())
             .map(CIS.LightColor::getDescription).collect(Collectors.toList());
+    private static final List<String> LIGHT_COLOR_OPTIONS_COAX_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISCoaxLightColor).filter(c -> !c.isShapeFromShading())
+            .map(CIS.LightColor::getDescription).collect(Collectors.toList()); //coax is always without sfs
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_COAX = Stream.of(260, 520, 780, 1040).collect(Collectors.toList());
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITHOUT_COAX = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820, 2080).collect(Collectors.toList());
 
@@ -123,7 +125,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
 
         //set light color options
         Coax.getItems().clear();
-        Coax.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
+        Coax.getItems().addAll(LIGHT_COLOR_OPTIONS_COAX_WITHOUT_SFS);
         Coax.getSelectionModel().selectFirst();
         // add listener for value changes
         Coax.valueProperty().addListener((observable, oldValue, newValue) ->

@@ -110,7 +110,7 @@ public abstract class CIS {
         IRUV("LEDIRUV", "HI", 'H'),
         RGB8("RGB8", "REBZ8", '8'),
         REBELMIX("REBELMIX", "REBEL", 'E'),
-        RED_SFS("Red (Shape from Shading", "RS", 'R'),
+        RED_SFS("Red (Shape from Shading)", "RS", 'R'),
         WHITE_SFS("White (Shape from Shading)", "WS", 'W');
 
 
