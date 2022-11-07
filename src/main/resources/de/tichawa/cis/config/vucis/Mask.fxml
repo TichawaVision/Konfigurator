@@ -4,18 +4,127 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.*?>
-<AnchorPane id="AnchorPane" prefHeight="510.0" prefWidth="1030.0" xmlns="http://javafx.com/javafx/8"
+<AnchorPane id="AnchorPane" prefHeight="510.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/8"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.tichawa.cis.config.vucis.MaskController">
     <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
         <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="300.0" prefWidth="300.0"/>
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="300.0" prefWidth="300.0"/>
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="400.0" minWidth="400.0" prefWidth="400.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" prefWidth="350.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" prefWidth="350.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" prefWidth="400.0"/>
         </columnConstraints>
-        <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                    text="Resolution &amp; Scan Width" GridPane.fillHeight="true" GridPane.fillWidth="true"
-                    GridPane.rowIndex="1">
+        <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES" prefHeight="220"/>
+            <RowConstraints vgrow="SOMETIMES" prefHeight="80"/>
+            <RowConstraints vgrow="SOMETIMES" prefHeight="120"/>
+        </rowConstraints>
+
+        <TitledPane animated="false" prefHeight="220.0" collapsible="false" GridPane.columnSpan="3"
+                    text="Color &amp; Light Sources">
+            <GridPane>
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" prefWidth="220.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" prefWidth="220.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" prefWidth="220.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" prefWidth="220.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" prefWidth="220.0"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints prefHeight="50"/>
+                    <RowConstraints prefHeight="30"/>
+                    <RowConstraints prefHeight="50"/>
+                    <RowConstraints prefHeight="30"/>
+                </rowConstraints>
+                <HBox alignment="CENTER" GridPane.columnSpan="5" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                    <Label text="Light Preset:"/>
+                    <ChoiceBox fx:id="LightPreset">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="Manual"/>
+                                <String fx:value="Manual"/>
+                            </FXCollections>
+                        </items>
+                    </ChoiceBox>
+                </HBox>
+                <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3">
+                    <Label text="Color:"/>
+                    <ComboBox promptText="One phase (Monochrome)" fx:id="Color">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="One phase (Monochrome)"/>
+                                <String fx:value="Two phases"/>
+                                <String fx:value="Three phases (RGB)"/>
+                                <String fx:value="Four phases"/>
+                                <String fx:value="Five phases"/>
+                                <String fx:value="Six phases"/>
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </HBox>
+                <HBox GridPane.columnIndex="3" GridPane.columnSpan="2" alignment="CENTER">
+                    <CheckBox text="Cloudy Day" fx:id="CloudyDay"/>
+                </HBox>
+                <!-- Lights -->
+                <HBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                    <Label text="Darkfield Left:"/>
+                </HBox>
+                <HBox GridPane.columnIndex="0" GridPane.rowIndex="2">
+                    <ChoiceBox minWidth="210" fx:id="DarkFieldLeft"></ChoiceBox>
+                </HBox>
+                <HBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <Label text="Brightfield Left:"/>
+                </HBox>
+                <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
+                    <ChoiceBox minWidth="210" fx:id="BrightFieldLeft"></ChoiceBox>
+                </HBox>
+                <HBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                    <Label text="Coax:"/>
+                </HBox>
+                <HBox GridPane.columnIndex="2" GridPane.rowIndex="2">
+                    <ChoiceBox minWidth="210" fx:id="Coax"></ChoiceBox>
+                </HBox>
+                <HBox alignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                    <Label text="Brightfield Right:"/>
+                </HBox>
+                <HBox GridPane.columnIndex="3" GridPane.rowIndex="2">
+                    <ChoiceBox minWidth="210" fx:id="BrightFieldRight"></ChoiceBox>
+                </HBox>
+                <HBox alignment="CENTER" GridPane.columnIndex="4" GridPane.rowIndex="1">
+                    <Label text="Darkfield Right:"/>
+                </HBox>
+                <HBox GridPane.columnIndex="4" GridPane.rowIndex="2">
+                    <ChoiceBox minWidth="210" fx:id="DarkFieldRight"></ChoiceBox>
+                </HBox>
+                <!-- Cooling -->
+                <HBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2">
+                    <CheckBox text="Liquid Cooling (left)" fx:id="CoolingLeft"/>
+                </HBox>
+                <HBox alignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="3" GridPane.columnSpan="2">
+                    <CheckBox text="Liquid Cooling (right)" fx:id="CoolingRight"/>
+                </HBox>
+            </GridPane>
+        </TitledPane>
+        <TitledPane collapsible="false" GridPane.columnSpan="3" GridPane.fillHeight="true" GridPane.fillWidth="true"
+                    GridPane.rowIndex="1"
+                    text="Optics">
+            <GridPane alignment="CENTER" hgap="50.0" vgap="5.0" GridPane.rowIndex="1">
+                <Label text="Lens working distance:" alignment="BASELINE_LEFT" GridPane.columnIndex="0"
+                       GridPane.rowIndex="0"/>
+                <ChoiceBox fx:id="LensType" GridPane.columnIndex="1" maxWidth="100">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="10mm"/>
+                            <String fx:value="23mm"/>
+                        </FXCollections>
+                    </items>
+                </ChoiceBox>
+                <CheckBox mnemonicParsing="false" GridPane.columnIndex="2"
+                          text="Long/High DOF"
+                          fx:id="LensDOF"/>
+            </GridPane>
+        </TitledPane>
+        <TitledPane collapsible="false" minHeight="120" GridPane.fillWidth="true" GridPane.rowIndex="2"
+                    text="Resolution &amp; Scan Width">
             <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.rowIndex="1">
                 <columnConstraints>
                     <ColumnConstraints maxWidth="80.0" minWidth="80.0" prefWidth="80.0"/>
@@ -59,9 +168,10 @@
                 </ComboBox>
             </GridPane>
         </TitledPane>
-        <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                    text="Pixel &amp; Defect Size" GridPane.columnIndex="1" GridPane.fillHeight="true"
-                    GridPane.fillWidth="true" GridPane.rowIndex="1">
+        <TitledPane collapsible="false" minHeight="120" GridPane.columnIndex="1" GridPane.fillHeight="true"
+                    GridPane.fillWidth="true"
+                    GridPane.rowIndex="2"
+                    text="Pixel &amp; Defect Size">
             <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <columnConstraints>
                     <ColumnConstraints maxWidth="80.0" minWidth="80.0" prefWidth="80.0"/>
@@ -77,9 +187,9 @@
                 <Label fx:id="DefectSize" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
             </GridPane>
         </TitledPane>
-        <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                    text="Line Rate &amp; Transport Speed" GridPane.columnIndex="2" GridPane.fillHeight="true"
-                    GridPane.fillWidth="true" GridPane.rowIndex="1">
+        <TitledPane collapsible="false" GridPane.columnIndex="2" GridPane.fillHeight="true"
+                    GridPane.fillWidth="true" GridPane.rowIndex="2"
+                    text="Line Rate &amp; Transport Speed">
             <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
                 <columnConstraints>
                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="80.0" minWidth="80.0" prefWidth="80.0"/>
@@ -106,7 +216,7 @@
             </GridPane>
         </TitledPane>
 
-        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="2">
+        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="3">
             <Label text="Interface:"/>
             <ComboBox fx:id="Interface" disable="true" promptText="CameraLink">
                 <items>
@@ -117,7 +227,6 @@
             </ComboBox>
         </HBox>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="3">
-            <Label text="Cooling:"/>
             <ComboBox fx:id="Cooling" disable="true" promptText="Liquid Cooling (Default)">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
@@ -130,29 +239,6 @@
                 </items>
             </ComboBox>
         </HBox>
-        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="4">
-            <Label text="Lens working distance:"/>
-            <ChoiceBox fx:id="LensType">
-                <items>
-                    <FXCollections fx:factory="observableArrayList">
-                        <!--String fx:value="TC48" />
-                        <String fx:value="TC48 with long DOF" /-->
-                        <!--<String fx:value="TC54" />
-                        <String fx:value="TC54 with long DOF" />
-                        <String fx:value="TC80" />
-                        <String fx:value="TC80 with long DOF" /> -->
-                        <!--String fx:value="TC99" />
-                        <String fx:value="TC147" />
-                        <String fx:value="OL_OBJ_M12x0.5R_25mm_GLAS_0_ß=1:4" /-->
-                        <String fx:value="10mm"/>
-                        <String fx:value="23mm"/>
-                    </FXCollections>
-                </items>
-            </ChoiceBox>
-            <CheckBox mnemonicParsing="false"
-                      text="Long/High DOF"
-                      GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" fx:id="LensDOF"/>
-        </HBox>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="6">
             <Button fx:id="Calculation" mnemonicParsing="false" onAction="#handleCalculation" text="Calculation"/>
             <Button fx:id="PartList" mnemonicParsing="false" onAction="#handlePartList" text="Part list"/>
@@ -162,71 +248,6 @@
         </HBox>
         <Label fx:id="Infotext" text="For special options, please contact sales@tichawa.de" GridPane.columnSpan="3"
                GridPane.rowIndex="6"/>
-        <TitledPane animated="false" maxHeight="220.0" minHeight="220.0" prefHeight="220.0"
-                    collapsible="false" text="Color &amp; Light Sources" GridPane.columnSpan="2147483647">
-            <GridPane>
-                <columnConstraints>
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-                </columnConstraints>
-                <rowConstraints>
-                    <RowConstraints minHeight="50.0" prefHeight="50.0" vgrow="SOMETIMES"/>
-                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                </rowConstraints>
-                <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="2">
-                    <Label text="Color:"/>
-                    <ComboBox promptText="One phase (Monochrome)" fx:id="Color">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="One phase (Monochrome)"/>
-                                <String fx:value="Two phases"/>
-                                <String fx:value="Three phases (RGB)"/>
-                                <String fx:value="Four phases"/>
-                                <String fx:value="Five phases"/>
-                                <String fx:value="Six phases"/>
-                            </FXCollections>
-                        </items>
-                    </ComboBox>
-                </HBox>
-                <CheckBox mnemonicParsing="false"
-                          text="Cloudy Day"
-                          GridPane.halignment="LEFT" GridPane.columnIndex="2" fx:id="CloudyDay"/>
-                <HBox alignment="CENTER_RIGHT" prefHeight="50.0" prefWidth="200.0" spacing="5.0" GridPane.rowIndex="1">
-                    <Label alignment="CENTER" text="Brightfield Left:"/>
-                    <ChoiceBox fx:id="BrightFieldLeft" prefWidth="150.0"></ChoiceBox>
-                </HBox>
-                <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="200.0" spacing="5.0"
-                      GridPane.columnIndex="2" GridPane.rowIndex="1">
-                    <Label alignment="CENTER" text="Brightfield Right:"/>
-                    <ChoiceBox fx:id="BrightFieldRight" prefWidth="150.0"></ChoiceBox>
-                </HBox>
-                <HBox alignment="CENTER_RIGHT" prefWidth="200.0" spacing="5.0" GridPane.rowIndex="3">
-                    <Label alignment="CENTER" text="Darkfield Left:"/>
-                    <ChoiceBox fx:id="DarkFieldLeft" prefWidth="150.0"></ChoiceBox>
-                </HBox>
-                <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
-                    <Label alignment="CENTER" text="Darkfield Right:"/>
-                    <ChoiceBox fx:id="DarkFieldRight" prefWidth="150.0"></ChoiceBox>
-                </HBox>
-                <HBox alignment="CENTER" prefWidth="200.0" spacing="5.0"
-                      GridPane.columnIndex="1" GridPane.rowIndex="3">
-                    <Label alignment="CENTER" text="Coax:"/>
-                    <ChoiceBox fx:id="Coax" prefWidth="150.0"></ChoiceBox>
-                </HBox>
-                <HBox alignment="CENTER_RIGHT" prefWidth="200.0" spacing="5.0" minHeight="30"
-                      GridPane.columnIndex="0" GridPane.rowIndex="4">
-                    <CheckBox mnemonicParsing="false" text="Liquid Cooling (left)"
-                              fx:id="CoolingLeft"/>
-                </HBox>
-                <HBox alignment="CENTER" prefWidth="200.0" spacing="5.0" minHeight="30"
-                      GridPane.columnIndex="2" GridPane.rowIndex="4">
-                    <CheckBox mnemonicParsing="false" text="Liquid Cooling (right)"
-                              fx:id="CoolingRight"/>
-                </HBox>
-            </GridPane>
-        </TitledPane>
+
     </GridPane>
 </AnchorPane>

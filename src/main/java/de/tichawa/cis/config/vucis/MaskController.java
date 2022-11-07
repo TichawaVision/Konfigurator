@@ -39,6 +39,32 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     private CheckBox CoolingRight;
     @FXML
     private CheckBox CloudyDay;
+    @FXML
+    private ChoiceBox<String> LightPreset;
+
+    public enum LightPresets {
+        MANUAL(CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.NONE, 1),
+        SFS(CIS.LightColor.WHITE_SFS, CIS.LightColor.WHITE_SFS, CIS.LightColor.WHITE_SFS, CIS.LightColor.WHITE_SFS, CIS.LightColor.NONE, 4),
+        COAX(CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.RED, 1),
+        BF_RGB(CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.NONE, 1),
+        BF_RGB_S(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.NONE, 3),
+        CLOUDY_DAY(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.NONE, 3);
+
+        private final CIS.LightColor leftBrightField, leftDarkField, rightBrightField, rightDarkField, coax;
+        private final int phaseCount;
+
+        LightPresets(CIS.LightColor leftBrightField, CIS.LightColor leftDarkField, CIS.LightColor rightBrightField, CIS.LightColor rightDarkField, CIS.LightColor coax,
+                     int phaseCount) {
+            this.leftBrightField = leftBrightField;
+            this.leftDarkField = leftDarkField;
+            this.rightBrightField = rightBrightField;
+            this.rightDarkField = rightDarkField;
+            this.coax = coax;
+            this.phaseCount = phaseCount;
+        }
+
+        //TODO go on here
+    }
 
     public MaskController() {
         CIS_DATA = new VUCIS();
@@ -61,6 +87,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+
         CIS_DATA.setSelectedResolution(getResolutions().get(0));
         CIS_DATA.setScanWidth(1200);
         CIS_DATA.setExternalTrigger(false);
@@ -99,6 +126,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000.0 + " kHz");
             SelLineRate.setMax(CIS_DATA.getMaxLineRate());
             SelLineRate.setValue(CIS_DATA.getMaxLineRate());
+            SelLineRate.setBlockIncrement(CIS_DATA.getMaxLineRate() / 100);
 
             CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
         });
@@ -257,6 +285,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
             SelLineRate.setMax(CIS_DATA.getMaxLineRate());
             SelLineRate.setValue(CIS_DATA.getMaxLineRate());
+            SelLineRate.setBlockIncrement(CIS_DATA.getMaxLineRate() / 100);
 
             CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
 
@@ -266,6 +295,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
             Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
             Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
+            //TODO maybe always round down so we don't offer too much
         });
 
         ScanWidth.getItems().clear();
@@ -291,9 +321,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
 
         Interface.valueProperty().addListener((observable, oldValue, newValue) ->
                 CIS_DATA.setGigeInterface(Interface.getSelectionModel().getSelectedIndex() == 1));
-        Cooling.valueProperty().addListener((observable, oldValue, newValue) -> CIS.Cooling
-                .findByDescription(newValue.split("\\(")[0].trim())
-                .ifPresent(CIS_DATA::setCooling));
+
+        //only liquid cooling for now -> disable cooling
+        CIS_DATA.setCooling(CIS.Cooling.LICO);
+        Cooling.setVisible(false);
 
         CloudyDay.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) { //selected cloudy day
