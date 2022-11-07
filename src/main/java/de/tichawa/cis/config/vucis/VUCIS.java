@@ -255,13 +255,41 @@ public class VUCIS extends CIS {
     /**
      * replaces parts of the elect factor for VUCIS calculation:
      * - Light Code with the number of lights (e.g. AM with number of red lights)
+     * - shape from shading light special factors to count all bright / dark field lights
      */
     @Override
     protected String prepareElectFactor(String factor) {
         if (Arrays.stream(LightColor.values()).map(LightColor::getShortHand).anyMatch(factor::equals)) {
             return getLights().chars().mapToObj(c -> LightColor.findByCode((char) c)).filter(LightColor.findByShortHand(factor)::equals).count() + "";
         }
-        return factor;
+        switch (factor) {
+            case "RB":
+                return getBrightFieldLightsWithColor(LightColor.RED_SFS) + "";
+            case "WB":
+                return getBrightFieldLightsWithColor(LightColor.WHITE_SFS) + "";
+            case "RD":
+                return getDarkFieldLightsWithColor(LightColor.RED_SFS) + "";
+            case "WD":
+                return getDarkFieldLightsWithColor(LightColor.WHITE_SFS) + "";
+            default:
+                return factor;
+        }
+    }
+
+    /**
+     * determines the number of lights with the given color on bright field
+     */
+    private int getBrightFieldLightsWithColor(LightColor lightColor) {
+        return (getLights().charAt(1) == lightColor.getCode() ? 1 : 0) +
+                (getLights().charAt(3) == lightColor.getCode() ? 1 : 0);
+    }
+
+    /**
+     * determines the number of lights with the given color on dark field
+     */
+    private int getDarkFieldLightsWithColor(LightColor lightColor) {
+        return (getLights().charAt(0) == lightColor.getCode() ? 1 : 0) +
+                (getLights().charAt(4) == lightColor.getCode() ? 1 : 0);
     }
 
     /**
