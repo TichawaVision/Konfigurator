@@ -73,6 +73,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     @Override
     public List<CIS.Resolution> setupResolutions() {
         return Arrays.asList(
+                new CIS.Resolution(1200, 1200, true, 0.25, 0.02115),
                 new CIS.Resolution(1200, 1200, false, 0.5, 0.02115),
                 new CIS.Resolution(600, 600, false, 1.0, 0.0423),
                 new CIS.Resolution(400, 1200, false, 1.0, 0.0635),

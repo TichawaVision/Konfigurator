@@ -139,6 +139,7 @@
                           GridPane.rowIndex="0">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="Switchable 1200/600/300 dpi"/>
                             <String fx:value="Fixed Resolution 1200 dpi"/>
                             <String fx:value="Fixed Resolution 600 dpi"/>
                             <String fx:value="Fixed Resolution 400 dpi"/>
