@@ -15,6 +15,7 @@ import org.jooq.*;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
+import java.beans.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -26,6 +27,9 @@ import static de.tichawa.cis.config.model.Tables.*;
 
 // Alle allgemeine CIS Funktionen
 public abstract class CIS {
+    protected PropertyChangeSupport observers; // part of 'observer' pattern (via property change) to communicate changes to the model (this class) e.g. to the GUI
+    // observer currently only supported by VUCIS so only methods used by VUCIS will fire property changes (for now)
+
     public static final int BASE_LENGTH = 260;
     protected static Locale locale = Locale.getDefault();
     private static final Pattern LIGHT_PATTERN = Pattern.compile("(\\d+)D(\\d+)C");
@@ -53,19 +57,15 @@ public abstract class CIS {
     @Setter
     private int mode;
     @Getter
-    @Setter
     private int phaseCount;
     @Getter
-    @Setter
     private int scanWidth;
     @Getter
-    @Setter
     private int selectedLineRate;
     @Getter
     @Setter
     private boolean gigeInterface;
     @Getter
-    @Setter
     private Resolution selectedResolution;
     @Getter
     @Setter
@@ -80,7 +80,6 @@ public abstract class CIS {
     @Setter
     private int binning;
     @Getter
-    @Setter
     private int transportSpeed;
     @Getter
     @Setter
@@ -88,6 +87,13 @@ public abstract class CIS {
     @Getter
     @Setter
     private int coaxLightSources;
+
+    /**
+     * adds the given observer to the list of observers that will get notified by changes to the model (this class)
+     */
+    public void addObserver(PropertyChangeListener observer) {
+        observers.addPropertyChangeListener(observer);
+    }
 
     public void setLightColor(LightColor lightColor) {
         getLightColors().clear();
@@ -225,6 +231,8 @@ public abstract class CIS {
     public abstract double getMaxLineRate();
 
     protected CIS() {
+        observers = new PropertyChangeSupport(this); // create observer list
+
         this.lightColors = new HashSet<>();
         maxRateForHalfMode = new HashMap<>();
         maxRateForHalfMode.put(25, 27);
@@ -1220,5 +1228,35 @@ public abstract class CIS {
     // Laden von statischen Texten aus dem Bundle (de/en)
     public String getString(String key) {
         return ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString(key);
+    }
+
+    public void setPhaseCount(int phaseCount) {
+        int oldValue = this.phaseCount;
+        this.phaseCount = phaseCount;
+        observers.firePropertyChange("phaseCount", oldValue, phaseCount);
+    }
+
+    public void setSelectedResolution(Resolution resolution) {
+        Resolution oldValue = this.selectedResolution;
+        this.selectedResolution = resolution;
+        observers.firePropertyChange("resolution", oldValue, resolution);
+    }
+
+    public void setTransportSpeed(int transportSpeed) {
+        int oldValue = this.transportSpeed;
+        this.transportSpeed = transportSpeed;
+        observers.firePropertyChange("transportSpeed", oldValue, transportSpeed);
+    }
+
+    public void setScanWidth(int scanWidth) {
+        int oldValue = this.scanWidth;
+        this.scanWidth = scanWidth;
+        observers.firePropertyChange("scanWidth", oldValue, scanWidth);
+    }
+
+    public void setSelectedLineRate(int selectedLineRate) {
+        int oldValue = this.selectedLineRate;
+        this.selectedLineRate = selectedLineRate;
+        observers.firePropertyChange("lineRate", oldValue, selectedLineRate);
     }
 }

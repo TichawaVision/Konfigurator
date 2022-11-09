@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 public class VUCIS extends CIS {
 
+    public static final int MAX_SCAN_WIDTH_WITH_COAX = 1040;
+
     private LightColor leftBrightField;
     private LightColor coaxLight;
     private LightColor rightBrightField;
@@ -112,6 +114,8 @@ public class VUCIS extends CIS {
     public VUCIS() {
         super();
 
+        this.setExternalTrigger(false);
+
         this.leftBrightField = LightColor.RED;
         this.coaxLight = LightColor.NONE;
         this.rightBrightField = LightColor.RED;
@@ -120,6 +124,9 @@ public class VUCIS extends CIS {
         this.lensType = LensType.TC54;
         this.coolingLeft = true;
         this.coolingRight = true;
+        this.setScanWidth(520);
+        this.setPhaseCount(1);
+        this.setCooling(Cooling.LICO);
     }
 
     @Override
@@ -374,40 +381,145 @@ public class VUCIS extends CIS {
         return leftBrightField;
     }
 
+    private LensType getLowDistanceLens(LensType lensType) {
+        switch (lensType) {
+            case TC54:
+            case TC80:
+                return LensType.TC54;
+            case TC54L:
+            case TC80L:
+                return LensType.TC54L;
+            default:
+                throw new IllegalArgumentException("unsupported lens type");
+        }
+    }
+
+    /**
+     * sets the left bright field light to the given light color and notifies observers. Also keeps a valid state by
+     * - setting the left cooling to true (need cooling if there is a light)
+     * - setting the lens working distance to 10mm if there is shape from shading
+     * or resets the cooling if there is no light on the left
+     */
     public void setLeftBrightField(LightColor leftBrightField) {
+        // set/reset left cooling
+        if (leftBrightField != LightColor.NONE)
+            setCoolingLeft(true);
+        else if (coaxLight == LightColor.NONE && leftDarkField == LightColor.NONE)
+            setCoolingLeft(false); //set no left cooling if not needed
+        // set to 10mm working distance if shape from shading
+        if (leftBrightField.isShapeFromShading())
+            setLensType(getLowDistanceLens(lensType));
+        // update value and notify observers
+        LightColor oldValue = this.leftBrightField;
         this.leftBrightField = leftBrightField;
+        observers.firePropertyChange("leftBrightField", oldValue, leftBrightField);
     }
 
     public LightColor getCoaxLight() {
         return coaxLight;
     }
 
+    /**
+     * sets the coax light to the given light color and notifies observers. Also keeps a valid state by
+     * - setting the left dark field light to NONE (there can be no coax with left dark field)
+     * - setting the left bright field to a non-shape-from-shading color if it isn't already (no coax and left sided shape from shading)
+     * - setting the scan width to the max allowed value for coax if it is bigger
+     * - setting the left cooling to true (coax needs left cooling)
+     * or resets the cooling if coax is deselected and there is no light on the left
+     */
     public void setCoaxLight(LightColor coaxLight) {
+        if (coaxLight != LightColor.NONE) { // selected coax light
+            // set left dark field to NONE (no coax + left dark field)
+            setLeftDarkField(LightColor.NONE);
+            // set left bright field to NONE if it is shape from shading (no left sided sfs + coax)
+            if (leftBrightField.isShapeFromShading())
+                setLeftBrightField(LightColor.NONE);
+            // set scan width to max allowed value if it is bigger
+            if (getScanWidth() > MAX_SCAN_WIDTH_WITH_COAX)
+                setScanWidth(MAX_SCAN_WIDTH_WITH_COAX);
+            // set left cooling
+            setCoolingLeft(true);
+        } else if (leftBrightField == LightColor.NONE && leftDarkField == LightColor.NONE)
+            setCoolingLeft(false); // set no left cooling if not needed
+        //update value and notify observers
+        LightColor oldValue = this.coaxLight;
         this.coaxLight = coaxLight;
+        observers.firePropertyChange("coaxLight", oldValue, coaxLight);
     }
 
     public LightColor getRightBrightField() {
         return rightBrightField;
     }
 
+    /**
+     * sets the right bright field light to the given light color and notifies observers. Also keeps a valid state by
+     * - setting the right cooling to true (need cooling if there is a light)
+     * - setting the lens working distance to 10mm if there is shape from shading
+     * or resets the cooling if there is no light on the right
+     */
     public void setRightBrightField(LightColor rightBrightField) {
+        // set/reset cooling
+        if (rightBrightField != LightColor.NONE)
+            setCoolingRight(true);
+        else if (rightDarkField == LightColor.NONE)
+            setCoolingRight(false); // set no right cooling if not needed
+        // set to 10mm working distance if shape from shading
+        if (rightBrightField.isShapeFromShading())
+            setLensType(getLowDistanceLens(lensType));
+        // update value and notify observers
+        LightColor oldValue = this.rightBrightField;
         this.rightBrightField = rightBrightField;
+        observers.firePropertyChange("rightBrightField", oldValue, rightBrightField);
     }
 
     public LightColor getLeftDarkField() {
         return leftDarkField;
     }
 
+    /**
+     * sets the left dark field light to the given light color and notifies observers. Also keeps a valid state by
+     * - setting the left cooling to true (need cooling if there is a light)
+     * - setting the lens working distance to 10mm if there is shape from shading
+     * or resets the cooling if there is no light on the left
+     */
     public void setLeftDarkField(LightColor leftDarkField) {
+        // set/reset left cooling
+        if (leftDarkField != LightColor.NONE)
+            setCoolingLeft(true);
+        else if (coaxLight == LightColor.NONE && leftBrightField == LightColor.NONE)
+            setCoolingLeft(false); //set no left cooling if not needed
+        // set to 10mm working distance if shape from shading
+        if (leftDarkField.isShapeFromShading())
+            setLensType(getLowDistanceLens(lensType));
+        // update value and notify observers
+        LightColor oldValue = this.leftDarkField;
         this.leftDarkField = leftDarkField;
+        observers.firePropertyChange("leftDarkField", oldValue, leftDarkField);
     }
 
     public LightColor getRightDarkField() {
         return rightDarkField;
     }
 
+    /**
+     * sets the right dark field light to the given light color and notifies observers. Also keeps a valid state by
+     * - setting the right cooling to true (need cooling if there is a light)
+     * - setting the lens working distance to 10mm if there is shape from shading
+     * or resets the cooling if there is no light on the right
+     */
     public void setRightDarkField(LightColor rightDarkField) {
+        // set/reset cooling
+        if (rightDarkField != LightColor.NONE)
+            setCoolingRight(true);
+        else if (rightBrightField == LightColor.NONE)
+            setCoolingRight(false); // set no right cooling if not needed
+        // set to 10mm working distance if shape from shading
+        if (rightDarkField.isShapeFromShading())
+            setLensType(getLowDistanceLens(lensType));
+        // update value and notify observers
+        LightColor oldValue = this.rightDarkField;
         this.rightDarkField = rightDarkField;
+        observers.firePropertyChange("rightDarkField", oldValue, rightDarkField);
     }
 
     public LensType getLensType() {
@@ -415,7 +527,9 @@ public class VUCIS extends CIS {
     }
 
     public void setLensType(LensType lensType) {
+        LensType oldValue = this.lensType;
         this.lensType = lensType;
+        observers.firePropertyChange("lensType", oldValue, lensType);
     }
 
     public boolean hasCoolingLeft() {
@@ -423,7 +537,9 @@ public class VUCIS extends CIS {
     }
 
     public void setCoolingLeft(boolean coolingLeft) {
+        boolean oldValue = this.coolingLeft;
         this.coolingLeft = coolingLeft;
+        observers.firePropertyChange("coolingLeft", oldValue, coolingLeft);
     }
 
     public boolean hasCoolingRight() {
@@ -431,7 +547,9 @@ public class VUCIS extends CIS {
     }
 
     public void setCoolingRight(boolean coolingRight) {
+        boolean oldValue = this.coolingRight;
         this.coolingRight = coolingRight;
+        observers.firePropertyChange("coolingRight", oldValue, coolingRight);
     }
 
     public boolean isCloudyDay() {
@@ -439,13 +557,19 @@ public class VUCIS extends CIS {
     }
 
     public void setCloudyDay(boolean cloudyDay) {
+        if (cloudyDay) { // cloudy day has no dark field
+            setLeftDarkField(LightColor.NONE);
+            setRightDarkField(LightColor.NONE);
+        }
+        // update value and notify observers
+        boolean oldValue = this.cloudyDay;
         this.cloudyDay = cloudyDay;
+        observers.firePropertyChange("cloudyDay", oldValue, cloudyDay);
     }
 
     public boolean hasCoax() {
         return coaxLight != LightColor.NONE;
     }
-
 
     /**
      * calculates the number of coolings (one left and one right if it is selected)
@@ -536,5 +660,36 @@ public class VUCIS extends CIS {
         } catch (NumberFormatException e) { //not a number behind the math operator
             return false;
         }
+    }
+
+    /**
+     * sets the given light color to the given light by calling the corresponding Setter
+     */
+    public void setLightColor(String light, LightColor value) {
+        switch (light) {
+            case "DarkFieldLeft":
+                setLeftDarkField(value);
+                return;
+            case "BrightFieldLeft":
+                setLeftBrightField(value);
+                return;
+            case "Coax":
+                setCoaxLight(value);
+                return;
+            case "BrightFieldRight":
+                setRightBrightField(value);
+                return;
+            case "DarkFieldRight":
+                setRightDarkField(value);
+                return;
+            default:
+                throw new IllegalArgumentException("light does not exist: " + light);
+        }
+    }
+
+    @Override
+    public void setSelectedResolution(Resolution resolution) {
+        super.setSelectedResolution(resolution);
+        this.setTransportSpeed((int) (this.getSelectedResolution().getPixelSize() * this.getSelectedLineRate()) * 1000);
     }
 }
