@@ -214,6 +214,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
      * initializes the cooling checkboxes
      */
     private void initCooling() {
+        CoolingLeft.setSelected(CIS_DATA.hasCoolingLeft());
+        CoolingRight.setSelected(CIS_DATA.hasCoolingRight());
+        CoolingLeft.setDisable(true);
+        CoolingRight.setDisable(true);
         CoolingLeft.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingLeft(newValue));
         CoolingRight.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingRight(newValue));
     }

@@ -278,7 +278,7 @@ public class VUCIS extends CIS {
     @Override
     protected String prepareMechaFactor(String factor) {
         //small n: "LED in middle...", !X: "...that exists" (is not X)
-        return factor.replace("n(?!X)", getLEDsInMiddle() + "")
+        return factor.replace("n(?!X)", getNonSfsLEDsInMiddle() + "")
                 .replace("C", getCoolingCount() + "");
     }
 
@@ -323,12 +323,12 @@ public class VUCIS extends CIS {
     }
 
     /**
-     * calculates the number of LEDs in the middle (bright field + coax)
+     * calculates the number of LEDs in the middle (bright field + coax) that are not shape from shading lights
      */
-    private int getLEDsInMiddle() {
+    private int getNonSfsLEDsInMiddle() {
         int sum = 0;
-        if (leftBrightField != LightColor.NONE) sum++;
-        if (rightBrightField != LightColor.NONE) sum++;
+        if (leftBrightField != LightColor.NONE && !leftBrightField.isShapeFromShading()) sum++;
+        if (rightBrightField != LightColor.NONE && !rightBrightField.isShapeFromShading()) sum++;
         if (coaxLight != LightColor.NONE) sum++;
         return sum;
     }
@@ -628,14 +628,14 @@ public class VUCIS extends CIS {
         if (!"S".equals(code))
             return false; // not a valid S code if it isn't 'S'
         // code is S here -> check if valid
-        if (!hasDarkFieldShapeFromShading())
+        if (!hasBrightFieldShapeFromShading())
             return true; // if S code but no dark field sfs -> code is ok
         // if dark field sfs -> not valid -> next larger size needed
         throw new CISNextSizeException("this component needs one size larger");
     }
 
-    private boolean hasDarkFieldShapeFromShading() {
-        return leftDarkField.isShapeFromShading() || rightDarkField.isShapeFromShading();
+    private boolean hasBrightFieldShapeFromShading() {
+        return leftBrightField.isShapeFromShading() || rightBrightField.isShapeFromShading();
     }
 
     /**
