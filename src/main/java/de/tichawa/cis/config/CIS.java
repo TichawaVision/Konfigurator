@@ -461,10 +461,13 @@ public abstract class CIS {
     }
 
     /**
-     * calculates and adds the article given in next_size_art_no for the given mechanical record
+     * calculates and adds the article given in next_size_art_no for the given mechanical record.
+     * If the next article number is the same as the current one, instead the amount will get one size bigger (+260)
      */
     private void calculateNextSizeMechanics(MechanicRecord mechanicRecord, Map<Integer, PriceRecord> priceRecords) {
         int amount = getMechaFactor(mechanicRecord.getAmount());
+        if (mechanicRecord.getNextSizeArtNo().equals(mechanicRecord.getArtNo()))
+            amount = getMechaFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + 260)));
         calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, mechaConfig, mechaSums, priceRecords);
     }
 
@@ -1174,19 +1177,7 @@ public abstract class CIS {
                 default:
                     throw new UnsupportedOperationException();
             }
-        }
-//    else if(this instanceof VUCIS)
-//    {
-//      if(getSelectedResolution().getBoardResolution() == 1000)
-//      {
-//        return 500;
-//      }
-//      else
-//      {
-//        throw new UnsupportedOperationException();
-//      }
-//    }
-        else if (this instanceof VDCIS) {
+        } else if (this instanceof VDCIS) {
             switch (getSelectedResolution().getBoardResolution()) {
                 case 1000:
                     return 500;
