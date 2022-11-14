@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 public class VUCIS extends CIS {
 
     public static final int MAX_SCAN_WIDTH_WITH_COAX = 1040;
+    public static final int MAX_SCAN_WIDTH_WITH_SFS = 1820;
     public static final List<Resolution> resolutions;
 
     private LightColor leftBrightField;
@@ -619,8 +620,22 @@ public class VUCIS extends CIS {
     //should return false if code is unknown
     @Override
     protected boolean checkSpecificApplicability(String code) {
-        return isValidLCode(code) || isValidCCode(code) || isValidMathExpression(code);
+        return isValidLCode(code) || isValidCCode(code) || isValidMathExpression(code) || isValidSCode(code);
         //expand if necessary
+    }
+
+    private boolean isValidSCode(String code) {
+        if (!"S".equals(code))
+            return false; // not a valid S code if it isn't 'S'
+        // code is S here -> check if valid
+        if (!hasDarkFieldShapeFromShading())
+            return true; // if S code but no dark field sfs -> code is ok
+        // if dark field sfs -> not valid -> next larger size needed
+        throw new CISNextSizeException("this component needs one size larger");
+    }
+
+    private boolean hasDarkFieldShapeFromShading() {
+        return leftDarkField.isShapeFromShading() || rightDarkField.isShapeFromShading();
     }
 
     /**
@@ -691,22 +706,32 @@ public class VUCIS extends CIS {
         switch (light) {
             case "DarkFieldLeft":
                 setLeftDarkField(value);
+                updateScanWidth();
                 return;
             case "BrightFieldLeft":
                 setLeftBrightField(value);
+                updateScanWidth();
                 return;
             case "Coax":
                 setCoaxLight(value);
                 return;
             case "BrightFieldRight":
                 setRightBrightField(value);
+                updateScanWidth();
                 return;
             case "DarkFieldRight":
                 setRightDarkField(value);
+                updateScanWidth();
                 return;
             default:
                 throw new IllegalArgumentException("light does not exist: " + light);
         }
+    }
+
+    private void updateScanWidth() {
+        if (isShapeFromShading() && getScanWidth() > MAX_SCAN_WIDTH_WITH_SFS)
+            setScanWidth(MAX_SCAN_WIDTH_WITH_SFS);
+
     }
 
     @Override

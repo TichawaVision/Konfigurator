@@ -20,6 +20,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             .map(CIS.LightColor::getDescription).collect(Collectors.toList()); //coax is always without sfs
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_COAX = Stream.of(260, 520, 780, 1040).collect(Collectors.toList());
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITHOUT_COAX = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820, 2080).collect(Collectors.toList());
+    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_SFS = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820).collect(Collectors.toList());
 
     @FXML
     public ChoiceBox<String> LensType;
@@ -347,11 +348,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             // lights
             case "leftDarkField":
                 selectLightChoiceBox(DarkFieldLeft, (CIS.LightColor) evt.getNewValue());
+                updateScanWidthOptions();
                 setLightPresetToManual();
                 return;
             case "leftBrightField":
                 selectLightChoiceBox(BrightFieldLeft, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
+                updateScanWidthOptions();
                 return;
             case "coaxLight":
                 handleCoaxChange((CIS.LightColor) evt.getOldValue(), (CIS.LightColor) evt.getNewValue());
@@ -361,10 +364,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             case "rightBrightField":
                 selectLightChoiceBox(BrightFieldRight, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
+                updateScanWidthOptions();
                 return;
             case "rightDarkField":
                 selectLightChoiceBox(DarkFieldRight, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
+                updateScanWidthOptions();
                 return;
             case "phaseCount":
                 Phases selectedPhase = Phases.findByPhaseCount((int) evt.getNewValue()).orElseThrow(() -> new IllegalArgumentException("selected phase count not found"));
@@ -392,6 +397,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             case "resolution":
                 handleResolutionChange((CIS.Resolution) evt.getNewValue());
                 return;
+            case "scanWidth":
+                ScanWidth.getSelectionModel().select(evt.getNewValue() + " mm");
+                return;
+            // line rate and transport speed
             case "lineRate":
                 handleLineRateChange((int) evt.getNewValue());
                 return;
@@ -524,7 +533,11 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
             } else { // coax deselected
                 //set items of scan width choice box to ones with coax
-                ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                if (CIS_DATA.isShapeFromShading()) {
+                    ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                } else {
+                    ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                }
                 //set items of left bf to ones with sfs
                 BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
             } //in either case:
@@ -545,6 +558,23 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         box.getSelectionModel().select(lightColor.getDescription());
         updateCoolingCheckboxes();
         updateLensTypeChoiceBox();
+    }
+
+    /**
+     * updates scan width options depending on current shape from shading selection
+     */
+    private void updateScanWidthOptions() {
+        if (!CIS_DATA.hasCoax()) { // with coax already handled
+            //sfs ->
+            ScanWidth.getItems().clear();
+            if (CIS_DATA.isShapeFromShading()) {
+                ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+            } else {
+                ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+            }
+            // set initial value
+            ScanWidth.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+        }
     }
 
     /**

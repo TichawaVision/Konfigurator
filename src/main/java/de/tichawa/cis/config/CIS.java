@@ -396,28 +396,10 @@ public abstract class CIS {
                                     .replace("S", "" + getBoardCount())
                                     .replace("N", "" + getScanWidth())));
 
-                            if (amount > 0) {
-                                Optional.ofNullable(priceRecords.get(electronicRecord.getArtNo()))
-                                        .ifPresent(priceRecord ->
-                                        {
-                                            if (electConfig.containsKey(priceRecord)) {
-                                                electConfig.put(priceRecord, amount + electConfig.get(priceRecord));
-                                            } else {
-                                                electConfig.put(priceRecord, amount);
-                                            }
-                                            electSums[0] += priceRecord.getPrice() * amount;
-                                            electSums[1] += priceRecord.getAssemblyTime() * amount;
-                                            electSums[2] += priceRecord.getPowerConsumption() * amount;
-                                            electSums[3] += priceRecord.getWeight() * amount;
+                            calculateAndAddSinglePrice(electronicRecord.getArtNo(), amount, electConfig, electSums, priceRecords);
 
-                                            if (priceRecord.getPhotoValue() != 0) {
-                                                electSums[4] = priceRecord.getPhotoValue();          //Math.min(priceRecord.getPhotoValue(), electSums[4])
-                                            }
-                                        });
-
-                                if (electronicRecord.getSelectCode() != null && electronicRecord.getSelectCode().contains("FPGA")) {
-                                    numFPGA += amount;
-                                }
+                            if (amount > 0 && electronicRecord.getSelectCode() != null && electronicRecord.getSelectCode().contains("FPGA")) {
+                                numFPGA += amount;
                             }
                         });
             } catch (DataAccessException e) {
@@ -432,30 +414,17 @@ public abstract class CIS {
                         .and(MECHANIC.LIGHTS.eq(getLightSources())
                                 .or(MECHANIC.LIGHTS.isNull()))
                         .stream()
-                        .filter(mechanicRecord -> isApplicable(mechanicRecord.getSelectCode()))
-                        .forEach(mechanicRecord ->
-                        {
-                            int amount = getMechaFactor(mechanicRecord.getAmount());
-
-                            if (amount > 0) {
-                                Optional.ofNullable(priceRecords.get(mechanicRecord.getArtNo()))
-                                        .ifPresent(priceRecord ->
-                                        {
-                                            if (mechaConfig.containsKey(priceRecord)) { //already contains this item -> add amount
-                                                mechaConfig.put(priceRecord, amount + mechaConfig.get(priceRecord));
-                                            } else {
-                                                mechaConfig.put(priceRecord, amount);
-                                            }
-                                            mechaSums[0] += priceRecord.getPrice() * amount;
-                                            mechaSums[1] += priceRecord.getAssemblyTime() * amount;
-                                            mechaSums[2] += priceRecord.getPowerConsumption() * amount;
-                                            mechaSums[3] += priceRecord.getWeight() * amount;
-
-                                            if (priceRecord.getPhotoValue() != 0) {
-                                                mechaSums[4] = priceRecord.getPhotoValue();
-                                            }
-                                        });
+                        .filter(mechanicRecord -> {
+                            try {
+                                return isApplicable(mechanicRecord.getSelectCode());
+                            } catch (CISNextSizeException e) { // need next size
+                                calculateNextSizeMechanics(mechanicRecord, priceRecords);
+                                return false; //don't take this size if we need next larger one
                             }
+                        })
+                        .forEach(mechanicRecord -> {
+                            int amount = getMechaFactor(mechanicRecord.getAmount());
+                            calculateAndAddSinglePrice(mechanicRecord.getArtNo(), amount, mechaConfig, mechaSums, priceRecords);
                         });
             } catch (DataAccessException e) {
                 throw new CISException("Error in Mechanics");
@@ -465,6 +434,38 @@ public abstract class CIS {
                 setNumOfPix(calcNumOfPix());
             }
         });
+    }
+
+    /**
+     * calculates the price for the given artNo and amount and adds it to the config map and sums array
+     */
+    private void calculateAndAddSinglePrice(Integer artNo, int amount, Map<PriceRecord, Integer> config, Double[] sums, Map<Integer, PriceRecord> priceRecords) {
+        if (amount > 0) {
+            Optional.ofNullable(priceRecords.get(artNo))
+                    .ifPresent(priceRecord -> {
+                        if (config.containsKey(priceRecord)) {
+                            config.put(priceRecord, amount + config.get(priceRecord));
+                        } else {
+                            config.put(priceRecord, amount);
+                        }
+                        sums[0] += priceRecord.getPrice() * amount;
+                        sums[1] += priceRecord.getAssemblyTime() * amount;
+                        sums[2] += priceRecord.getPowerConsumption() * amount;
+                        sums[3] += priceRecord.getWeight() * amount;
+
+                        if (priceRecord.getPhotoValue() != 0) {
+                            sums[4] = priceRecord.getPhotoValue();
+                        }
+                    });
+        }
+    }
+
+    /**
+     * calculates and adds the article given in next_size_art_no for the given mechanical record
+     */
+    private void calculateNextSizeMechanics(MechanicRecord mechanicRecord, Map<Integer, PriceRecord> priceRecords) {
+        int amount = getMechaFactor(mechanicRecord.getAmount());
+        calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, mechaConfig, mechaSums, priceRecords);
     }
 
     public String getVersion() {
@@ -1258,5 +1259,15 @@ public abstract class CIS {
         int oldValue = this.selectedLineRate;
         this.selectedLineRate = selectedLineRate;
         observers.firePropertyChange("lineRate", oldValue, selectedLineRate);
+    }
+
+    /**
+     * Exception for handling components that do not match but next size is needed.
+     * (This is not a clean way to do this but a cleaner way would need major restructuring...)
+     */
+    public static class CISNextSizeException extends RuntimeException {
+        public CISNextSizeException(String message) {
+            super(message);
+        }
     }
 }
