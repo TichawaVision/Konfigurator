@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 public class VUCIS extends CIS {
 
     public static final int MAX_SCAN_WIDTH_WITH_COAX = 1040;
+    public static final List<Resolution> resolutions;
 
     private LightColor leftBrightField;
     private LightColor coaxLight;
@@ -111,6 +112,21 @@ public class VUCIS extends CIS {
         }
     }
 
+    static {
+        resolutions = Arrays.asList(
+                new CIS.Resolution(1200, 1200, true, 0.25, 0.02115),
+                new CIS.Resolution(1200, 1200, false, 0.5, 0.02115),
+                new CIS.Resolution(600, 600, false, 1.0, 0.0423),
+                new CIS.Resolution(400, 1200, false, 1.0, 0.0635),
+                new CIS.Resolution(300, 300, false, 1.5, 0.0847),
+                new CIS.Resolution(200, 600, false, 2.0, 0.125),
+                new CIS.Resolution(150, 300, false, 3.0, 0.167),
+                new CIS.Resolution(100, 300, false, 4.0, 0.25),
+                new CIS.Resolution(75, 300, false, 6.0, 0.339),
+                new CIS.Resolution(50, 300, false, 8.0, 0.5),
+                new CIS.Resolution(25, 300, false, 10.0, 1.0));
+    }
+
     public VUCIS() {
         super();
 
@@ -125,8 +141,14 @@ public class VUCIS extends CIS {
         this.coolingLeft = true;
         this.coolingRight = true;
         this.setScanWidth(520);
+        this.setSelectedResolution(resolutions.get(0));
         this.setPhaseCount(1);
+        this.setSelectedLineRate((int) getMaxLineRate());
         this.setCooling(Cooling.LICO);
+    }
+
+    public static List<Resolution> getResolutions() {
+        return resolutions;
     }
 
     @Override
@@ -690,6 +712,24 @@ public class VUCIS extends CIS {
     @Override
     public void setSelectedResolution(Resolution resolution) {
         super.setSelectedResolution(resolution);
-        this.setTransportSpeed((int) (this.getSelectedResolution().getPixelSize() * this.getSelectedLineRate()) * 1000);
+        updateTransportSpeed();
     }
+
+    @Override
+    public void setPhaseCount(int phaseCount) {
+        super.setPhaseCount(phaseCount);
+        updateTransportSpeed();
+    }
+
+    @Override
+    public void setSelectedLineRate(int selectedLineRate) {
+        super.setSelectedLineRate(selectedLineRate);
+        updateTransportSpeed();
+    }
+
+    private void updateTransportSpeed() {
+        if (this.getSelectedResolution() != null)
+            this.setTransportSpeed((int) (this.getSelectedResolution().getPixelSize() * this.getSelectedLineRate() * 1000));
+    }
+
 }

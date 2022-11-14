@@ -114,24 +114,15 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
 
     @Override
     public List<CIS.Resolution> setupResolutions() {
-        return Arrays.asList(
-                new CIS.Resolution(1200, 1200, true, 0.25, 0.02115),
-                new CIS.Resolution(1200, 1200, false, 0.5, 0.02115),
-                new CIS.Resolution(600, 600, false, 1.0, 0.0423),
-                new CIS.Resolution(400, 1200, false, 1.0, 0.0635),
-                new CIS.Resolution(300, 300, false, 1.5, 0.0847),
-                new CIS.Resolution(200, 600, false, 2.0, 0.125),
-                new CIS.Resolution(150, 300, false, 3.0, 0.167),
-                new CIS.Resolution(100, 300, false, 4.0, 0.25),
-                new CIS.Resolution(75, 300, false, 6.0, 0.339),
-                new CIS.Resolution(50, 300, false, 8.0, 0.5),
-                new CIS.Resolution(25, 300, false, 10.0, 1.0));
+        return VUCIS.getResolutions();
     }
 
     /**
      * applies the given light preset by setting the corresponding values in the model
      */
     private void applyLightPreset(LightPresets lightPreset) {
+        if (lightPreset == LightPresets.MANUAL)
+            return; // don't change anything when manual is selected
         // set cloudy day (first, so that all following changes won't reach an illegal state)
         CIS_DATA.setCloudyDay(lightPreset.cloudyDay);
         // set lights in model and view
@@ -157,6 +148,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         LightPreset.valueProperty().addListener((observable, oldValue, newValue) -> {
             LightPresets selected = LightPresets.findByDisplayText(newValue).orElseThrow(() -> new IllegalArgumentException("selected light preset does not exist"));
             applyLightPreset(selected);
+            //set to selected again because a change will set it to manual
+            LightPreset.getSelectionModel().select(newValue);
         });
     }
 
@@ -278,6 +271,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         });
     }
 
+    /**
+     * initializes the resolution and scan width section
+     */
     private void initResolutionAndScanWidth() {
         // select initial resolution
         Resolution.getSelectionModel().selectFirst();
@@ -295,23 +291,36 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         });
     }
 
+    /**
+     * initializes the line rate and transport speed section
+     */
     private void initLineRateAndTransportSpeed() {
+        handleTransportSpeedChange(CIS_DATA.getTransportSpeed());
+        updateMaxLineRateChange();
+        handleLineRateChange(CIS_DATA.getSelectedLineRate());
         SelLineRate.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedLineRate(newValue.intValue()));
     }
 
+    /**
+     * initializes the pixel and defect size section by setting the text labels to the initial values
+     */
+    private void initPixelAndDefectSize() {
+        updatePixelAndDefectSize();
+    }
+
+    /**
+     * initializes all choice boxes and checkboxes
+     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-
-        //TODO move this stuff to model, so initial values will get set
-        CIS_DATA.setSelectedResolution(getResolutions().get(0));
-
         // initialize color and light sources section (upper box)
         initColorAndLightSources();
         // initialize optics (second box)
         initOptics();
         // initialize resolution and scan width section (left box)
         initResolutionAndScanWidth();
-        // nothing to init in pixel & defect size
+        // initialize pixel and defect size section
+        initPixelAndDefectSize();
         // initialize line rate and transport speed
         initLineRateAndTransportSpeed();
 
@@ -328,7 +337,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         CoolingRight.setDisable(CIS_DATA.hasCoolingRight());
     }
 
-
+    /**
+     * handles an observed property change from the model and updates the GUI accordingly
+     */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         System.out.println("observed change for " + evt.getPropertyName() + " to " + evt.getNewValue());
@@ -336,33 +347,42 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             // lights
             case "leftDarkField":
                 selectLightChoiceBox(DarkFieldLeft, (CIS.LightColor) evt.getNewValue());
+                setLightPresetToManual();
                 return;
             case "leftBrightField":
                 selectLightChoiceBox(BrightFieldLeft, (CIS.LightColor) evt.getNewValue());
+                setLightPresetToManual();
                 return;
             case "coaxLight":
                 handleCoaxChange((CIS.LightColor) evt.getOldValue(), (CIS.LightColor) evt.getNewValue());
                 selectLightChoiceBox(Coax, (CIS.LightColor) evt.getNewValue());
+                setLightPresetToManual();
                 return;
             case "rightBrightField":
                 selectLightChoiceBox(BrightFieldRight, (CIS.LightColor) evt.getNewValue());
+                setLightPresetToManual();
                 return;
             case "rightDarkField":
                 selectLightChoiceBox(DarkFieldRight, (CIS.LightColor) evt.getNewValue());
+                setLightPresetToManual();
                 return;
             case "phaseCount":
                 Phases selectedPhase = Phases.findByPhaseCount((int) evt.getNewValue()).orElseThrow(() -> new IllegalArgumentException("selected phase count not found"));
                 handlePhasesChange(selectedPhase);
+                setLightPresetToManual();
                 return;
             case "cloudyDay":
                 CloudyDay.setSelected((boolean) evt.getNewValue());
                 updateDarkFieldChoiceBoxes((boolean) evt.getNewValue());
+                setLightPresetToManual();
                 return;
             case "coolingLeft":
                 CoolingLeft.setSelected((boolean) evt.getNewValue());
+                setLightPresetToManual();
                 return;
             case "coolingRight":
                 CoolingRight.setSelected((boolean) evt.getNewValue());
+                setLightPresetToManual();
                 return;
             // optics
             case "lensType":
@@ -375,16 +395,32 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             case "lineRate":
                 handleLineRateChange((int) evt.getNewValue());
                 return;
+            case "transportSpeed":
+                handleTransportSpeedChange((int) evt.getNewValue());
+                return;
         }
-        //TODO set mode to manual if any light stuff is changed and not in manual -> probably not here since would always set to manual
     }
 
+    /**
+     * sets the light preset to manual (for changes from a light preset)
+     */
+    private void setLightPresetToManual() {
+        LightPreset.getSelectionModel().select(LightPresets.MANUAL.getDisplayText());
+    }
+
+    private void handleTransportSpeedChange(int transportSpeed) {
+        double transportSpeedByThousands = transportSpeed / 1000.0;
+        Speedmms.setText(CIS.round(transportSpeedByThousands, 3) + " mm/s");
+        Speedms.setText(CIS.round(transportSpeedByThousands / 1000, 3) + " m/s");
+        Speedmmin.setText(CIS.round(transportSpeedByThousands * 0.06, 3) + " m/min");
+        Speedips.setText(CIS.round(transportSpeedByThousands * 0.03937, 3) + " ips");
+    }
+
+    /**
+     * calculates speeds depending on the given line rate and sets labels accordingly
+     */
     private void handleLineRateChange(int lineRate) {
         CurrLineRate.setText(lineRate / 1000.0 + " kHz");
-        Speedmms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
-        Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
-        Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
-        Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
     }
 
     /**
@@ -395,16 +431,26 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         // however, since resolution only changes by user input, this does not really matter for now
 
         // set output texts
+        updateMaxLineRateChange();
+        updatePixelAndDefectSize();
+    }
+
+    /**
+     * updates the pixel and defect size text labels
+     */
+    private void updatePixelAndDefectSize() {
+        PixelSize.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
+        DefectSize.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
+    }
+
+    /**
+     * handles a change to the max line rate: sets the new max value of the slider and updates the text label
+     */
+    private void updateMaxLineRateChange() {
         MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
         SelLineRate.setMax(CIS_DATA.getMaxLineRate());
         SelLineRate.setValue(CIS_DATA.getMaxLineRate());
-        SelLineRate.setBlockIncrement(CIS_DATA.getMaxLineRate() / 100);
-        PixelSize.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
-        DefectSize.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
-        Speedmms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
-        Speedms.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
-        Speedmmin.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
-        Speedips.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
+        SelLineRate.setBlockIncrement(CIS_DATA.getMaxLineRate() / 100); // we can choose increments of 1%
     }
 
     /**
@@ -454,12 +500,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         // set choice box selection
         Color.getSelectionModel().select(selectedPhase.getDisplayText());
         // adjust line rate outputs
-        MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000.0 + " kHz");
-        SelLineRate.setMax(CIS_DATA.getMaxLineRate());
-        SelLineRate.setValue(CIS_DATA.getMaxLineRate());
-        SelLineRate.setBlockIncrement(CIS_DATA.getMaxLineRate() / 100);
-        // set transport speed in model //TODO move this somewhere else
-        CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
+        updateMaxLineRateChange();
     }
 
     /**
@@ -512,6 +553,4 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     private void updateLensTypeChoiceBox() {
         LensType.setDisable(CIS_DATA.isShapeFromShading());
     }
-    //TODO change to MANUAL should not set anything
-    //TODO set initial text of speeds
 }
