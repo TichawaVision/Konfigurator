@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.collections.*?>
-<?import javafx.geometry.*?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
+<?import java.lang.*?>
 <AnchorPane id="AnchorPane" prefHeight="150.0" prefWidth="320.0" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="de.tichawa.cis.config.LauncherController">
     <VBox alignment="CENTER" prefHeight="150.0" prefWidth="320.0" spacing="15.0">
         <padding>
             <Insets/>
         </padding>
-        <ComboBox fx:id="selectCIS" value="VSCIS">
+        <ComboBox fx:id="selectCIS" value="VUCIS">
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="VSCIS"/>

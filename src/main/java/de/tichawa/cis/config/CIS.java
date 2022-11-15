@@ -461,14 +461,18 @@ public abstract class CIS {
     }
 
     /**
-     * calculates and adds the article given in next_size_art_no for the given mechanical record.
+     * calculates and adds the article given in next_size_art_no for the given mechanical record if the remaining select code is applicable.
      * If the next article number is the same as the current one, instead the amount will get one size bigger (+260)
      */
     private void calculateNextSizeMechanics(MechanicRecord mechanicRecord, Map<Integer, PriceRecord> priceRecords) {
-        int amount = getMechaFactor(mechanicRecord.getAmount());
-        if (mechanicRecord.getNextSizeArtNo().equals(mechanicRecord.getArtNo()))
-            amount = getMechaFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + 260)));
-        calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, mechaConfig, mechaSums, priceRecords);
+        String selectCodeWithoutSpaces = mechanicRecord.getSelectCode().replaceAll("\\s", "");
+        String selectCodeWithoutS = "S".equals(selectCodeWithoutSpaces) ? "" : selectCodeWithoutSpaces.replace("S&", "");
+        if (isApplicable(selectCodeWithoutS)) { // only add if select code without S works
+            int amount = getMechaFactor(mechanicRecord.getAmount());
+            if (mechanicRecord.getNextSizeArtNo().equals(mechanicRecord.getArtNo())) // same number -> depends on N -> make N next size (+260)
+                amount = getMechaFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + 260)));
+            calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, mechaConfig, mechaSums, priceRecords);
+        }
     }
 
     public String getVersion() {
