@@ -14,8 +14,7 @@ import java.net.URL;
 import java.util.*;
 
 // Datasheet für alle CIS
-public class DataSheetController implements Initializable
-{
+public class DataSheetController implements Initializable {
   protected CIS CIS_DATA;
 
   @FXML
@@ -42,42 +41,36 @@ public class DataSheetController implements Initializable
   private MenuItem SwitchLang;
 
   @Override
-  public void initialize(URL url, ResourceBundle rb)
-  {
+  public void initialize(URL url, ResourceBundle rb) {
 
   }
 
-  public void passData(CIS data)
-  {
+  public void passData(CIS data) {
     this.CIS_DATA = data;
 
     load();
   }
 
-  public TextArea getHeader()
-  {
+  public TextArea getHeader() {
     return Header;
   }
 
-  public TextArea getSpecs()
-  {
+  public TextArea getSpecs() {
     return Specs;
   }
 
-  public TextArea getCLConfig()
-  {
+  public TextArea getCLConfig() {
     return CLConfig;
   }
 
-  private void load()
-  {
-    try
-    {
+  private void load() {
+    try {
       Lang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("lang"));
       SwitchLang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("switchlang"));
 
       File.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("File"));
       Print.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("Print"));
+
 
       String[] dataSheetText = CIS_DATA.createPrntOut().split("\n\t\n");
       String key = CIS_DATA.getTiViKey();
@@ -94,89 +87,67 @@ public class DataSheetController implements Initializable
       Grid.setStyle("-fx-background-color: #FFFFFF;");
 
       InputStream product = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Product.jpg");
-      if(product != null)
-      {
+      if (product != null) {
         ProductPic.setImage(new Image(product));
       }
 
-      if(key.contains("MXCIS"))
-      {
+      if (key.contains("MXCIS")) {
         String append = "";
 
-        if(key.split("_")[5].endsWith("C"))
-        {
+        if (key.split("_")[5].endsWith("C")) {
           append += "_coax";
         }
 
-        if(key.split("_")[5].startsWith("2"))
-        {
+        if (key.split("_")[5].startsWith("2")) {
           append += "_L2";
-        }
-        else
-        {
+        } else {
           append += "_L1";
         }
 
         InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile" + append + ".jpg");
-        if(profile != null)
-        {
+        if (profile != null) {
           ProfilePic.setImage(new Image(profile));
         }
-      }
-      else if(key.split("_")[4].endsWith("C") && getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg") != null)
-      {
+      } else if (key.split("_")[4].endsWith("C") && getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg") != null) {
         InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg");
-        if(profile != null)
-        {
+        if (profile != null) {
           ProfilePic.setImage(new Image(profile));
         }
-      }
-      else
-      {
+      } else {
         InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile.jpg");
-        if(profile != null)
-        {
+        if (profile != null) {
           ProfilePic.setImage(new Image(profile));
         }
       }
-    }
-    catch(CISException e)
-    {
+    } catch (CISException e) {
       ((Stage) Header.getScene().getWindow()).close();
 
       Alert alert = new Alert(Alert.AlertType.ERROR);
       alert.setHeaderText(e.getMessage());
       alert.show();
-    }
-    catch(NullPointerException e)
-    {
+    } catch (NullPointerException e) {
       e.printStackTrace();
     }
   }
 
-  public void print()
-  {
+  public void print() {
     PrinterJob p = PrinterJob.createPrinterJob();
     Pane printable = Grid;
 
-    if(p.showPrintDialog(null))
-    {
+    if (p.showPrintDialog(null)) {
       p.getJobSettings().setPageLayout(p.getPrinter().createPageLayout(p.getJobSettings().getPageLayout().getPaper(), PageOrientation.PORTRAIT, 0.0, 0.0, 0.0, 0.0));
       double scaleX = p.getJobSettings().getPageLayout().getPrintableHeight() / printable.getHeight();
       double scaleY = p.getJobSettings().getPageLayout().getPrintableWidth() / printable.getWidth();
 
       printable.getTransforms().add(new Scale(Math.min(scaleX, scaleY), Math.min(scaleX, scaleY)));
 
-      if(p.printPage(printable))
-      {
+      if (p.printPage(printable)) {
         printable.getTransforms().clear();
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess"));
         alert.show();
         p.endJob();
-      }
-      else
-      {
+      } else {
         printable.getTransforms().clear();
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings."));
@@ -185,22 +156,17 @@ public class DataSheetController implements Initializable
     }
   }
 
-  public void switchLang()
-  {
-    if(CIS_DATA.getLocale().toString().equals("de_DE"))
-    {
+  public void switchLang() {
+    if (CIS_DATA.getLocale().toString().equals("de_DE")) {
       CIS.setLocale(new Locale("en", "US"));
-    }
-    else if(CIS_DATA.getLocale().toString().equals("en_US"))
-    {
+    } else if (CIS_DATA.getLocale().toString().equals("en_US")) {
       CIS.setLocale(new Locale("de", "DE"));
     }
 
     load();
   }
 
-  public ImageView getProfilePic()
-  {
+  public ImageView getProfilePic() {
     return ProfilePic;
   }
 }

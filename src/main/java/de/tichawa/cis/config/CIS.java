@@ -5,7 +5,6 @@ import de.tichawa.cis.config.model.tables.records.*;
 import de.tichawa.cis.config.mxcis.MXCIS;
 import de.tichawa.cis.config.vdcis.VDCIS;
 import de.tichawa.cis.config.vhcis.VHCIS;
-import de.tichawa.cis.config.vscis.VSCIS;
 import de.tichawa.cis.config.vtcis.VTCIS;
 import de.tichawa.cis.config.vucis.VUCIS;
 import de.tichawa.util.MathEval;
@@ -499,169 +498,185 @@ public abstract class CIS {
         }
     }
 
+    /**
+     * returns the line rate factor that gets multiplied with the max line rate.
+     * Default is 1 if not overwritten by subclass.
+     */
+    protected double getMaxLineRateFactor() {
+        return 1;
+    }
+
+    /**
+     * returns the internal light description
+     */
+    protected String getInternalLights() {
+        String printout = "";
+        String color;
+        if ((getPhaseCount() == 3 && !(this instanceof VDCIS)) || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4)) {
+            color = "RGB";
+        } else {
+            color = getString(getLightColors().stream()
+                    .findAny().orElse(LightColor.NONE)
+                    .getDescription());
+        }
+
+        switch (getLightSources()) {
+            case "0D0C":
+                printout += getString("None");
+                break;
+            case "1D0C":
+                printout += color + getString("onesided");
+                break;
+            case "2D0C":
+                printout += color + getString("twosided");
+                break;
+            case "1D1C":
+                printout += color + getString("onepluscoax");
+                break;
+            case "2D1C":
+                printout += color + getString("twopluscoax");
+                break;
+            case "0D1C":
+                printout += color + getString("coax");
+                break;
+            default:
+                printout += "Unknown";
+        }
+        return printout;
+    }
+
+    /**
+     * returns the transport speed factor for print out
+     */
+    protected double getTransportSpeedFactor() {
+        return (1.0 * getSelectedLineRate() / getMaxLineRate());
+    }
+
+    /**
+     * returns the geometry correction string for print out
+     */
+    protected String getGeometryCorrectionString() {
+        if (getSelectedResolution().getActualResolution() > 400) {
+            return getString("Geometry correction: x and y");
+        } else {
+            return getString("Geometry correction: x");
+        }
+    }
+
+    /**
+     * returns the scan distance string that is shown in print out.
+     * Default is 9-12mm unless overwritten by subclass
+     */
+    protected String getScanDistanceString() {
+        return "9-12 mm " + getString("exactseetypesign");
+    }
+
+    /**
+     * return the depth of field for print out.
+     * Default is the depth of field from the selected resolution if not overwritten by subclass
+     */
+    protected double getDepthOfField() {
+        return getSelectedResolution().getDepthOfField();
+    }
+
+    /**
+     * returns the extra case length needed in addition to the scan width.
+     * Default is 100 if not overwritten by subclass
+     */
+    protected int getExtraCaseLength() {
+        return 100;
+    }
+
+    /**
+     * returns the case profile for print out.
+     * Default is unknown aluminum case
+     */
+    protected String getCaseProfile() {
+        return getString("Aluminium case profile: unknown with bonded");
+    }
+
+    /**
+     * returns a string that gets appended to the end of the spec section of print out.
+     * Default is the empty string unless overwritten by subclass
+     */
+    protected String getEndOfSpecs() {
+        return "";
+    }
+
+    /**
+     * returns a string that gets appended to the end of the camera link section of print out.
+     * Default is the empty string unless overwritten by subclass
+     */
+    protected String getEndOfCameraLinkSection() {
+        return "";
+    }
+
+    /**
+     * returns the resolution string for print out.
+     * Default is the actual resolution unless overwritten by subclass
+     */
+    protected String getResolutionString() {
+        return "~ " + getSelectedResolution().getActualResolution() + "dpi";
+    }
+
+    /**
+     * this method creates a print out for the datasheet
+     */
     public String createPrntOut() {
-        if (this instanceof LDSTD) {
-            return createBlPrntOut();
-        }
-
-        String key = getTiViKey();
-        String printout = key;
+        // header section: key
+        String printout = getTiViKey();
         printout += "\n\t\n";
+
+        // specs section
+        // - scan width, trigger, max line rate
         printout += getScanWidth() + " mm, Trigger: " + (!isExternalTrigger() ? "CC1" : "extern (RS422)");
+        printout += ", max. " + (getMaxLineRate() / 1000) * getMaxLineRateFactor() + " kHz\n";
 
-        if (key.contains("MXCIS")) {
-            double factor;
-            if (key.contains("K1")) {
-                if (key.contains("0600")) {
-                    factor = 0.2;
-                } else {
-                    factor = 0.25;
-                }
-            } else if (key.contains("K2")) {
-                factor = 0.5;
-            } else {
-                factor = 1;
-            }
-
-            printout += ", max. " + (getMaxLineRate() / 1000) * factor + " kHz\n";
-        } else {
-            printout += ", max. " + getMaxLineRate() / 1000 + " kHz\n";
-        }
+        // - resolution
         printout += getString("Resolution: ");
+        printout += getResolutionString() + "\n";
 
-        if (getSelectedResolution().isSwitchable()
-                && (this instanceof VSCIS || this instanceof VTCIS || this instanceof VUCIS)) {
-            printout += getString("binning200") + "\n";
-        } else {
-            printout += "~ " + getSelectedResolution().getActualResolution() + "dpi\n";
-        }
-
+        // - internal lights
         printout += getString("internal light");
-
-        if (this instanceof VUCIS) {
-            printout += getLights();     //all Color description
-        } else {
-            String color;
-            if ((getPhaseCount() == 3 && !(this instanceof VDCIS)) || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4)) {
-                color = "RGB";
-            } else {
-                color = getString(getLightColors().stream()
-                        .findAny().orElse(LightColor.NONE)
-                        .getDescription());
-            }
-
-            switch (getLightSources()) {
-                case "0D0C":
-                    printout += getString("None");
-                    break;
-                case "1D0C":
-                    printout += color + getString("onesided");
-                    break;
-                case "2D0C":
-                    printout += color + getString("twosided");
-                    break;
-                case "1D1C":
-                    printout += color + getString("onepluscoax");
-                    break;
-                case "2D1C":
-                    printout += color + getString("twopluscoax");
-                    break;
-                case "0D1C":
-                    printout += color + getString("coax");
-                    break;
-                default:
-                    printout += "Unknown";
-            }
-
-            if (this instanceof MXCIS) {
-                printout += getString("schipal");
-
-                if (getSelectedResolution().getActualResolution() > 600) {
-                    printout += getString("staggered");
-                } else {
-                    printout += getString("inline");
-                }
-            }
-        }
-
+        printout += getInternalLights();
         printout += "\n\n";
+
+        // - selected line rate
         int numOfPix = getNumOfPix();
-
         printout += getString("sellinerate") + Math.round(getSelectedLineRate() / 100.0) / 10.0 + " kHz\n";
-
-//  Korr CTi. 04.11.2019
-        if (this instanceof MXCIS) {
-            printout += getString("transport speed") + ": " + String.format("%.1f", (getTransportSpeed() / 1000.0)) + " mm/s\n";
-        } else {
-            printout += getString("transport speed") + ": " + String.format("%.1f", (getTransportSpeed() / 1000.0) * (1.0 * getSelectedLineRate() / getMaxLineRate())) + " mm/s\n";
-        }
-
-        if (this instanceof MXCIS) {
-            printout += getString("chpltol") + "\n";
-            printout += getString("Geocor_opt") + "\n";
-        } else if (getSelectedResolution().getActualResolution() > 400) {
-            printout += getString("Geometry correction: x and y") + "\n";
-        } else {
-            printout += getString("Geometry correction: x") + "\n";
-        }
-
-        if (this instanceof MXCIS) {
-            printout += getString("scan distance") + ": ~ 10 mm " + getString("exactseetypesign") + "\n";
-            printout += getString("DepthofField") + ": ~ +/- " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1 mm\n";
-            printout += getString("case length") + ": ~ " + (getScanWidth() + 288) + " mm\n";
-            if (getLedLines() < 2) {
-                printout += getString("alucase_mxcis") + "\n";
-            } else {
-                printout += getString("alucase_mxcis_two") + "\n";
-            }
-        } else if (this instanceof VDCIS) {
-            printout += getString("scan distance") + ": ~ 55 - 70 mm " + getString("exactresolution") + "\n";
-            printout += getString("DepthofField") + ": ~ " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1 mm\n";
-            printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
-            printout += getString("Aluminium case profile: 80x80mm (HxT) with bonded") + "\n";
-        } else if (this instanceof VTCIS) {
-            printout += getString("scan distance") + ": 10 mm " + "\n";
-            printout += getString("DepthofField") + ": ~ +/- " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
-            printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
-
-            if (!getLightSources().endsWith("0C")) {
-                printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
-            } else {
-                printout += getString("Aluminium case profile: 86x80mm (HxT) with bonded") + "\n";
-            }
-        } else {
-            printout += getString("scan distance") + ": 9-12 mm " + getString("exactseetypesign") + "\n";
-            if (this instanceof VSCIS || this instanceof VHCIS) {
-                printout += getString("DepthofField") + ": ~ +/- " + getSelectedResolution().getDepthOfField() + " mm\n" + getString("line width") + ": ~ 1mm\n";
-            } else {
-                printout += getString("DepthofField") + ": ~ +/- 0.50 mm\n" + getString("line width") + ": ~ 1mm\n";
-            }
-            printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
-            if (this instanceof VHCIS) {
-                printout += "Unknown aluminium case profile with bonded\n";
-            } else if (!getLightSources().endsWith("0C")) {
-                printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax") + "\n";
-            } else {
-                printout += getString("Aluminium case profile: 53x50mm (HxT) with bonded") + "\n";
-            }
-        }
+        // - transport speed
+        printout += getString("transport speed") + ": " + String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor()) + " mm/s\n";
+        // - geometry correction
+        printout += getGeometryCorrectionString() + "\n";
+        // - scan distance
+        printout += getString("scan distance") + ": " + getScanDistanceString() + "\n";
+        // - depth of field
+        printout += getString("DepthofField") + ": ~ +/- " + getDepthOfField() + " mm\n";
+        // - line width
+        printout += getString("line width") + ": ~ 1 mm\n";
+        // - case length
+        printout += getString("case length") + ": ~ " + (getScanWidth() + getExtraCaseLength()) + " mm\n";
+        // - case profile
+        printout += getCaseProfile() + "\n";
+        // - glass pane
         printout += getString("glass pane, see drawing") + "\n";
+        // - shading
         printout += getString("shading") + "\n";
+        // - power
         printout += getString("powersource") + "(24 +/- 1) VDC\n";
         printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
+        // - frequency limit
         printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
+        // - cooling
         printout += getString(getCooling().getShortHand()) + "\n";
+        // - weight
         printout += getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
+        // - interface
         printout += "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m)") + "\n";
+        // - end of specs
+        printout += getEndOfSpecs();
 
-        if (this instanceof VDCIS) {
-            printout += getString("laser") + "\n";
-        }
-
-        if (this instanceof MXCIS) {
-            printout += getString("clbase");
-        }
-
+        //CL Config
         if (isGigeInterface()) {
             printout += "\n\t\n";
             printout += "Pixel Clock: 40MHz\n";
@@ -674,36 +689,8 @@ public abstract class CIS {
             } else {
                 return null;
             }
-            if (this instanceof VTCIS || this instanceof VDCIS || this instanceof VUCIS) {
-                printout += getString("configOnRequest");
-            }
+            printout += getEndOfCameraLinkSection();
         }
-        return printout;
-    }
-
-    private String createBlPrntOut() {
-        String printout = getTiViKey();
-        printout += "\n\t\n";
-        printout += getString("suitedfor") + getScanWidth() + getString("mm CIS scan width") + "\n";
-
-        LightColor color;
-
-        if (getPhaseCount() == 3 || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4)) {
-            color = LightColor.RGB;
-        } else {
-            color = getLightColors().stream()
-                    .findAny().orElse(LightColor.NONE);
-        }
-        printout += getString("Color:") + getString(color.getDescription()) + "\n";
-        printout += "\n\t\n";
-        printout += getString("line width") + ": ~ 1 mm\n";
-        printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
-        printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedmxled") + "\n";
-        printout += getString("glass pane, see drawing") + "\n";
-        printout += getString("shading") + "\n";
-        printout += getString("powersource") + "(24 +/- 1) VDC\n";
-        printout += getString("Needed power:") + (((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
-        printout += getString("weight") + ": ~ " + (Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
 
         return printout;
     }

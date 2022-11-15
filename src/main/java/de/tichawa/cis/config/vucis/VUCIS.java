@@ -757,4 +757,54 @@ public class VUCIS extends CIS {
             this.setTransportSpeed((int) (this.getSelectedResolution().getPixelSize() * this.getSelectedLineRate() * 1000));
     }
 
+    /**
+     * returns the lights code for print out
+     */
+    @Override
+    protected String getInternalLights() {
+        return getLights();
+    }
+
+    /**
+     * returns the scan distance string for print out: 10+-2mm or 23+-3 mm
+     */
+    @Override
+    protected String getScanDistanceString() {
+        switch (lensType) {
+            case TC54:
+            case TC54L:
+                return "10 mm +/- 2 mm";
+            case TC80:
+            case TC80L:
+                return "23 mm +/- 3 mm";
+            default:
+                throw new IllegalStateException("current lens not supported yet");
+        }
+    }
+
+    /**
+     * returns the case profile string for print out: 92x80mm
+     */
+    @Override
+    protected String getCaseProfile() {
+        return getString("Aluminium case profile: 92x80mm (HxT) with bonded");
+    }
+
+    /**
+     * returns a string that is appended to the end of the camera link section in print out: other cl config on request
+     */
+    @Override
+    protected String getEndOfCameraLinkSection() {
+        return getString("configOnRequest");
+    }
+
+    /**
+     * returns the resolution string for print out: the actual resolution or the switchable resolution string
+     */
+    @Override
+    protected String getResolutionString() {
+        if (getSelectedResolution().isSwitchable())
+            return getString("binning200");
+        return super.getResolutionString();
+    }
 }
