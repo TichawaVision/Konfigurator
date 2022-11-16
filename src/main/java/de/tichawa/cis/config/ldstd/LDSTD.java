@@ -53,7 +53,7 @@ public class LDSTD extends CIS {
     }
 
     @Override
-    public double getGeometry(boolean coax) {
+    public double getGeometryFactor(boolean coax) {
         return 1;
     }
 

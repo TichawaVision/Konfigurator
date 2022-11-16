@@ -185,7 +185,7 @@ public class MXCIS extends CIS {
     }
 
     @Override
-    public double getGeometry(boolean coax) {
+    public double getGeometryFactor(boolean coax) {
         return coax ? 0.021 : 0.366;
     }
 
@@ -214,8 +214,8 @@ public class MXCIS extends CIS {
      * returns the internal light string for print out by adding schipal staggered/inline to the general calculation by the base class CIS
      */
     @Override
-    protected String getInternalLights() {
-        String printout = super.getInternalLights();
+    protected String getInternalLightsForPrintOut() {
+        String printout = super.getInternalLightsForPrintOut();
         printout += getString("schipal");
         printout += getSelectedResolution().getActualResolution() > 600 ? getString("staggered") : getString("inline");
         return printout;
@@ -267,5 +267,28 @@ public class MXCIS extends CIS {
     @Override
     protected String getEndOfSpecs() {
         return getString("clbase");
+    }
+
+    /**
+     * returns the sensitivity factor that is used for the minimum frequency calculation
+     */
+    @Override
+    protected double getSensitivityFactor() {
+        return 30;
+    }
+
+    /**
+     * calculates the number of pixels:
+     * chips on board * number of boards * pixels per sensor / binning
+     */
+    @Override
+    protected int calcNumOfPix() {
+        SensorChipRecord sensorChip = getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
+        SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
+        int numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / getBinning();
+        if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
+            throw new CISException(getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
+        }
+        return numOfPix;
     }
 }

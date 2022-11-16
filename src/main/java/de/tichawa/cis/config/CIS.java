@@ -4,8 +4,6 @@ import de.tichawa.cis.config.ldstd.LDSTD;
 import de.tichawa.cis.config.model.tables.records.*;
 import de.tichawa.cis.config.mxcis.MXCIS;
 import de.tichawa.cis.config.vdcis.VDCIS;
-import de.tichawa.cis.config.vhcis.VHCIS;
-import de.tichawa.cis.config.vtcis.VTCIS;
 import de.tichawa.cis.config.vucis.VUCIS;
 import de.tichawa.util.MathEval;
 import lombok.*;
@@ -453,7 +451,7 @@ public abstract class CIS {
                         sums[3] += priceRecord.getWeight() * amount;
 
                         if (priceRecord.getPhotoValue() != 0) {
-                            sums[4] = priceRecord.getPhotoValue();
+                            sums[4] = priceRecord.getPhotoValue(); //TODO is this right?
                         }
                     });
         }
@@ -461,7 +459,7 @@ public abstract class CIS {
 
     /**
      * calculates and adds the article given in next_size_art_no for the given mechanical record if the remaining select code is applicable.
-     * If the next article number is the same as the current one, instead the amount will get one size bigger (+260)
+     * If the next article number is the same as the current one, instead the amount will get one size bigger
      */
     private void calculateNextSizeMechanics(MechanicRecord mechanicRecord, Map<Integer, PriceRecord> priceRecords) {
         String selectCodeWithoutSpaces = mechanicRecord.getSelectCode().replaceAll("\\s", "");
@@ -469,7 +467,7 @@ public abstract class CIS {
         if (isApplicable(selectCodeWithoutS)) { // only add if select code without S works
             int amount = getMechaFactor(mechanicRecord.getAmount());
             if (mechanicRecord.getNextSizeArtNo().equals(mechanicRecord.getArtNo())) // same number -> depends on N -> make N next size (+260)
-                amount = getMechaFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + 260)));
+                amount = getMechaFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + BASE_LENGTH)));
             calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, mechaConfig, mechaSums, priceRecords);
         }
     }
@@ -509,7 +507,7 @@ public abstract class CIS {
     /**
      * returns the internal light description
      */
-    protected String getInternalLights() {
+    protected String getInternalLightsForPrintOut() {
         String printout = "";
         String color;
         if ((getPhaseCount() == 3 && !(this instanceof VDCIS)) || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4)) {
@@ -572,7 +570,7 @@ public abstract class CIS {
     }
 
     /**
-     * return the depth of field for print out.
+     * returns the depth of field for print out.
      * Default is the depth of field from the selected resolution if not overwritten by subclass
      */
     protected double getDepthOfField() {
@@ -580,7 +578,15 @@ public abstract class CIS {
     }
 
     /**
-     * returns the extra case length needed in addition to the scan width.
+     * returns the base case length.
+     * Default is the scan width if not overwritten by subclass
+     */
+    protected int getBaseCaseLength() {
+        return getScanWidth();
+    }
+
+    /**
+     * returns the extra case length needed in addition to the base case length.
      * Default is 100 if not overwritten by subclass
      */
     protected int getExtraCaseLength() {
@@ -620,6 +626,14 @@ public abstract class CIS {
     }
 
     /**
+     * returns an appendix string for print out that is shown after the case length.
+     * Default is the empty string unless overwritten by subclass
+     */
+    protected String getCaseLengthAppendix() {
+        return "";
+    }
+
+    /**
      * this method creates a print out for the datasheet
      */
     public String createPrntOut() {
@@ -638,7 +652,7 @@ public abstract class CIS {
 
         // - internal lights
         printout += getString("internal light");
-        printout += getInternalLights();
+        printout += getInternalLightsForPrintOut();
         printout += "\n\n";
 
         // - selected line rate
@@ -653,9 +667,9 @@ public abstract class CIS {
         // - depth of field
         printout += getString("DepthofField") + ": ~ +/- " + getDepthOfField() + " mm\n";
         // - line width
-        printout += getString("line width") + ": ~ 1 mm\n";
+        printout += getString("line width") + ": > 1 mm\n";
         // - case length
-        printout += getString("case length") + ": ~ " + (getScanWidth() + getExtraCaseLength()) + " mm\n";
+        printout += getString("case length") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + " mm" + getCaseLengthAppendix() + "\n";
         // - case profile
         printout += getCaseProfile() + "\n";
         // - glass pane
@@ -666,7 +680,7 @@ public abstract class CIS {
         printout += getString("powersource") + "(24 +/- 1) VDC\n";
         printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
         // - frequency limit
-        printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq(getTiViKey())) / 1000 + " kHz\n";
+        printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq()) / 1000 + " kHz\n";
         // - cooling
         printout += getString(getCooling().getShortHand()) + "\n";
         // - weight
@@ -1116,26 +1130,18 @@ public abstract class CIS {
         }
     }
 
-    private int calcNumOfPix() {
-        int numOfPix;
-        int sensorBoards = getScanWidth() / BASE_LENGTH;
-        int binning = getBinning();
-        if (this instanceof MXCIS) {
-            SensorChipRecord sensorChip = ((MXCIS) this).getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
-            SensorBoardRecord sensorBoard = ((MXCIS) this).getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
-            numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / binning;
-        } else if (this instanceof VHCIS || this instanceof VTCIS || this instanceof VUCIS) {
-            SensorBoardRecord sensorBoard = getSensorBoard("SMARDOUB").orElseThrow(() -> new CISException("Unknown sensor board"));
-            numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSelectedResolution().getActualResolution());
-        } else {
-            SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
-            numOfPix = (int) (sensorBoard.getChips() * sensorBoards * 0.72 * getSelectedResolution().getActualResolution());
-        }
-
-        if (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80 && isGigeInterface()) {
+    /**
+     * calculates the number of pixels.
+     * Unless overwritten by subclass the default implementation calculates with SMARAGD (single line):
+     * chips * number of sensor boards * 0.72 * actual resolution
+     */
+    protected int calcNumOfPix() {
+        int sensorBoardCount = getScanWidth() / BASE_LENGTH;
+        SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
+        int numOfPix = (int) (sensorBoard.getChips() * sensorBoardCount * 0.72 * getSelectedResolution().getActualResolution());
+        if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
             throw new CISException(getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
-
         return numOfPix;
     }
 
@@ -1143,44 +1149,32 @@ public abstract class CIS {
         return numFPGA;
     }
 
-    public double getMinFreq(String key) {
+    /**
+     * calculates the minimum frequency.
+     * Unless overwritten by subclass the calculation is:
+     * 100 * electronics phase value * mechanics phase value * led lines * geometry factor * sensitivity / (1.5 * phases)
+     * <p>
+     * currently phases is 3 if RGB in key else 1
+     * currently coax is tested by C_ in key
+     * currently phase values are determined by the last read value -> this is probably wrong
+     */
+    protected double getMinFreq() {
+        String key = getTiViKey();
         boolean coax = key.contains("C_");
         return 100 * electSums[4]
                 * mechaSums[4]
                 * (coax ? 1 : getLedLines())
-                * getGeometry(coax)
-                * getSensitivity() / (1.5 * (key.contains("RGB") ? 3 : 1));
+                * getGeometryFactor(coax)
+                * getSensitivityFactor() / (1.5 * (key.contains("RGB") ? 3 : 1));
     }
 
-    public abstract double getGeometry(boolean coax);
+    public abstract double getGeometryFactor(boolean coax);
 
-    public double getSensitivity() {
-        if (this instanceof MXCIS) {
-            return 30;
-        } else if (this instanceof VTCIS || this instanceof VUCIS) {
-            switch (getSelectedResolution().getBoardResolution()) {
-                case 1200:
-                    return 500;
-                case 600:
-                    return 1000;
-                case 300:
-                    return 1800;
-                default:
-                    throw new UnsupportedOperationException();
-            }
-        } else if (this instanceof VDCIS) {
-            switch (getSelectedResolution().getBoardResolution()) {
-                case 1000:
-                    return 500;
-                case 500:
-                    return 1000;
-                case 250:
-                    return 1800;
-                default:
-                    throw new UnsupportedOperationException();
-            }
-        }
-
+    /**
+     * returns the sensitivity value that is multiplied for the minimum frequency calculation
+     * Default value is 1 unless overwritten by subclass
+     */
+    protected double getSensitivityFactor() {
         return 1;
     }
 

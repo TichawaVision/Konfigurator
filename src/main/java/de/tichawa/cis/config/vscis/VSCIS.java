@@ -140,7 +140,7 @@ public class VSCIS extends CIS {
     }
 
     @Override
-    public double getGeometry(boolean coax) {
+    public double getGeometryFactor(boolean coax) {
         return coax ? 0.105 : 0.128;
     }
 

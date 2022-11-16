@@ -396,7 +396,7 @@ public class VUCIS extends CIS {
     }
 
     @Override
-    public double getGeometry(boolean coax) {
+    public double getGeometryFactor(boolean coax) {
         return coax ? 0.229 : 0.252;
     }
 
@@ -758,11 +758,22 @@ public class VUCIS extends CIS {
     }
 
     /**
-     * returns the lights code for print out
+     * returns the lights string for print out: every light separately if existent
      */
     @Override
-    protected String getInternalLights() {
-        return getLights();
+    protected String getInternalLightsForPrintOut() {
+        String lights = "\n";
+        if (leftBrightField != LightColor.NONE)
+            lights += "\t" + getString("Brightfield") + " " + getString("left") + ": " + getString(leftBrightField.getDescription()) + "\n";
+        if (rightBrightField != LightColor.NONE)
+            lights += "\t" + getString("Brightfield") + " " + getString("right") + ": " + getString(rightBrightField.getDescription()) + "\n";
+        if (leftDarkField != LightColor.NONE)
+            lights += "\t" + getString("Darkfield") + " " + getString("left") + ": " + getString(leftDarkField.getDescription()) + "\n";
+        if (rightDarkField != LightColor.NONE)
+            lights += "\t" + getString("Darkfield") + " " + getString("right") + ": " + getString(rightDarkField.getDescription()) + "\n";
+        if (coaxLight != LightColor.NONE)
+            lights += "\t" + getString("Coaxial") + ": " + getString(coaxLight.getDescription()) + "\n";
+        return lights.substring(0, lights.length() - 1); // remove last line break
     }
 
     /**
@@ -806,5 +817,56 @@ public class VUCIS extends CIS {
         if (getSelectedResolution().isSwitchable())
             return getString("binning200");
         return super.getResolutionString();
+    }
+
+    /**
+     * returns the geometry correction string for print out
+     */
+    @Override
+    protected String getGeometryCorrectionString() { //TODO adjust after discussion
+        return getString("Geometry correction: x and y");
+    }
+
+    /**
+     * returns the depth of field for print out.
+     */
+    @Override
+    protected double getDepthOfField() {
+        return getSelectedResolution().getDepthOfField() * 2;
+    }
+
+    /**
+     * returns the base case length: scan width or next bigger size if there is shape from shading on bright field
+     */
+    @Override
+    protected int getBaseCaseLength() {
+        return getScanWidth() + (hasBrightFieldShapeFromShading() ? BASE_LENGTH : 0);
+    }
+
+    /**
+     * returns an appendix string for print out that is shown after the case length.
+     */
+    @Override
+    protected String getCaseLengthAppendix() {
+        return " (" + getString("without cooling pipe") + ")";
+    }
+
+    //TODO overwrite getMinFrequency
+
+    /**
+     * returns the sensitivity factor that is used for the minimum frequency calculation
+     */
+    @Override
+    protected double getSensitivityFactor() {
+        switch (getSelectedResolution().getBoardResolution()) {
+            case 1200:
+                return 500;
+            case 600:
+                return 1000;
+            case 300:
+                return 1800;
+            default:
+                throw new UnsupportedOperationException("selected board resolution not supported");
+        }
     }
 }

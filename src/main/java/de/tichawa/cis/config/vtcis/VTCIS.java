@@ -87,7 +87,7 @@ public class VTCIS extends VSCIS {
     }
 
     @Override
-    public double getGeometry(boolean coax) {
+    public double getGeometryFactor(boolean coax) {
         return coax ? 0.229 : 0.252;
     }
 
@@ -132,5 +132,22 @@ public class VTCIS extends VSCIS {
         if (getSelectedResolution().isSwitchable())
             return getString("binning200");
         return super.getResolutionString();
+    }
+
+    /**
+     * returns the sensitivity factor that is used for the minimum frequency calculation
+     */
+    @Override
+    protected double getSensitivityFactor() {
+        switch (getSelectedResolution().getBoardResolution()) {
+            case 1200:
+                return 500;
+            case 600:
+                return 1000;
+            case 300:
+                return 1800;
+            default:
+                throw new UnsupportedOperationException("selected board resolution not supported");
+        }
     }
 }
