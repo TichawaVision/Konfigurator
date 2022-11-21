@@ -680,7 +680,11 @@ public abstract class CIS {
         printout += getString("powersource") + "(24 +/- 1) VDC\n";
         printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
         // - frequency limit
-        printout += getString("FrequencyLimit") + " " + Math.round(1000 * getMinFreq()) / 1000 + " kHz\n";
+        if (hasLEDs()) // only print this if there are lights
+            printout += getString("FrequencyLimit") + " " +
+                    (getMinFreq() < 0 // if < 0 there are values missing in database -> give error msg
+                            ? getString("missing photo values") + "\n"
+                            : Math.round(1000 * getMinFreq()) / 1000 + " kHz\n");
         // - cooling
         printout += getString(getCooling().getShortHand()) + "\n";
         // - weight
@@ -1168,7 +1172,7 @@ public abstract class CIS {
                 * getSensitivityFactor() / (1.5 * (key.contains("RGB") ? 3 : 1));
     }
 
-    public abstract double getGeometryFactor(boolean coax);
+    protected abstract double getGeometryFactor(boolean coax);
 
     /**
      * returns the sensitivity value that is multiplied for the minimum frequency calculation
@@ -1235,6 +1239,14 @@ public abstract class CIS {
         int oldValue = this.selectedLineRate;
         this.selectedLineRate = selectedLineRate;
         observers.firePropertyChange("lineRate", oldValue, selectedLineRate);
+    }
+
+    /**
+     * returns whether the CIS has LEDs or not.
+     * Default is true unless overwritten by subclass
+     */
+    protected boolean hasLEDs() {
+        return true;
     }
 
     /**

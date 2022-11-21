@@ -7,6 +7,9 @@ import de.tichawa.util.MathEval;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.tichawa.cis.config.model.Tables.*;
+import static org.jooq.impl.DSL.min;
+
 public class VUCIS extends CIS {
 
     public static final int MAX_SCAN_WIDTH_WITH_COAX = 1040;
@@ -395,11 +398,6 @@ public class VUCIS extends CIS {
 
     }
 
-    @Override
-    public double getGeometryFactor(boolean coax) {
-        return coax ? 0.229 : 0.252;
-    }
-
     public LightColor getLeftBrightField() {
         return leftBrightField;
     }
@@ -762,6 +760,8 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getInternalLightsForPrintOut() {
+        if (!hasLEDs())
+            return getString("no light");
         String lights = "\n";
         if (leftBrightField != LightColor.NONE)
             lights += "\t" + getString("Brightfield") + " " + getString("left") + ": " + getString(leftBrightField.getDescription()) + "\n";
@@ -851,7 +851,103 @@ public class VUCIS extends CIS {
         return " (" + getString("without cooling pipe") + ")";
     }
 
-    //TODO overwrite getMinFrequency
+    /**
+     * returns the minimum frequency by calculating for each light and taking the minimum of:
+     * 100 * I_p * gamma * n * tau * S_v / (1.5 * m)
+     * <p>
+     * will return the double max value if there is no light
+     */
+    @Override
+    protected double getMinFreq() {
+        return Collections.min(Arrays.asList(
+                getMinFreqForLight(leftDarkField, true, false),
+                getMinFreqForLight(leftBrightField, false, false),
+                getMinFreqForLight(coaxLight, false, true),
+                getMinFreqForLight(rightBrightField, false, false),
+                getMinFreqForLight(rightDarkField, true, false)));
+    }
+
+    /**
+     * returns the minimum frequency for the given light by calculating:
+     * 100 * I_p * gamma * n * tau * S_v / (1.5 * m)
+     */
+    private double getMinFreqForLight(LightColor lightColor, boolean isDarkfield, boolean isCoax) {
+        if (lightColor == LightColor.NONE)
+            return Double.MAX_VALUE;
+        double I_p = getIpValue(lightColor, isDarkfield);
+        double gamma = getGeometryFactor(lightColor, isDarkfield, isCoax);
+        double n = getNFactor(isDarkfield, isCoax);
+        double tau = mechaSums[4]; // only Lens will have a photo value in mecha table
+        double S_v = getSensitivityFactor();
+        double m = getPhaseCount();
+        return 100 * I_p * gamma * n * tau * S_v / (1.5 * m);
+    }
+
+    /**
+     * reads the I_p value from the database for the given light color
+     */
+    private double getIpValue(LightColor lightColor, boolean isDarkfield) {
+        //special handling for sfs lights as these have different codes in the database on bright and dark field
+        String shortHand = lightColor.isShapeFromShading() ?
+                lightColor.getCode() + (isDarkfield ? "D" : "B") // add D for darkfield, B for brightfield to the short code
+                : lightColor.getShortHand(); // normal short hand for all other lights
+        return getDatabase().orElseThrow(() -> new IllegalStateException("database not found"))
+                .select(min(PRICE.PHOTO_VALUE))
+                .from(PRICE.join(ELECTRONIC).on(PRICE.ART_NO.eq(ELECTRONIC.ART_NO)))
+                .where(ELECTRONIC.CIS_TYPE.eq(getClass().getSimpleName()))
+                .and(ELECTRONIC.CIS_LENGTH.eq(getScanWidth()))
+                .and(ELECTRONIC.MULTIPLIER.eq(shortHand))
+                .stream().findFirst().orElseThrow(() -> new IllegalStateException("light color not found in database"))
+                .value1();
+    }
+
+    /**
+     * returns the geometry lighting factor for the given VUCIS led:
+     * if cloudy day is selected -> 0.04
+     * if given LED is shape from shading -> 0.08
+     * if given LED is coax -> 0.025
+     * if given LED is darkfield -> 0.08
+     * if given LED is brightfield -> 0.13
+     */
+    private double getGeometryFactor(LightColor lightColor, boolean isDarkfield, boolean isCoax) {
+        if (isCloudyDay()) return 0.04; // cloudy day -> 0.04 for all LEDs
+        if (lightColor.isShapeFromShading()) return 0.08; // LED is sfs -> 0.08
+        if (isCoax) return 0.025; // LED is coax -> 0.025
+        if (isDarkfield) return 0.08; // LED is on df -> 0.08
+        return 0.13; // else: LED is on bf -> 0.13
+    }
+
+    /**
+     * throws an error as VUCIS has a different way to calculate the minimum frequency and therefore can't use this method
+     */
+    @Override
+    protected double getGeometryFactor(boolean coax) {
+        throw new UnsupportedOperationException("getGeometry calculations differs for VUCIS");
+    }
+
+    /**
+     * returns the n factor for the given light depending on its position:
+     * if it is the coax light -> n is always 1
+     * cloudy day -> both bright field lights -> n=2
+     * shape from shading -> if phase count 1 -> 4 else 1
+     * if both dark/bright field -> 2
+     * else -> 1
+     */
+    private double getNFactor(boolean isDarkfield, boolean isCoax) {
+        if (isCoax)
+            return 1; // coax light always factor 1
+        if (isCloudyDay())
+            return 2; // cloudy day only both or no lights on bright field -> 2 since no lights won't reach this method
+        if (isShapeFromShading())
+            if (getPhaseCount() == 1)
+                return 4; // shape from shading and 1 phase -> multiply by 4
+            else return 1; // shape from shading and not 1 phase -> 1
+        if (isDarkfield && leftDarkField != LightColor.NONE && leftDarkField == rightDarkField ||
+                !isDarkfield && leftBrightField != LightColor.NONE && leftBrightField == rightBrightField)
+            // if this is darkfield and both dark fields same -> 2 (same for brightfield)
+            return 2;
+        return 1; // default is 1 for any other case
+    }
 
     /**
      * returns the sensitivity factor that is used for the minimum frequency calculation
@@ -868,5 +964,13 @@ public class VUCIS extends CIS {
             default:
                 throw new UnsupportedOperationException("selected board resolution not supported");
         }
+    }
+
+    /**
+     * returns whether the VUCIS has LEDs or not
+     */
+    @Override
+    protected boolean hasLEDs() {
+        return getLedLines() > 0;
     }
 }
