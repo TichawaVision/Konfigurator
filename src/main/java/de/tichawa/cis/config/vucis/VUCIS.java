@@ -336,14 +336,67 @@ public class VUCIS extends CIS {
         return sum;
     }
 
+    /**
+     * calculates the number of needed CPUCLinks.
+     * Will represent the data shown in the specification table for now but this might change in the future (may need more CPUCLinks than in table).
+     * Therefore, this won't read data from the database and there might be discrepancies!
+     */
+    private int getNumOfCPUCLink() {
+        switch (getPhaseCount()) {
+            case 1:
+            case 2:
+                return getScanWidth() >= 1820 ? 2 : 1;
+            case 3:
+                return getScanWidth() >= 1560 ? 2 : 1;
+            case 4:
+                return getScanWidth() >= 1300 ? 2 : 1;
+            case 5:
+            case 6:
+                return getScanWidth() >= 1820 ? 3 : (getScanWidth() >= 1040 ? 2 : 1);
+            default:
+                throw new IllegalStateException("illegal phase count");
+        }
+    }
+
+    /**
+     * calculates the pixel per CPUCLink.
+     * If pixel number can't be divided equally the first CPUCLinks will get 1 more than the later ones.
+     */
+    private static List<Integer> roundPixel(int boardCount, int numCPUCLink, int pixel) {
+        List<Integer> list = new LinkedList<>();
+        int factor;
+        for (int remainingBoardCount = boardCount; remainingBoardCount > 0; remainingBoardCount -= factor, numCPUCLink--) {
+            factor = (int) Math.ceil(remainingBoardCount / (double) numCPUCLink); // always round up (first ones get 1 more, no rounding for later ones (no remainder))
+            list.add((int) (factor / (double) boardCount * pixel)); //multiply by pixel number
+        }
+        return list;
+    }
+
+    /**
+     * calculates the camera link configuration
+     */
     @Override
     public Optional<CameraLink> getCLCalc(int numOfPix) {
-        int numOfPixNominal;
+        //new calc
+
+        SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
+        int numSensorBoards = getBoardCount();
+        int numCPUCLink = getNumOfCPUCLink();
+        double lineRateKHz = getSelectedLineRate() / 1000.0;
+        int resolution = getSelectedResolution().getActualResolution();
+        int numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() * resolution / 1200);
+        double totalDataratePer85 = numOfPixNominal * lineRateKHz * getPhaseCount() / 85000;
+
+        List<Integer> pixelCPU = roundPixel(numSensorBoards, numCPUCLink, numOfPixNominal);
+        List<Double> datarateCPUPer85 = pixelCPU.stream().map(pixel -> pixel * lineRateKHz * getPhaseCount()).collect(Collectors.toList());
+        //TODO go on here
+
+        //old calc
         int taps;
         int pixPerTap;
         int lval;
 
-        SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
+        sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
         long mhzLineRate = (long) numOfPixNominal * getSelectedLineRate() / 1000000;
         taps = (int) Math.ceil(1.01 * mhzLineRate / 85.0);

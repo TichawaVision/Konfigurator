@@ -1151,7 +1151,7 @@ public abstract class CIS {
      * chips * number of sensor boards * 0.72 * actual resolution
      */
     protected int calcNumOfPix() {
-        int sensorBoardCount = getScanWidth() / BASE_LENGTH;
+        int sensorBoardCount = getBoardCount();
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = (int) (sensorBoard.getChips() * sensorBoardCount * 0.72 * getSelectedResolution().getActualResolution());
         if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
