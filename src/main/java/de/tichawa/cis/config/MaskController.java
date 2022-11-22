@@ -175,12 +175,18 @@ public abstract class MaskController<C extends CIS> implements Initializable {
                 writer.newLine();
                 writer.flush();
 
-                for (Entry<PriceRecord, Integer> entry : CIS_DATA.getElectConfig().entrySet()) {
+                // sort lists by ferix key (could also add both configs to one list if desired)
+                List<Entry<PriceRecord, Integer>> electList = new ArrayList<>(CIS_DATA.getElectConfig().entrySet());
+                List<Entry<PriceRecord, Integer>> mechaList = new ArrayList<>(CIS_DATA.getMechaConfig().entrySet());
+                electList.sort(Comparator.comparing(e -> e.getKey().getFerixKey()));
+                mechaList.sort(Comparator.comparing(m -> m.getKey().getFerixKey()));
+
+                for (Entry<PriceRecord, Integer> entry : electList) {
                     writer.write("\"" + entry.getValue() + "\",\"" + entry.getKey().getFerixKey() + "\",\" \"");
                     writer.newLine();
                 }
 
-                for (Entry<PriceRecord, Integer> entry : CIS_DATA.getMechaConfig().entrySet()) {
+                for (Entry<PriceRecord, Integer> entry : mechaList) {
                     writer.write("\"" + entry.getValue() + "\",\"" + entry.getKey().getFerixKey() + "\",\" \"");
                     writer.newLine();
                 }

@@ -348,7 +348,7 @@ public class VUCIS extends CIS {
         long mhzLineRate = (long) numOfPixNominal * getSelectedLineRate() / 1000000;
         taps = (int) Math.ceil(1.01 * mhzLineRate / 85.0);
         pixPerTap = numOfPixNominal / taps;
-        lval = pixPerTap - pixPerTap % 8;
+        lval = pixPerTap - pixPerTap % 16;
 
         long datarate = (long) getPhaseCount() * numOfPixNominal * getSelectedLineRate();
         LinkedList<CameraLink.Connection> connections = new LinkedList<>();
@@ -799,6 +799,15 @@ public class VUCIS extends CIS {
     @Override
     protected String getCaseProfile() {
         return getString("Aluminium case profile: 92x80mm (HxT) with bonded");
+    }
+
+    /**
+     * returns the printout for the case: aluminum case with width x height x depth and sealed glass pane
+     */
+    @Override
+    protected String getCasePrintout() {
+        return getString("Aluminum case") + "\n\t~ (" + (getBaseCaseLength() + getExtraCaseLength()) + " +/-3) mm x (92 +/-2) mm x (80 +/-2) mm\n" +
+                getString("with bonded glass pane") + "\n";
     }
 
     /**

@@ -634,6 +634,21 @@ public abstract class CIS {
     }
 
     /**
+     * returns the case printout.
+     * Default is case length in single line, profile (H x T) in next line and glass pane in third line unless overwritten by subclass
+     */
+    protected String getCasePrintout() {
+        String printout = "";
+        // - case length
+        printout += getString("case length") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + " mm" + getCaseLengthAppendix() + "\n";
+        // - case profile
+        printout += getCaseProfile() + "\n";
+        // - glass pane
+        printout += getString("glass pane, see drawing") + "\n";
+        return printout;
+    }
+
+    /**
      * this method creates a print out for the datasheet
      */
     public String createPrntOut() {
@@ -668,12 +683,8 @@ public abstract class CIS {
         printout += getString("DepthofField") + ": ~ +/- " + getDepthOfField() + " mm\n";
         // - line width
         printout += getString("line width") + ": > 1 mm\n";
-        // - case length
-        printout += getString("case length") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + " mm" + getCaseLengthAppendix() + "\n";
-        // - case profile
-        printout += getCaseProfile() + "\n";
-        // - glass pane
-        printout += getString("glass pane, see drawing") + "\n";
+        // - case printout (L x W x H, with glass pane)
+        printout += getCasePrintout();
         // - shading
         printout += getString("shading") + "\n";
         // - power
@@ -684,7 +695,7 @@ public abstract class CIS {
             printout += getString("FrequencyLimit") + " " +
                     (getMinFreq() < 0 // if < 0 there are values missing in database -> give error msg
                             ? getString("missing photo values") + "\n"
-                            : Math.round(1000 * getMinFreq()) / 1000 + " kHz\n");
+                            : "~" + Math.round(1000 * getMinFreq()) / 1000 + " kHz\n");
         // - cooling
         printout += getString(getCooling().getShortHand()) + "\n";
         // - weight
