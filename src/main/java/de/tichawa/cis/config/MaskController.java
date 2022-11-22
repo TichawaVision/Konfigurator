@@ -163,7 +163,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         }
 
         FileChooser f = new FileChooser();
-        f.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (*.csv)", "csv"));
+        f.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (*.csv)", "*.csv"));
         f.setInitialFileName(CIS_DATA.getTiViKey() + "_partList.csv");
         File file = f.showSaveDialog(null);
 
@@ -192,9 +192,13 @@ public abstract class MaskController<C extends CIS> implements Initializable {
                 }
 
                 writer.flush();
-                new Alert(Alert.AlertType.INFORMATION, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("File saved.")).show();
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("File saved."));
+                alert.show();
             } catch (IOException e) {
-                new Alert(Alert.AlertType.ERROR, ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the save attempt.Please close the target file and try again.")).show();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the save attempt.Please close the target file and try again."));
+                alert.show();
             }
         }
     }
