@@ -92,6 +92,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
     @FXML
     @SuppressWarnings("unused")
     public void handleCalculation(ActionEvent a) {
+        //for external light sources
         if (!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0) {
             try {
                 LDSTD_DATA.calculate();
@@ -123,6 +124,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
             }
         }
 
+        // for internal light sources
         try {
             CIS_DATA.calculate();
         } catch (CISException e) {
@@ -205,6 +207,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
 
     @FXML
     public void handleDataSheet(ActionEvent a) {
+        // for external light sources
         if (!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0) {
             try {
                 LDSTD_DATA.calculate();
@@ -234,9 +237,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
                 controller.passData(LDSTD_DATA);
 
                 if (a.getSource().equals(OEMMode)) {
-                    controller.getHeader().setEditable(true);
-                    controller.getSpecs().setEditable(true);
-                    controller.getCLConfig().setEditable(true);
+                    controller.setEditable();
                     InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg");
                     if (profile != null) {
                         controller.getProfilePic().setImage(new Image(profile));
@@ -246,6 +247,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
             }
         }
 
+        //internal light sources
         try {
             CIS_DATA.calculate();
         } catch (CISException e) {
@@ -272,9 +274,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
             controller.passData(CIS_DATA);
 
             if (a.getSource().equals(OEMMode)) {
-                controller.getHeader().setEditable(true);
-                controller.getSpecs().setEditable(true);
-                controller.getCLConfig().setEditable(true);
+                controller.setEditable();
                 InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg");
                 if (profile != null) {
                     controller.getProfilePic().setImage(new Image(profile));

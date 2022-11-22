@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-
 <AnchorPane id="AnchorPane" minHeight="880.0" minWidth="800.0" stylesheets="@style.css"
             xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="de.tichawa.cis.config.DataSheetController">
@@ -14,7 +13,7 @@
                     <MenuItem fx:id="Print" onAction="#print"/>
                 </Menu>
                 <Menu fx:id="Lang">
-                    <MenuItem fx:id="SwitchLang" onAction="#switchLang"/>
+                    <MenuItem fx:id="SwitchLang" onAction="#handleSwitchLang"/>
                 </Menu>
             </MenuBar>
         </top>
