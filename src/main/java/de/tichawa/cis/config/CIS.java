@@ -28,7 +28,6 @@ public abstract class CIS {
     // observer currently only supported by VUCIS so only methods used by VUCIS will fire property changes (for now)
 
     public static final int BASE_LENGTH = 260;
-    protected static Locale locale = Locale.getDefault();
     private static final Pattern LIGHT_PATTERN = Pattern.compile("(\\d+)D(\\d+)C");
 
     public final String cisName;
@@ -279,7 +278,7 @@ public abstract class CIS {
                 .collect(Collectors.toMap(SensorBoardRecord::getName, Function.identity()));
     }
 
-    public abstract Optional<CameraLink> getCLCalc(int numOfPix);
+    public abstract List<CPUCLink> getCLCalc(int numOfPix);
 
     public abstract String getTiViKey();
 
@@ -296,10 +295,6 @@ public abstract class CIS {
         } else {
             throw new IllegalArgumentException(getLightSources() + " is not a valid light source pattern.");
         }
-    }
-
-    public static void setLocale(Locale l) {
-        locale = l;
     }
 
     public Optional<AdcBoardRecord> getADC(String name) {
@@ -513,29 +508,29 @@ public abstract class CIS {
         if ((getPhaseCount() == 3 && !(this instanceof VDCIS)) || ((this instanceof VDCIS || this instanceof MXCIS) && getPhaseCount() == 4)) {
             color = "RGB";
         } else {
-            color = getString(getLightColors().stream()
+            color = Util.getString(getLightColors().stream()
                     .findAny().orElse(LightColor.NONE)
                     .getDescription());
         }
 
         switch (getLightSources()) {
             case "0D0C":
-                printout += getString("None");
+                printout += Util.getString("None");
                 break;
             case "1D0C":
-                printout += color + getString("onesided");
+                printout += color + Util.getString("onesided");
                 break;
             case "2D0C":
-                printout += color + getString("twosided");
+                printout += color + Util.getString("twosided");
                 break;
             case "1D1C":
-                printout += color + getString("onepluscoax");
+                printout += color + Util.getString("onepluscoax");
                 break;
             case "2D1C":
-                printout += color + getString("twopluscoax");
+                printout += color + Util.getString("twopluscoax");
                 break;
             case "0D1C":
-                printout += color + getString("coax");
+                printout += color + Util.getString("coax");
                 break;
             default:
                 printout += "Unknown";
@@ -555,9 +550,9 @@ public abstract class CIS {
      */
     protected String getGeometryCorrectionString() {
         if (getSelectedResolution().getActualResolution() > 400) {
-            return getString("Geometry correction: x and y");
+            return Util.getString("Geometry correction: x and y");
         } else {
-            return getString("Geometry correction: x");
+            return Util.getString("Geometry correction: x");
         }
     }
 
@@ -566,7 +561,7 @@ public abstract class CIS {
      * Default is 9-12mm unless overwritten by subclass
      */
     protected String getScanDistanceString() {
-        return "9-12 mm " + getString("exactseetypesign");
+        return "9-12 mm " + Util.getString("exactseetypesign");
     }
 
     /**
@@ -598,7 +593,7 @@ public abstract class CIS {
      * Default is unknown aluminum case
      */
     protected String getCaseProfile() {
-        return getString("Aluminium case profile: unknown with bonded");
+        return Util.getString("Aluminium case profile: unknown with bonded");
     }
 
     /**
@@ -640,11 +635,11 @@ public abstract class CIS {
     protected String getCasePrintout() {
         String printout = "";
         // - case length
-        printout += getString("case length") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + " mm" + getCaseLengthAppendix() + "\n";
+        printout += Util.getString("case length") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + " mm" + getCaseLengthAppendix() + "\n";
         // - case profile
         printout += getCaseProfile() + "\n";
         // - glass pane
-        printout += getString("glass pane, see drawing") + "\n";
+        printout += Util.getString("glass pane, see drawing") + "\n";
         return printout;
     }
 
@@ -653,75 +648,75 @@ public abstract class CIS {
      */
     public String createPrntOut() {
         // header section: key
-        String printout = getTiViKey();
-        printout += "\n\t\n";
+        StringBuilder printout = new StringBuilder(getTiViKey());
+        printout.append("\n\t\n");
 
         // specs section
         // - scan width, trigger, max line rate
-        printout += getScanWidth() + " mm, Trigger: " + (!isExternalTrigger() ? "CC1" : "extern (RS422)");
-        printout += ", max. " + (getMaxLineRate() / 1000) * getMaxLineRateFactor() + " kHz\n";
+        printout.append(getScanWidth()).append(" mm, Trigger: ").append(!isExternalTrigger() ? "CC1" : "extern (RS422)");
+        printout.append(", max. ").append((getMaxLineRate() / 1000) * getMaxLineRateFactor()).append(" kHz\n");
 
         // - resolution
-        printout += getString("Resolution: ");
-        printout += getResolutionString() + "\n";
+        printout.append(Util.getString("Resolution: "));
+        printout.append(getResolutionString()).append("\n");
 
         // - internal lights
-        printout += getString("internal light");
-        printout += getInternalLightsForPrintOut();
-        printout += "\n\n";
+        printout.append(Util.getString("internal light"));
+        printout.append(getInternalLightsForPrintOut());
+        printout.append("\n\n");
 
         // - selected line rate
         int numOfPix = getNumOfPix();
-        printout += getString("sellinerate") + Math.round(getSelectedLineRate() / 100.0) / 10.0 + " kHz\n";
+        printout.append(Util.getString("sellinerate")).append(Math.round(getSelectedLineRate() / 100.0) / 10.0).append(" kHz\n");
         // - transport speed
-        printout += getString("transport speed") + ": " + String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor()) + " mm/s\n";
+        printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor())).append(" mm/s\n");
         // - geometry correction
-        printout += getGeometryCorrectionString() + "\n";
+        printout.append(getGeometryCorrectionString()).append("\n");
         // - scan distance
-        printout += getString("scan distance") + ": " + getScanDistanceString() + "\n";
+        printout.append(Util.getString("scan distance")).append(": ").append(getScanDistanceString()).append("\n");
         // - depth of field
-        printout += getString("DepthofField") + ": ~ +/- " + getDepthOfField() + " mm\n";
+        printout.append(Util.getString("DepthofField")).append(": ~ +/- ").append(getDepthOfField()).append(" mm\n");
         // - line width
-        printout += getString("line width") + ": > 1 mm\n";
+        printout.append(Util.getString("line width")).append(": > 1 mm\n");
         // - case printout (L x W x H, with glass pane)
-        printout += getCasePrintout();
+        printout.append(getCasePrintout());
         // - shading
-        printout += getString("shading") + "\n";
+        printout.append(Util.getString("shading")).append("\n");
         // - power
-        printout += getString("powersource") + "(24 +/- 1) VDC\n";
-        printout += getString("Needed power:") + (" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
+        printout.append(Util.getString("powersource")).append("(24 +/- 1) VDC\n");
+        printout.append(Util.getString("Needed power:")).append((" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???")).append(" +/- 20%\n");
         // - frequency limit
         if (hasLEDs()) // only print this if there are lights
-            printout += getString("FrequencyLimit") + " " +
-                    (getMinFreq() < 0 // if < 0 there are values missing in database -> give error msg
-                            ? getString("missing photo values") + "\n"
-                            : "~" + Math.round(1000 * getMinFreq()) / 1000 + " kHz\n");
+            printout.append(Util.getString("FrequencyLimit")).append(" ").append(getMinFreq() < 0 // if < 0 there are values missing in database -> give error msg
+                    ? Util.getString("missing photo values") + "\n"
+                    : "~" + Math.round(1000 * getMinFreq()) / 1000 + " kHz\n");
         // - cooling
-        printout += getString(getCooling().getShortHand()) + "\n";
+        printout.append(Util.getString(getCooling().getShortHand())).append("\n");
         // - weight
-        printout += getString("weight") + ": ~ " + (" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
+        printout.append(Util.getString("weight")).append(": ~ ").append((" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???")).append("\n");
         // - interface
-        printout += "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m)") + "\n";
+        printout.append("Interface: ").append(isGigeInterface() ? "GigE" : "CameraLink (max. 5m)").append("\n");
         // - end of specs
-        printout += getEndOfSpecs();
+        printout.append(getEndOfSpecs());
 
         //CL Config
         if (isGigeInterface()) {
-            printout += "\n\t\n";
-            printout += "Pixel Clock: 40MHz\n";
-            printout += getString("numofpix") + numOfPix + "\n";
+            printout.append("\n\t\n");
+            printout.append("Pixel Clock: 40MHz\n");
+            printout.append(Util.getString("numofpix")).append(numOfPix).append("\n");
         } else {
-            Optional<CameraLink> clCalc = getCLCalc(numOfPix);
-            if (clCalc.isPresent()) {
-                printout += "\n\t\n";
-                printout += clCalc.get().toString();
+            List<CPUCLink> clCalc = getCLCalc(numOfPix);
+            if (!clCalc.isEmpty()) {
+                printout.append("\n\t\n");
+                for (CPUCLink CPUCLink : clCalc)
+                    printout.append(CPUCLink.toString()).append("\n");
             } else {
                 return null;
             }
-            printout += getEndOfCameraLinkSection();
+            printout.append(getEndOfCameraLinkSection());
         }
 
-        return printout;
+        return printout.toString();
     }
 
     /**
@@ -963,51 +958,51 @@ public abstract class CIS {
 
     public String createCalculation() {
         String printout = getTiViKey() + "\n\t\n";
-        StringBuilder electOutput = new StringBuilder(getString("Electronics")).append(":").append("\n\n");
-        StringBuilder mechaOutput = new StringBuilder(getString("Mechanics")).append(":").append("\n\n");
-        StringBuilder totalOutput = new StringBuilder(getString("Totals")).append(":").append("\n\n");
+        StringBuilder electOutput = new StringBuilder(Util.getString("Electronics")).append(":").append("\n\n");
+        StringBuilder mechaOutput = new StringBuilder(Util.getString("Mechanics")).append(":").append("\n\n");
+        StringBuilder totalOutput = new StringBuilder(Util.getString("Totals")).append(":").append("\n\n");
 
-        electOutput.append(getString("Component")).append("\t")
-                .append(getString("Item no.")).append("\t")
-                .append(getString("Amount")).append("\t")
-                .append(getString("Price/pc (EUR)")).append("\t")
-                .append(getString("Weight/pc (kg)")).append("\t")
-                .append(getString("Time/pc (h)")).append("\t")
-                .append(getString("Power/pc (A)")).append("\n");
+        electOutput.append(Util.getString("Component")).append("\t")
+                .append(Util.getString("Item no.")).append("\t")
+                .append(Util.getString("Amount")).append("\t")
+                .append(Util.getString("Price/pc (EUR)")).append("\t")
+                .append(Util.getString("Weight/pc (kg)")).append("\t")
+                .append(Util.getString("Time/pc (h)")).append("\t")
+                .append(Util.getString("Power/pc (A)")).append("\n");
 
-        mechaOutput.append(getString("Component")).append("\t")
-                .append(getString("Item no.")).append("\t")
-                .append(getString("Amount")).append("\t")
-                .append(getString("Price/pc (EUR)")).append("\t")
-                .append(getString("Weight/pc (kg)")).append("\n");
+        mechaOutput.append(Util.getString("Component")).append("\t")
+                .append(Util.getString("Item no.")).append("\t")
+                .append(Util.getString("Amount")).append("\t")
+                .append(Util.getString("Price/pc (EUR)")).append("\t")
+                .append(Util.getString("Weight/pc (kg)")).append("\n");
 
         getElectConfig().forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
                 .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
                 .append(amount).append("\t")
-                .append(String.format(getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
-                .append(String.format(getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\t")
-                .append(String.format(getLocale(), "%.2f", priceRecord.getAssemblyTime() * amount)).append("\t")
-                .append(String.format(getLocale(), "%.2f", priceRecord.getPowerConsumption() * amount)).append("\n"));
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getAssemblyTime() * amount)).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPowerConsumption() * amount)).append("\n"));
 
-        electOutput.append("\n\t\n").append(getString("Totals")).append("\t")
+        electOutput.append("\n\t\n").append(Util.getString("Totals")).append("\t")
                 .append(" \t")
                 .append("0\t")
-                .append(String.format(getLocale(), "%.2f", electSums[0])).append("\t")
-                .append(String.format(getLocale(), "%.2f", electSums[3])).append("\t")
-                .append(String.format(getLocale(), "%.2f", electSums[1])).append("\t")
-                .append(String.format(getLocale(), "%.2f", electSums[2])).append("\n");
+                .append(String.format(Util.getLocale(), "%.2f", electSums[0])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", electSums[3])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", electSums[1])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", electSums[2])).append("\n");
 
         getMechaConfig().forEach((priceRecord, amount) -> mechaOutput.append(priceRecord.getFerixKey()).append("\t")
                 .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
                 .append(amount).append("\t")
-                .append(String.format(getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
-                .append(String.format(getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\n"));
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\n"));
 
-        mechaOutput.append("\n\t\n").append(getString("Totals")).append("\t")
+        mechaOutput.append("\n\t\n").append(Util.getString("Totals")).append("\t")
                 .append(" \t")
                 .append("0\t")
-                .append(String.format(getLocale(), "%.2f", mechaSums[0])).append("\t")
-                .append(String.format(getLocale(), "%.2f", mechaSums[3])).append("\n");
+                .append(String.format(Util.getLocale(), "%.2f", mechaSums[0])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", mechaSums[3])).append("\n");
 
         try {
             Map<String, Double> calcMap = getDatabase().map(Stream::of).orElse(Stream.empty())
@@ -1015,30 +1010,30 @@ public abstract class CIS {
                             .where(CONFIG.CIS_TYPE.eq(getClass().getSimpleName())).stream())
                     .collect(Collectors.toMap(ConfigRecord::getKey, configRecord -> Double.parseDouble(configRecord.getValue())));
 
-            totalOutput.append(getString("calcfor10")).append("\t \t \t \t ").append("\n");
-            totalOutput.append(getString("Electronics")).append(":\t \t \t")
-                    .append(String.format(getLocale(), "%.2f", electSums[0])).append("\t \n");
+            totalOutput.append(Util.getString("calcfor10")).append("\t \t \t \t ").append("\n");
+            totalOutput.append(Util.getString("Electronics")).append(":\t \t \t")
+                    .append(String.format(Util.getLocale(), "%.2f", electSums[0])).append("\t \n");
             totalPrices[2] = electSums[0];
-            totalOutput.append(getString("Overhead Electronics")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
-                    .append(String.format(getLocale(), "%.2f", electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
+            totalOutput.append(Util.getString("Overhead Electronics")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
+                    .append(String.format(Util.getLocale(), "%.2f", electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
             totalPrices[2] += electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100);
-            totalOutput.append(getString("Testing")).append(":\t \t \t")
-                    .append(String.format(getLocale(), "%.2f", electSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
+            totalOutput.append(Util.getString("Testing")).append(":\t \t \t")
+                    .append(String.format(Util.getLocale(), "%.2f", electSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
             totalPrices[2] += electSums[1] * calcMap.get("STUNDENSATZ");
             if (isGigeInterface()) {
-                totalOutput.append(getString("Overhead GigE")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
-                        .append(String.format(getLocale(), "%.2f", electSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
+                totalOutput.append(Util.getString("Overhead GigE")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
+                        .append(String.format(Util.getLocale(), "%.2f", electSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
                 totalPrices[2] += electSums[0] * (calcMap.get("Z_GIGE") / 100);
             }
-            totalOutput.append(getString("Mechanics")).append(":\t \t \t")
-                    .append(String.format(getLocale(), "%.2f", mechaSums[0])).append("\t \n");
+            totalOutput.append(Util.getString("Mechanics")).append(":\t \t \t")
+                    .append(String.format(Util.getLocale(), "%.2f", mechaSums[0])).append("\t \n");
             totalPrices[2] += mechaSums[0];
-            totalOutput.append(getString("Overhead Mechanics")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
-                    .append(String.format(getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
+            totalOutput.append(Util.getString("Overhead Mechanics")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
+                    .append(String.format(Util.getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
             totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100);
-            totalOutput.append(getString("Assembly")).append(":\t \t ")
+            totalOutput.append(Util.getString("Assembly")).append(":\t \t ")
                     .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()).append(" h\t")
-                    .append(String.format(getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ"))).append("\t \n");
+                    .append(String.format(Util.getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ"))).append("\t \n");
             totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ");
 
             int addition = 0;
@@ -1048,60 +1043,60 @@ public abstract class CIS {
             totalPrices[1] = totalPrices[2] * calcMap.get("F_5") / 100;
             totalPrices[2] = totalPrices[2] * calcMap.get("F_10") / 100;
             totalPrices[3] = totalPrices[2] * calcMap.get("F_25") / 100;
-            totalOutput.append(" \t(1 ").append(getString("pc")).append(")\t")
-                    .append("(5 ").append(getString("pcs")).append(")\t")
-                    .append("(10 ").append(getString("pcs")).append(")\t")
-                    .append("(25 ").append(getString("pcs")).append(")\n");
+            totalOutput.append(" \t(1 ").append(Util.getString("pc")).append(")\t")
+                    .append("(5 ").append(Util.getString("pcs")).append(")\t")
+                    .append("(10 ").append(Util.getString("pcs")).append(")\t")
+                    .append("(25 ").append(Util.getString("pcs")).append(")\n");
 
             String format = "%.2f";
             double value = calcMap.get("Z_TRANSPORT") / 100;
-            totalOutput.append(getString("Price/pc")).append(":\t")
-                    .append(String.format(getLocale(), format, totalPrices[0])).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[1])).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[2])).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[3])).append("\n");
-            totalOutput.append(getString("Surcharge Transport")).append(" (").append(value).append("%):\t")
-                    .append(String.format(getLocale(), format, totalPrices[0] * value)).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
+            totalOutput.append(Util.getString("Price/pc")).append(":\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[0])).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[1])).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[2])).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[3])).append("\n");
+            totalOutput.append(Util.getString("Surcharge Transport")).append(" (").append(value).append("%):\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[0] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[1] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[2] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[3] * value)).append("\n");
             surcharge += value;
 
             if (this instanceof MXCIS) {
                 String cat = getTiViKey().split("_")[4];
                 value = calcMap.get("Z_" + cat) / 100;
-                totalOutput.append(getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
-                        .append(String.format(getLocale(), "%.2f", totalPrices[0] * value)).append("\t")
-                        .append(String.format(getLocale(), "%.2f", totalPrices[1] * value)).append("\t")
-                        .append(String.format(getLocale(), "%.2f", totalPrices[2] * value)).append("\t")
-                        .append(String.format(getLocale(), "%.2f", totalPrices[3] * value)).append("\n");
+                totalOutput.append(Util.getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
+                        .append(String.format(Util.getLocale(), "%.2f", totalPrices[0] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), "%.2f", totalPrices[1] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), "%.2f", totalPrices[2] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), "%.2f", totalPrices[3] * value)).append("\n");
                 surcharge += value;
             } else if (!(this instanceof LDSTD)) {
                 value = calcMap.get(getDpiCode()) / 100.0;
-                totalOutput.append(getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
-                        .append(String.format(getLocale(), format, totalPrices[0] * value)).append("\t")
-                        .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
-                        .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
-                        .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
+                totalOutput.append(Util.getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
+                        .append(String.format(Util.getLocale(), format, totalPrices[0] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), format, totalPrices[1] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), format, totalPrices[2] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), format, totalPrices[3] * value)).append("\n");
                 surcharge += value;
             }
 
             format = "%.2f";
             value = calcMap.get("LIZENZ");
-            totalOutput.append(getString("Licence")).append(":\t")
-                    .append(String.format(getLocale(), format, value)).append("\t")
-                    .append(String.format(getLocale(), format, value)).append("\t")
-                    .append(String.format(getLocale(), format, value)).append("\t")
-                    .append(String.format(getLocale(), format, value)).append("\n");
+            totalOutput.append(Util.getString("Licence")).append(":\t")
+                    .append(String.format(Util.getLocale(), format, value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, value)).append("\n");
             addition += value;
 
             format = "%.2f";
             value = calcMap.get("Z_DISCONT") / 100;
-            totalOutput.append(getString("Discount Surcharge")).append(" (").append(value).append("%):\t")
-                    .append(String.format(getLocale(), format, totalPrices[0] * value)).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[1] * value)).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[2] * value)).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[3] * value)).append("\n");
+            totalOutput.append(Util.getString("Discount Surcharge")).append(" (").append(value).append("%):\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[0] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[1] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[2] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[3] * value)).append("\n");
             surcharge += value;
 
             totalPrices[0] *= 1 + surcharge;
@@ -1114,14 +1109,14 @@ public abstract class CIS {
             totalPrices[2] += addition;
             totalPrices[3] += addition;
 
-            totalOutput.append(getString("Totals")).append(" (EUR):").append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[0])).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[1])).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[2])).append("\t")
-                    .append(String.format(getLocale(), format, totalPrices[3])).append("\n");
+            totalOutput.append(Util.getString("Totals")).append(" (EUR):").append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[0])).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[1])).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[2])).append("\t")
+                    .append(String.format(Util.getLocale(), format, totalPrices[3])).append("\n");
         } catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException e) {
             e.printStackTrace();
-            throw new CISException(getString("MissingConfigTables"));
+            throw new CISException(Util.getString("MissingConfigTables"));
         }
 
         printout += electOutput.toString();
@@ -1133,9 +1128,6 @@ public abstract class CIS {
         return printout;
     }
 
-    public Locale getLocale() {
-        return locale;
-    }
 
     private String getDpiCode() {
         if (getSelectedResolution().isSwitchable()) {
@@ -1155,7 +1147,7 @@ public abstract class CIS {
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = (int) (sensorBoard.getChips() * sensorBoardCount * 0.72 * getSelectedResolution().getActualResolution());
         if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
-            throw new CISException(getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
+            throw new CISException(Util.getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
         return numOfPix;
     }
@@ -1215,11 +1207,6 @@ public abstract class CIS {
 
     public static String getPortName(int x) {
         return Character.toString((char) (65 + x));
-    }
-
-    // Laden von statischen Texten aus dem Bundle (de/en)
-    public String getString(String key) {
-        return ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString(key);
     }
 
     public void setPhaseCount(int phaseCount) {

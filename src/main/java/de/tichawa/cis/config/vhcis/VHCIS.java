@@ -21,7 +21,7 @@ public class VHCIS extends VSCIS {
     }
 
     @Override
-    public Optional<CameraLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix) {
         int numOfPixNominal;
         int taps;
         int pixPerTap;
@@ -33,57 +33,57 @@ public class VHCIS extends VSCIS {
         pixPerTap = numOfPixNominal / taps;
         lval = pixPerTap - pixPerTap % 8;
 
-        CameraLink cl = new CameraLink((long) getPhaseCount() * numOfPix * getSelectedLineRate(), numOfPixNominal, 85000000);
-        LinkedList<CameraLink.Connection> connections = new LinkedList<>();
+        CPUCLink cl = new CPUCLink((long) getPhaseCount() * numOfPix * getSelectedLineRate(), numOfPixNominal, 85000000);
+        LinkedList<CPUCLink.CameraLink> cameraLinks = new LinkedList<>();
         int cycleLength = 20;
         int x = 0;
 
         for (int cycle = 0; cycle * cycleLength < taps; cycle++) {
             int cycleOffset = cycle * cycleLength;
 
-            connections.add(new CameraLink.Connection(0, (char) (CameraLink.Port.DEFAULT_NAME + connections.stream()
-                    .mapToInt(CameraLink.Connection::getPortCount)
+            cameraLinks.add(new CPUCLink.CameraLink(0, (char) (CPUCLink.Port.DEFAULT_NAME + cameraLinks.stream()
+                    .mapToInt(CPUCLink.CameraLink::getPortCount)
                     .sum() - cycleOffset)));
             for (; x < Math.min(3 + cycleOffset, taps); x++) {
-                connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));
+                cameraLinks.getLast().addPorts(new CPUCLink.Port(x * lval, (x + 1) * lval - 1));
             }
 
             if (taps > 3 + cycleOffset) {
-                connections.add(new CameraLink.Connection());
+                cameraLinks.add(new CPUCLink.CameraLink());
                 int tapLimit = taps > 10 + cycleOffset && taps <= 16 + cycleOffset ? 8 : 10;
                 for (; x < Math.min(taps, tapLimit + cycleOffset); x++) {
-                    connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));
+                    cameraLinks.getLast().addPorts(new CPUCLink.Port(x * lval, (x + 1) * lval - 1));
                 }
             }
 
             if (taps > 10 + cycleOffset) {
-                connections.add(new CameraLink.Connection());
+                cameraLinks.add(new CPUCLink.CameraLink());
                 if (taps <= 16 + cycleOffset) {
                     for (; x < 11 + cycleOffset; x++) {
-                        connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));
+                        cameraLinks.getLast().addPorts(new CPUCLink.Port(x * lval, (x + 1) * lval - 1));
                     }
 
                     if (taps > 11 + cycleOffset) {
-                        connections.add(new CameraLink.Connection());
+                        cameraLinks.add(new CPUCLink.CameraLink());
                         for (; x < taps; x++) {
-                            connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));
+                            cameraLinks.getLast().addPorts(new CPUCLink.Port(x * lval, (x + 1) * lval - 1));
                         }
                     }
                 } else {
                     for (; x < 13 + cycleOffset; x++) {
-                        connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));
+                        cameraLinks.getLast().addPorts(new CPUCLink.Port(x * lval, (x + 1) * lval - 1));
                     }
 
-                    connections.add(new CameraLink.Connection());
+                    cameraLinks.add(new CPUCLink.CameraLink());
                     for (; x < Math.min(20 + cycleOffset, taps); x++) {
-                        connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));
+                        cameraLinks.getLast().addPorts(new CPUCLink.Port(x * lval, (x + 1) * lval - 1));
                     }
                 }
             }
         }
 
-        connections.forEach(cl::addConnection);
-        return Optional.of(cl);
+        cameraLinks.forEach(cl::addCameraLink);
+        return Collections.singletonList(cl);
     }
 
     @Override

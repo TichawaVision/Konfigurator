@@ -341,7 +341,7 @@ public class VUCIS extends CIS {
      * Will represent the data shown in the specification table for now but this might change in the future (may need more CPUCLinks than in table).
      * Therefore, this won't read data from the database and there might be discrepancies!
      */
-    private int getNumOfCPUCLink() {
+    private int getNumOfCPUCLink() { //TODO update calculation, see table
         switch (getPhaseCount()) {
             case 1:
             case 2:
@@ -372,11 +372,71 @@ public class VUCIS extends CIS {
         return list;
     }
 
+    private static int calculateCablesPerCPUCLink(int ports) {//TODO probably dont need this (calculated by CPUCLink)
+        if (ports == 0) return 0;
+        if (ports < 4) return 1;
+        return 2;
+    }
+
+    private static int calculateGrabbersPerCPUCLink(int ports) {//TODO probably dont need this (calculated by CPUCLink)
+        if (ports == 0) return 0;
+        if (ports < 10) return 1;
+        return 2;
+    }
+
+    /**
+     * creates a camera link with the given number of ports
+     */
+    private static CPUCLink.CameraLink createCameraLink(int numberOfports, int lval, int id, int startLval) {
+        CPUCLink.CameraLink cameraLink = new CPUCLink.CameraLink(id);
+        List<CPUCLink.Port> ports = new LinkedList<>();
+        for (int i = 0; i < numberOfports; i++) {
+            CPUCLink.Port port = new CPUCLink.Port(i * lval, (i + 1) * lval - 1);
+            ports.add(port);
+        }
+        ports.forEach(cameraLink::addPorts);
+        return cameraLink;
+    }
+
+    private static List<CPUCLink.CameraLink> calculateCameraLinksFor1Phase(int ports, int lval) {
+        List<CPUCLink.CameraLink> cameraLinks = new LinkedList<>();
+        if (ports <= 10) {
+            //fill one camera link (up to deca)
+            cameraLinks.add(createCameraLink(ports, lval, 1, 0));
+        } else if (ports <= 16) {
+            //fill two camera links up to full
+            CPUCLink.CameraLink cameraLink1 = createCameraLink(8, lval, 1, 0);
+            cameraLinks.add(cameraLink1);
+            cameraLinks.add(createCameraLink(ports - 8, lval, 2, cameraLink1.getEndPixel() + 1));
+        } else {
+            //fill two camera links up to deca
+            CPUCLink.CameraLink cameraLink1 = createCameraLink(10, lval, 1, 0);
+            cameraLinks.add(cameraLink1);
+            cameraLinks.add(createCameraLink(ports - 10, lval, 2, cameraLink1.getEndPixel() + 1));
+        }
+        return cameraLinks;
+    }
+
+    private static CPUCLink createSingleCPUCLink(long datarate, long pixel, int ports, int lval, int phaseCount) {//TODO do we need long?
+        String notes = "";//TODO
+        CPUCLink cpucLink = new CPUCLink(datarate, pixel, 85000000, notes);
+
+        //TODO ports -> see photo
+        switch (phaseCount) {
+            case 1:
+                calculateCameraLinksFor1Phase(ports, lval).forEach(cpucLink::addCameraLink);
+                break;
+            default:
+                throw new UnsupportedOperationException("not implemented yet");
+        }
+        return cpucLink;
+    }
+
     /**
      * calculates the camera link configuration
      */
     @Override
-    public Optional<CameraLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix) {
         //new calc
 
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
@@ -387,24 +447,39 @@ public class VUCIS extends CIS {
         int numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() * resolution / 1200);
         double totalDataratePer85 = numOfPixNominal * lineRateKHz * getPhaseCount() / 85000;
 
-        List<Integer> pixelCPU = roundPixel(numSensorBoards, numCPUCLink, numOfPixNominal);
-        List<Double> datarateCPUPer85 = pixelCPU.stream().map(pixel -> pixel * lineRateKHz * getPhaseCount()).collect(Collectors.toList());
-        //TODO go on here
+        List<Integer> pixelsCPU = roundPixel(numSensorBoards, numCPUCLink, numOfPixNominal);
+        List<Double> dataratesCPUPer85 = pixelsCPU.stream().map(pixel -> pixel * lineRateKHz * getPhaseCount() / 85000).collect(Collectors.toList());
+        List<Integer> ports = dataratesCPUPer85.stream().map(dr -> (int) (Math.ceil(dr / getPhaseCount()) * getPhaseCount())).collect(Collectors.toList());
+        List<Integer> lvals = Util.zip(pixelsCPU, dataratesCPUPer85).stream().map(pair -> (int) (pair.getKey() / Math.ceil(pair.getValue() / getPhaseCount()))).collect(Collectors.toList());
+        List<Integer> taps = Util.zip(pixelsCPU, lvals).stream().map(pair -> pair.getKey() / pair.getValue()).collect(Collectors.toList());
+        List<Integer> cables = ports.stream().map(VUCIS::calculateCablesPerCPUCLink).collect(Collectors.toList());
+        List<Integer> grabbers = ports.stream().map(VUCIS::calculateGrabbersPerCPUCLink).collect(Collectors.toList());
 
-        //old calc
-        int taps;
+        int cableTotal = cables.stream().mapToInt(Integer::intValue).sum();
+        int grabberTotal = grabbers.stream().mapToInt(Integer::intValue).sum();
+
+        List<CPUCLink> cpucLinks = new LinkedList<>();
+        for (int i = 0; i < numCPUCLink; i++) {
+            //cpucLinks.add(createSingleCPUCLink()); //TODO go on here... : make above lists to maps (cpucNumber -> item) to retrieve the needed stuff here
+            //TODO or make some mad/ugly multi zipping with streams
+        }
+
+        //TODO throw Exceptions if not valid
+
+        //old calc -> used for now
+        int taps_;
         int pixPerTap;
         int lval;
 
         sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
         long mhzLineRate = (long) numOfPixNominal * getSelectedLineRate() / 1000000;
-        taps = (int) Math.ceil(1.01 * mhzLineRate / 85.0);
-        pixPerTap = numOfPixNominal / taps;
+        taps_ = (int) Math.ceil(1.01 * mhzLineRate / 85.0);
+        pixPerTap = numOfPixNominal / taps_;
         lval = pixPerTap - pixPerTap % 16;
 
         long datarate = (long) getPhaseCount() * numOfPixNominal * getSelectedLineRate();
-        LinkedList<CameraLink.Connection> connections = new LinkedList<>();
+        LinkedList<CPUCLink.CameraLink> cameraLinks = new LinkedList<>();
         int portLimit = 10;
 
         int blockSize;
@@ -417,17 +492,17 @@ public class VUCIS extends CIS {
             }
         }
 
-        for (int i = 0; i < taps; ) {
-            connections.add(new CameraLink.Connection(0, (char) (CameraLink.Port.DEFAULT_NAME + connections.stream()
-                    .mapToInt(CameraLink.Connection::getPortCount)
+        for (int i = 0; i < taps_; ) {
+            cameraLinks.add(new CPUCLink.CameraLink(0, (char) (CPUCLink.Port.DEFAULT_NAME + cameraLinks.stream()
+                    .mapToInt(CPUCLink.CameraLink::getPortCount)
                     .sum())));
 
-            while (connections.getLast().getPortCount() <= portLimit - blockSize && i < taps) {
+            while (cameraLinks.getLast().getPortCount() <= portLimit - blockSize && i < taps_) {
                 for (int k = 0; k < blockSize; k++) {
                     if (k < getPhaseCount()) {
-                        connections.getLast().addPorts(new CameraLink.Port(i * lval, (i + 1) * lval - 1));
+                        cameraLinks.getLast().addPorts(new CPUCLink.Port(i * lval, (i + 1) * lval - 1));
                     } else {
-                        connections.getLast().addPorts(new CameraLink.Port(0, 0));
+                        cameraLinks.getLast().addPorts(new CPUCLink.Port(0, 0));
                     }
                 }
                 i++;
@@ -435,20 +510,19 @@ public class VUCIS extends CIS {
         }
 
         String notes = "LVAL(Modulo 8): " + lval + "\n" +
-                getString("numPhases") + getPhaseCount() + "\n";
+                Util.getString("numPhases") + getPhaseCount() + "\n";
 
-        CameraLink cameraLink = new CameraLink(datarate, numOfPixNominal, 85000000, notes);
-        connections.forEach(cameraLink::addConnection);
+        CPUCLink CPUCLink = new CPUCLink(datarate, numOfPixNominal, 85000000, notes);
+        cameraLinks.forEach(CPUCLink::addCameraLink);
 
-        if (taps > (portLimit / blockSize) * 2) {
-            throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
+        if (taps_ > (portLimit / blockSize) * 2) {
+            throw new CISException("Number of required taps (" + taps_ * getPhaseCount() + ") is too high. Please reduce the data rate.");
         }
         if (getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680) {
             throw new CISException("Out of Flash memory. Please reduce the scan width or resolution.");
         }
 
-        return Optional.of(cameraLink);
-
+        return Collections.singletonList(CPUCLink);
     }
 
     public LightColor getLeftBrightField() {
@@ -814,18 +888,18 @@ public class VUCIS extends CIS {
     @Override
     protected String getInternalLightsForPrintOut() {
         if (!hasLEDs())
-            return getString("no light");
+            return Util.getString("no light");
         String lights = "\n";
         if (leftBrightField != LightColor.NONE)
-            lights += "\t" + getString("Brightfield") + " " + getString("left") + ": " + getString(leftBrightField.getDescription()) + "\n";
+            lights += "\t" + Util.getString("Brightfield") + " " + Util.getString("left") + ": " + Util.getString(leftBrightField.getDescription()) + "\n";
         if (rightBrightField != LightColor.NONE)
-            lights += "\t" + getString("Brightfield") + " " + getString("right") + ": " + getString(rightBrightField.getDescription()) + "\n";
+            lights += "\t" + Util.getString("Brightfield") + " " + Util.getString("right") + ": " + Util.getString(rightBrightField.getDescription()) + "\n";
         if (leftDarkField != LightColor.NONE)
-            lights += "\t" + getString("Darkfield") + " " + getString("left") + ": " + getString(leftDarkField.getDescription()) + "\n";
+            lights += "\t" + Util.getString("Darkfield") + " " + Util.getString("left") + ": " + Util.getString(leftDarkField.getDescription()) + "\n";
         if (rightDarkField != LightColor.NONE)
-            lights += "\t" + getString("Darkfield") + " " + getString("right") + ": " + getString(rightDarkField.getDescription()) + "\n";
+            lights += "\t" + Util.getString("Darkfield") + " " + Util.getString("right") + ": " + Util.getString(rightDarkField.getDescription()) + "\n";
         if (coaxLight != LightColor.NONE)
-            lights += "\t" + getString("Coaxial") + ": " + getString(coaxLight.getDescription()) + "\n";
+            lights += "\t" + Util.getString("Coaxial") + ": " + Util.getString(coaxLight.getDescription()) + "\n";
         return lights.substring(0, lights.length() - 1); // remove last line break
     }
 
@@ -851,7 +925,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getCaseProfile() {
-        return getString("Aluminium case profile: 92x80mm (HxT) with bonded");
+        return Util.getString("Aluminium case profile: 92x80mm (HxT) with bonded");
     }
 
     /**
@@ -859,8 +933,8 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getCasePrintout() {
-        return getString("Aluminum case") + "\n\t~ (" + (getBaseCaseLength() + getExtraCaseLength()) + " +/-3) mm x (92 +/-2) mm x (80 +/-2) mm\n" +
-                getString("with bonded glass pane") + "\n";
+        return Util.getString("Aluminum case") + "\n\t~ (" + (getBaseCaseLength() + getExtraCaseLength()) + " +/-3) mm x (92 +/-2) mm x (80 +/-2) mm\n" +
+                Util.getString("with bonded glass pane") + "\n";
     }
 
     /**
@@ -868,7 +942,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getEndOfCameraLinkSection() {
-        return getString("configOnRequest");
+        return Util.getString("configOnRequest");
     }
 
     /**
@@ -877,7 +951,7 @@ public class VUCIS extends CIS {
     @Override
     protected String getResolutionString() {
         if (getSelectedResolution().isSwitchable())
-            return getString("binning200");
+            return Util.getString("binning200");
         return super.getResolutionString();
     }
 
@@ -886,7 +960,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getGeometryCorrectionString() { //TODO adjust after discussion
-        return getString("Geometry correction: x and y");
+        return Util.getString("Geometry correction: x and y");
     }
 
     /**
@@ -910,7 +984,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getCaseLengthAppendix() {
-        return " (" + getString("without cooling pipe") + ")";
+        return " (" + Util.getString("without cooling pipe") + ")";
     }
 
     /**

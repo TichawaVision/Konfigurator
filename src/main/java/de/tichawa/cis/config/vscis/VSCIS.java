@@ -64,7 +64,7 @@ public class VSCIS extends CIS {
     }
 
     @Override
-    public Optional<CameraLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix) {
         int numOfPixNominal;
         int taps;
         int chipsPerTap;
@@ -95,13 +95,13 @@ public class VSCIS extends CIS {
         lval = (int) (chipsPerTap * (ppsbin - (sensorBoard.getOverlap() * binning) / sensorBoard.getChips()));
         lval -= lval % 8;
         portDataRate = (long) getPhaseCount() * numOfPix * getSelectedLineRate();
-        CameraLink cl = new CameraLink(portDataRate, numOfPixNominal, pixelClock);
-        LinkedList<CameraLink.Connection> connections = new LinkedList<>();
+        CPUCLink cl = new CPUCLink(portDataRate, numOfPixNominal, pixelClock);
+        LinkedList<CPUCLink.CameraLink> cameraLinks = new LinkedList<>();
 
         if ((getPhaseCount() == 3 && taps > 3)
                 || (getPhaseCount() == 1 && taps > 8)) {
             System.out.println("Please select a lower line rate. Currently required number of taps (" + taps * getPhaseCount() + ") is too high.");
-            return Optional.empty();
+            return new LinkedList<>(); //should probably throw an exception but seems like this is never reached anyway
         }
 
         int x = 0;
@@ -109,26 +109,25 @@ public class VSCIS extends CIS {
         int evenPortLimit = 6;
 
         while (x < taps) {
-            connections.add(new CameraLink.Connection(0, (char) (CameraLink.Port.DEFAULT_NAME + connections.stream()
-                    .mapToInt(CameraLink.Connection::getPortCount)
+            cameraLinks.add(new CPUCLink.CameraLink(0, (char) (CPUCLink.Port.DEFAULT_NAME + cameraLinks.stream()
+                    .mapToInt(CPUCLink.CameraLink::getPortCount)
                     .sum())));
 //      int portLimit = connections.size() % 2 == 0 ? evenPortLimit : oddPortLimit;
             int portLimit = 9;
-            while (connections.getLast().getPortCount() + getPhaseCount() <= portLimit && x < taps) {
+            while (cameraLinks.getLast().getPortCount() + getPhaseCount() <= portLimit && x < taps) {
                 if (getPhaseCount() == 1) {
-                    connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1));
+                    cameraLinks.getLast().addPorts(new CPUCLink.Port(x * lval, (x + 1) * lval - 1));
                 } else {
-                    connections.getLast().addPorts(new CameraLink.Port(x * lval, (x + 1) * lval - 1, "Red"),
-                            new CameraLink.Port(x * lval, (x + 1) * lval - 1, "Green"),
-                            new CameraLink.Port(x * lval, (x + 1) * lval - 1, "Blue"));
+                    cameraLinks.getLast().addPorts(new CPUCLink.Port(x * lval, (x + 1) * lval - 1, "Red"),
+                            new CPUCLink.Port(x * lval, (x + 1) * lval - 1, "Green"),
+                            new CPUCLink.Port(x * lval, (x + 1) * lval - 1, "Blue"));
                 }
 
                 x++;
             }
         }
-
-        connections.forEach(cl::addConnection);
-        return Optional.of(cl);
+        cameraLinks.forEach(cl::addCameraLink);
+        return Collections.singletonList(cl);
     }
 
     @Override
@@ -155,9 +154,9 @@ public class VSCIS extends CIS {
     @Override
     protected String getCaseProfile() {
         if (!getLightSources().endsWith("0C")) {
-            return getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax");
+            return Util.getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax");
         } else {
-            return getString("Aluminium case profile: 53x50mm (HxT) with bonded");
+            return Util.getString("Aluminium case profile: 53x50mm (HxT) with bonded");
         }
     }
 
@@ -167,7 +166,7 @@ public class VSCIS extends CIS {
     @Override
     protected String getResolutionString() {
         if (getSelectedResolution().isSwitchable())
-            return getString("binning200");
+            return Util.getString("binning200");
         return super.getResolutionString();
     }
 }

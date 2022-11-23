@@ -2,7 +2,7 @@ package de.tichawa.cis.config.ldstd;
 
 import de.tichawa.cis.config.*;
 
-import java.util.Optional;
+import java.util.*;
 
 public class LDSTD extends CIS {
 
@@ -48,8 +48,8 @@ public class LDSTD extends CIS {
     }
 
     @Override
-    public Optional<CameraLink> getCLCalc(int numOfPix) {
-        return Optional.empty();
+    public List<CPUCLink> getCLCalc(int numOfPix) {
+        return new LinkedList<>();
     }
 
     @Override
@@ -66,7 +66,7 @@ public class LDSTD extends CIS {
     public String createPrntOut() {
         String printout = getTiViKey();
         printout += "\n\t\n";
-        printout += getString("suitedfor") + getScanWidth() + getString("mm CIS scan width") + "\n";
+        printout += Util.getString("suitedfor") + getScanWidth() + Util.getString("mm CIS scan width") + "\n";
 
         LightColor color;
 
@@ -76,16 +76,16 @@ public class LDSTD extends CIS {
             color = getLightColors().stream()
                     .findAny().orElse(LightColor.NONE);
         }
-        printout += getString("Color:") + getString(color.getDescription()) + "\n";
+        printout += Util.getString("Color:") + Util.getString(color.getDescription()) + "\n";
         printout += "\n\t\n";
-        printout += getString("line width") + ": ~ 1 mm\n";
-        printout += getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
-        printout += getString("Aluminium case profile: 53x50mm (HxT) with bondedmxled") + "\n";
-        printout += getString("glass pane, see drawing") + "\n";
-        printout += getString("shading") + "\n";
-        printout += getString("powersource") + "(24 +/- 1) VDC\n";
-        printout += getString("Needed power:") + (((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
-        printout += getString("weight") + ": ~ " + (Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
+        printout += Util.getString("line width") + ": ~ 1 mm\n";
+        printout += Util.getString("case length") + ": ~ " + (getScanWidth() + 100) + " mm\n";
+        printout += Util.getString("Aluminium case profile: 53x50mm (HxT) with bondedmxled") + "\n";
+        printout += Util.getString("glass pane, see drawing") + "\n";
+        printout += Util.getString("shading") + "\n";
+        printout += Util.getString("powersource") + "(24 +/- 1) VDC\n";
+        printout += Util.getString("Needed power:") + (((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
+        printout += Util.getString("weight") + ": ~ " + (Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
 
         return printout;
     }
@@ -103,6 +103,6 @@ public class LDSTD extends CIS {
      */
     @Override
     protected String getCaseProfile() {
-        return getString("Aluminium case profile: 53x50mm (HxT) with bonded");
+        return Util.getString("Aluminium case profile: 53x50mm (HxT) with bonded");
     }
 }

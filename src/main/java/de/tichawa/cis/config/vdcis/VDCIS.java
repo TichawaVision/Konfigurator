@@ -55,7 +55,7 @@ public class VDCIS extends CIS {
     }
 
     @Override
-    public Optional<CameraLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix) {
         int numOfPixNominal;
         int taps;
         int pixPerTap;
@@ -71,7 +71,7 @@ public class VDCIS extends CIS {
 
         boolean mediumMode = !getCLMode().equals("Full80");
         long datarate = (long) (getPhaseCount() - 1) * numOfPixNominal * getSelectedLineRate();
-        LinkedList<CameraLink.Connection> connections = new LinkedList<>();
+        LinkedList<CPUCLink.CameraLink> cameraLinks = new LinkedList<>();
         int portLimit = mediumMode ? 8 : 10;
 
         int blockSize;
@@ -85,16 +85,16 @@ public class VDCIS extends CIS {
         }
 
         for (int i = 0; i < taps; ) {
-            connections.add(new CameraLink.Connection(0, (char) (CameraLink.Port.DEFAULT_NAME + connections.stream()
-                    .mapToInt(CameraLink.Connection::getPortCount)
+            cameraLinks.add(new CPUCLink.CameraLink(0, (char) (CPUCLink.Port.DEFAULT_NAME + cameraLinks.stream()
+                    .mapToInt(CPUCLink.CameraLink::getPortCount)
                     .sum())));
 
-            while (connections.getLast().getPortCount() <= portLimit - blockSize && i < taps) {
+            while (cameraLinks.getLast().getPortCount() <= portLimit - blockSize && i < taps) {
                 for (int k = 0; k < blockSize; k++) {
                     if (k < getPhaseCount() - 1) {
-                        connections.getLast().addPorts(new CameraLink.Port(i * lval, (i + 1) * lval - 1));
+                        cameraLinks.getLast().addPorts(new CPUCLink.Port(i * lval, (i + 1) * lval - 1));
                     } else {
-                        connections.getLast().addPorts(new CameraLink.Port(0, 0));
+                        cameraLinks.getLast().addPorts(new CPUCLink.Port(0, 0));
                     }
                 }
                 i++;
@@ -102,11 +102,11 @@ public class VDCIS extends CIS {
         }
 
         String notes = "LVAL (Modulo 8): " + lval + "\n" +
-                getString("clMode") + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
-                getString("numPhases") + getPhaseCount() + "\n";
+                Util.getString("clMode") + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
+                Util.getString("numPhases") + getPhaseCount() + "\n";
 
-        CameraLink cameraLink = new CameraLink(datarate, numOfPixNominal, 85000000, notes);
-        connections.forEach(cameraLink::addConnection);
+        CPUCLink CPUCLink = new CPUCLink(datarate, numOfPixNominal, 85000000, notes);
+        cameraLinks.forEach(CPUCLink::addCameraLink);
 
         if (taps > (portLimit / blockSize) * 2) {
             throw new CISException("Number of required taps (" + taps * getPhaseCount() + ") is too high. Please reduce the data rate.");
@@ -114,8 +114,7 @@ public class VDCIS extends CIS {
         if (getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680) {
             throw new CISException("Out of Flash memory. Please reduce the scan width or resolution.");
         }
-
-        return Optional.of(cameraLink);
+        return Collections.singletonList(CPUCLink);
     }
 
     @Override
@@ -142,7 +141,7 @@ public class VDCIS extends CIS {
      */
     @Override
     protected String getScanDistanceString() {
-        return "~ 55 - 70 mm " + getString("exactresolution");
+        return "~ 55 - 70 mm " + Util.getString("exactresolution");
     }
 
     /**
@@ -150,7 +149,7 @@ public class VDCIS extends CIS {
      */
     @Override
     protected String getCaseProfile() {
-        return getString("Aluminium case profile: 80x80mm (HxT) with bonded");
+        return Util.getString("Aluminium case profile: 80x80mm (HxT) with bonded");
     }
 
     /**
@@ -158,7 +157,7 @@ public class VDCIS extends CIS {
      */
     @Override
     protected String getEndOfSpecs() {
-        return getString("laser") + "\n";
+        return Util.getString("laser") + "\n";
     }
 
     /**
@@ -166,7 +165,7 @@ public class VDCIS extends CIS {
      */
     @Override
     protected String getEndOfCameraLinkSection() {
-        return getString("configOnRequest");
+        return Util.getString("configOnRequest");
     }
 
     /**

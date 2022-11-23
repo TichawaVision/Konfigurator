@@ -195,11 +195,11 @@ public abstract class MaskController<C extends CIS> implements Initializable {
 
                 writer.flush();
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("File saved."));
+                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("File saved."));
                 alert.show();
             } catch (IOException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the save attempt.Please close the target file and try again."));
+                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("A fatal error occurred during the save attempt.Please close the target file and try again."));
                 alert.show();
             }
         }

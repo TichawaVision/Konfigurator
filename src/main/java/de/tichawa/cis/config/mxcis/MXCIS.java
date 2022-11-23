@@ -94,7 +94,7 @@ public class MXCIS extends CIS {
     }
 
     @Override
-    public Optional<CameraLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix) {
         double fpgaDataRate;
         int tapsPerFpga;
         int lval;
@@ -131,33 +131,32 @@ public class MXCIS extends CIS {
 //    int portCount =  (int) Math.ceil(numOfPix / (lval * (getPhaseCount() == 1 ? 1.0 : 3.0)));
         long dataRate = (long) portCount * Math.min(lval, numOfPix) * getSelectedLineRate();
 
-        CameraLink cameraLink = new CameraLink(dataRate, numOfPix, 85000000);
+        CPUCLink CPUCLink = new CPUCLink(dataRate, numOfPix, 85000000);
 
         if (getPhaseCount() == 4) {
             for (int x = 0; x < tapsPerFpga * getNumFPGA(); x++) {
                 int endPixel = lval > numOfPix ? numOfPix - 1 : (x + 1) * lval - 1;
-                CameraLink.Connection conn = new CameraLink.Connection();
-                conn.addPorts(new CameraLink.Port(x * lval, endPixel, "Red"),
-                        new CameraLink.Port(x * lval, endPixel, "Green"),
-                        new CameraLink.Port(x * lval, endPixel, "Blue"));
+                CPUCLink.CameraLink conn = new CPUCLink.CameraLink();
+                conn.addPorts(new CPUCLink.Port(x * lval, endPixel, "Red"),
+                        new CPUCLink.Port(x * lval, endPixel, "Green"),
+                        new CPUCLink.Port(x * lval, endPixel, "Blue"));
 
-                cameraLink.addConnection(conn);
+                CPUCLink.addCameraLink(conn);
             }
         } else if (getPhaseCount() == 1) {
-            LinkedList<CameraLink.Connection> connections = new LinkedList<>();
+            LinkedList<CPUCLink.CameraLink> cameraLinks = new LinkedList<>();
             for (int x = 0; x * lval < numOfPix; x++) {
                 if (x % 2 == 0) {
-                    connections.add(new CameraLink.Connection());
+                    cameraLinks.add(new CPUCLink.CameraLink());
                 }
 
                 int endPixel = lval > numOfPix ? numOfPix - 1 : (x + 1) * lval - 1;
-                connections.getLast().addPorts(new CameraLink.Port(x * lval, endPixel));
+                cameraLinks.getLast().addPorts(new CPUCLink.Port(x * lval, endPixel));
             }
 
-            connections.forEach(cameraLink::addConnection);
+            cameraLinks.forEach(CPUCLink::addCameraLink);
         }
-
-        return Optional.of(cameraLink);
+        return Collections.singletonList(CPUCLink);
     }
 
     public Optional<SensorBoardRecord> getSensorBoard(int res) {
@@ -216,8 +215,8 @@ public class MXCIS extends CIS {
     @Override
     protected String getInternalLightsForPrintOut() {
         String printout = super.getInternalLightsForPrintOut();
-        printout += getString("schipal");
-        printout += getSelectedResolution().getActualResolution() > 600 ? getString("staggered") : getString("inline");
+        printout += Util.getString("schipal");
+        printout += getSelectedResolution().getActualResolution() > 600 ? Util.getString("staggered") : Util.getString("inline");
         return printout;
     }
 
@@ -234,7 +233,7 @@ public class MXCIS extends CIS {
      */
     @Override
     protected String getGeometryCorrectionString() {
-        return getString("chpltol") + "\n" + getString("Geocor_opt");
+        return Util.getString("chpltol") + "\n" + Util.getString("Geocor_opt");
     }
 
     /**
@@ -242,7 +241,7 @@ public class MXCIS extends CIS {
      */
     @Override
     protected String getScanDistanceString() {
-        return "~ 10 mm " + getString("exactseetypesign");
+        return "~ 10 mm " + Util.getString("exactseetypesign");
     }
 
     /**
@@ -258,7 +257,7 @@ public class MXCIS extends CIS {
      */
     @Override
     protected String getCaseProfile() {
-        return getLedLines() < 2 ? getString("alucase_mxcis") : getString("alucase_mxcis_two");
+        return getLedLines() < 2 ? Util.getString("alucase_mxcis") : Util.getString("alucase_mxcis_two");
     }
 
     /**
@@ -266,7 +265,7 @@ public class MXCIS extends CIS {
      */
     @Override
     protected String getEndOfSpecs() {
-        return getString("clbase");
+        return Util.getString("clbase");
     }
 
     /**
@@ -287,7 +286,7 @@ public class MXCIS extends CIS {
         SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / getBinning();
         if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
-            throw new CISException(getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
+            throw new CISException(Util.getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
         return numOfPix;
     }

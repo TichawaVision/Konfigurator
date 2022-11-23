@@ -65,11 +65,11 @@ public class DataSheetController implements Initializable {
 
     private void load() {
         try {
-            Lang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("lang"));
-            SwitchLang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("switchlang"));
+            Lang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("lang"));
+            SwitchLang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("switchlang"));
 
-            File.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("File"));
-            Print.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("Print"));
+            File.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("File"));
+            Print.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("Print"));
 
 
             String[] dataSheetText = CIS_DATA.createPrntOut().split("\n\t\n");
@@ -130,7 +130,7 @@ public class DataSheetController implements Initializable {
         }
     }
 
-    public void print() {
+    public void print() { //TODO make this not take a screenshot
         PrinterJob p = PrinterJob.createPrinterJob();
         Pane printable = Grid;
 
@@ -144,13 +144,13 @@ public class DataSheetController implements Initializable {
             if (p.printPage(printable)) {
                 printable.getTransforms().clear();
                 Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("printsuccess"));
+                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("printsuccess"));
                 alert.show();
                 p.endJob();
             } else {
                 printable.getTransforms().clear();
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", CIS_DATA.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings."));
+                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings."));
                 alert.show();
             }
         }
@@ -163,7 +163,7 @@ public class DataSheetController implements Initializable {
     public void handleSwitchLang() {
         if (isOEMMode()) {
             Alert alert = new Alert(AlertType.CONFIRMATION);
-            alert.setHeaderText(CIS_DATA.getString("switch confirmation OEM mode"));
+            alert.setHeaderText(Util.getString("switch confirmation OEM mode"));
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 switchLang();
@@ -177,11 +177,7 @@ public class DataSheetController implements Initializable {
      * actually switches the language by setting the new locale and loading the data in the new language
      */
     private void switchLang() {
-        if (CIS_DATA.getLocale().toString().equals("de_DE")) {
-            CIS.setLocale(new Locale("en", "US"));
-        } else if (CIS_DATA.getLocale().toString().equals("en_US")) {
-            CIS.setLocale(new Locale("de", "DE"));
-        }
+        Util.switchLanguage();
         load();
     }
 
