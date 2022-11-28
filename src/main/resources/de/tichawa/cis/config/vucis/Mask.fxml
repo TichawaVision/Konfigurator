@@ -190,7 +190,7 @@
                 <Label fx:id="MaxLineRate" text="0 kHz" GridPane.columnIndex="1"/>
                 <Label text="Curr. Line Rate:" GridPane.rowIndex="1"/>
                 <Label fx:id="CurrLineRate" text="0 kHz" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                <Slider fx:id="SelLineRate" min="100" GridPane.columnSpan="2" GridPane.rowIndex="2"/>
+                <Slider fx:id="SelLineRate" min="100" GridPane.columnSpan="2" GridPane.rowIndex="2" snapToTicks="true"/>
                 <Label text="Transport Speed:" GridPane.columnIndex="2"/>
                 <Label fx:id="Speedmms" text="0 mm/s" GridPane.columnIndex="3"/>
                 <Label fx:id="Speedms" text="0 m/s" GridPane.columnIndex="3" GridPane.rowIndex="1"/>

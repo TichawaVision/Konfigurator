@@ -981,10 +981,10 @@ public class VUCIS extends CIS {
         switch (lensType) {
             case TC54:
             case TC54L:
-                return "10 mm +/- 2 mm";
+                return "10\u200amm +/- 2\u200amm";
             case TC80:
             case TC80L:
-                return "23 mm +/- 3 mm";
+                return "23\u200amm +/- 3\u200amm";
             default:
                 throw new IllegalStateException("current lens not supported yet");
         }
@@ -995,7 +995,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getCaseProfile() {
-        return Util.getString("Aluminium case profile: 92x80mm (HxT) with bonded");
+        return Util.getString("Aluminium case profile: 92x80\u200amm (HxT) with bonded");
     }
 
     /**
@@ -1003,8 +1003,11 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getCasePrintout() {
-        return Util.getString("Aluminum case") + "\n\t~ (" + (getBaseCaseLength() + getExtraCaseLength()) + " +/-3) mm x (92 +/-2) mm x (80 +/-2) mm\n" +
-                Util.getString("with bonded glass pane") + "\n";
+        return Util.getString("Case dimensions") + "\n\t" +
+                Util.getString("Width") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + "\u200amm +/-3\u200amm\n\t" +
+                Util.getString("Height") + ": ~ 92\u200amm +/-2\u200amm\n\t" +
+                Util.getString("Depth") + ": ~ 80\u200amm +/-2\u200amm\n" +
+                Util.getString("Alu case with bonded glass pane") + "\n";
     }
 
     /**

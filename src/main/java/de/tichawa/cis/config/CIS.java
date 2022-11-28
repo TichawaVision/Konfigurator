@@ -561,7 +561,7 @@ public abstract class CIS {
      * Default is 9-12mm unless overwritten by subclass
      */
     protected String getScanDistanceString() {
-        return "9-12 mm " + Util.getString("exactseetypesign");
+        return "9-12\u200amm " + Util.getString("exactseetypesign");
     }
 
     /**
@@ -653,8 +653,8 @@ public abstract class CIS {
 
         // specs section
         // - scan width, trigger, max line rate
-        printout.append(getScanWidth()).append(" mm, Trigger: ").append(!isExternalTrigger() ? "CC1" : "extern (RS422)");
-        printout.append(", max. ").append((getMaxLineRate() / 1000) * getMaxLineRateFactor()).append(" kHz\n");
+        printout.append(getScanWidth()).append("\u200amm, Trigger: ").append(!isExternalTrigger() ? "CC1" : "extern (RS422)");
+        printout.append(", max. ").append((getMaxLineRate() / 1000) * getMaxLineRateFactor()).append("\u200akHz\n");
 
         // - resolution
         printout.append(Util.getString("Resolution: "));
@@ -667,42 +667,42 @@ public abstract class CIS {
 
         // - selected line rate
         int numOfPix = getNumOfPix();
-        printout.append(Util.getString("sellinerate")).append(Math.round(getSelectedLineRate() / 100.0) / 10.0).append(" kHz\n");
+        printout.append(Util.getString("sellinerate")).append(Math.round(getSelectedLineRate() / 100.0) / 10.0).append("\u200akHz\n");
         // - transport speed
-        printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor())).append(" mm/s\n");
+        printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor())).append("\u200amm/s\n");
         // - geometry correction
         printout.append(getGeometryCorrectionString()).append("\n");
         // - scan distance
         printout.append(Util.getString("scan distance")).append(": ").append(getScanDistanceString()).append("\n");
         // - depth of field
-        printout.append(Util.getString("DepthofField")).append(": ~ +/- ").append(getDepthOfField()).append(" mm\n");
+        printout.append(Util.getString("DepthofField")).append(": ~ +/- ").append(getDepthOfField()).append("\u200amm\n");
         // - line width
-        printout.append(Util.getString("line width")).append(": > 1 mm\n");
+        printout.append(Util.getString("line width")).append(": > 1\u200amm\n");
         // - case printout (L x W x H, with glass pane)
         printout.append(getCasePrintout());
         // - shading
         printout.append(Util.getString("shading")).append("\n");
         // - power
-        printout.append(Util.getString("powersource")).append("(24 +/- 1) VDC\n");
-        printout.append(Util.getString("Needed power:")).append((" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???")).append(" +/- 20%\n");
+        printout.append(Util.getString("powersource")).append("(24 +/- 1)\u200aVDC\n");
+        printout.append(Util.getString("Needed power:")).append((" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + "\u200aA").replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
         // - frequency limit
         if (hasLEDs()) // only print this if there are lights
             printout.append(Util.getString("FrequencyLimit")).append(" ").append(getMinFreq() < 0 // if < 0 there are values missing in database -> give error msg
                     ? Util.getString("missing photo values") + "\n"
-                    : "~" + Math.round(1000 * getMinFreq()) / 1000 + " kHz\n");
+                    : "~" + Math.round(1000 * getMinFreq()) / 1000 + "\u200akHz\n");
         // - cooling
         printout.append(Util.getString(getCooling().getShortHand())).append("\n");
         // - weight
-        printout.append(Util.getString("weight")).append(": ~ ").append((" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???")).append("\n");
+        printout.append(Util.getString("weight")).append(": ~ ").append((" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + "\u200akg").replace(" 0\u200akg", " ???")).append("\n");
         // - interface
-        printout.append("Interface: ").append(isGigeInterface() ? "GigE" : "CameraLink (max. 5m)").append("\n");
+        printout.append("Interface: ").append(isGigeInterface() ? "GigE" : "CameraLink (max. 5\u200am)").append("\n");
         // - end of specs
         printout.append(getEndOfSpecs());
 
         //CL Config
         if (isGigeInterface()) {
             printout.append("\n\t\n");
-            printout.append("Pixel Clock: 40MHz\n");
+            printout.append("Pixel Clock: 40\u200aMHz\n");
             printout.append(Util.getString("numofpix")).append(numOfPix).append("\n");
         } else {
             List<CPUCLink> clCalc = getCLCalc(numOfPix);
