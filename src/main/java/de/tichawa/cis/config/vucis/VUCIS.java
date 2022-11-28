@@ -5,7 +5,7 @@ import de.tichawa.cis.config.model.tables.records.*;
 import de.tichawa.util.MathEval;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.*;
 
 import static de.tichawa.cis.config.model.Tables.*;
 import static org.jooq.impl.DSL.min;
@@ -14,6 +14,8 @@ public class VUCIS extends CIS {
 
     public static final int MAX_SCAN_WIDTH_WITH_COAX = 1040;
     public static final int MAX_SCAN_WIDTH_WITH_SFS = 1820;
+    public static final long PIXEL_CLOCK_NORMAL = 85000000;
+    public static final long PIXEL_CLOCK_REDUCED = 53000000;
     public static final List<Resolution> resolutions;
 
     private LightColor leftBrightField;
@@ -25,6 +27,7 @@ public class VUCIS extends CIS {
     private boolean coolingLeft;
     private boolean coolingRight;
     private boolean cloudyDay;
+    private boolean reducedPixelClock;
 
     /**
      * returns whether the given light color is a valid option for VUCIS
@@ -341,7 +344,7 @@ public class VUCIS extends CIS {
      * Will represent the data shown in the specification table for now but this might change in the future (may need more CPUCLinks than in table).
      * Therefore, this won't read data from the database and there might be discrepancies!
      */
-    private int getNumOfCPUCLink() { //TODO update calculation, see table
+    private int getNumOfCPUCLink() {
         switch (getPhaseCount()) {
             case 1:
             case 2:
@@ -351,10 +354,11 @@ public class VUCIS extends CIS {
             case 4:
                 return getScanWidth() >= 1300 ? 2 : 1;
             case 5:
-            case 6:
                 return getScanWidth() >= 1820 ? 3 : (getScanWidth() >= 1040 ? 2 : 1);
+            case 6:
+                return getScanWidth() >= 1820 ? 4 : (getScanWidth() >= 1300 ? 3 : getScanWidth() >= 780 ? 2 : 1);
             default:
-                throw new IllegalStateException("illegal phase count");
+                throw new IllegalStateException("illegal phase count: " + getPhaseCount() + ", must be in [1,6]");
         }
     }
 
@@ -372,64 +376,182 @@ public class VUCIS extends CIS {
         return list;
     }
 
-    private static int calculateCablesPerCPUCLink(int ports) {//TODO probably dont need this (calculated by CPUCLink)
-        if (ports == 0) return 0;
-        if (ports < 4) return 1;
-        return 2;
-    }
-
-    private static int calculateGrabbersPerCPUCLink(int ports) {//TODO probably dont need this (calculated by CPUCLink)
-        if (ports == 0) return 0;
-        if (ports < 10) return 1;
-        return 2;
-    }
-
     /**
      * creates a camera link with the given number of ports
      */
-    private static CPUCLink.CameraLink createCameraLink(int numberOfports, int lval, int id, int startLval) {
+    private static CPUCLink.CameraLink createCameraLink(int phases, int numberOfports, int lval, int id, int startLval, int startLvalCPUC) {
         CPUCLink.CameraLink cameraLink = new CPUCLink.CameraLink(id);
         List<CPUCLink.Port> ports = new LinkedList<>();
-        for (int i = 0; i < numberOfports; i++) {
-            CPUCLink.Port port = new CPUCLink.Port(i * lval, (i + 1) * lval - 1);
-            ports.add(port);
+        for (int i = 0; i < numberOfports; i += phases) {
+            for (int j = 0; j < phases; j++) {
+                CPUCLink.Port port = new CPUCLink.Port(i / phases * lval + startLval + startLvalCPUC, (i / phases + 1) * lval - 1 + startLval + startLvalCPUC);
+                ports.add(port);
+            }
         }
         ports.forEach(cameraLink::addPorts);
         return cameraLink;
     }
 
-    private static List<CPUCLink.CameraLink> calculateCameraLinksFor1Phase(int ports, int lval) {
-        List<CPUCLink.CameraLink> cameraLinks = new LinkedList<>();
-        if (ports <= 10) {
-            //fill one camera link (up to deca)
-            cameraLinks.add(createCameraLink(ports, lval, 1, 0));
-        } else if (ports <= 16) {
-            //fill two camera links up to full
-            CPUCLink.CameraLink cameraLink1 = createCameraLink(8, lval, 1, 0);
-            cameraLinks.add(cameraLink1);
-            cameraLinks.add(createCameraLink(ports - 8, lval, 2, cameraLink1.getEndPixel() + 1));
-        } else {
-            //fill two camera links up to deca
-            CPUCLink.CameraLink cameraLink1 = createCameraLink(10, lval, 1, 0);
-            cameraLinks.add(cameraLink1);
-            cameraLinks.add(createCameraLink(ports - 10, lval, 2, cameraLink1.getEndPixel() + 1));
-        }
-        return cameraLinks;
+    /**
+     * returns a list containing of a single camera link created for the given phases, port number and lval
+     */
+    private static List<CPUCLink.CameraLink> fillSingleCameraLink(int phases, int ports, int lval, int startLvalCPUC) {
+        return Stream.of(createCameraLink(phases, ports, lval, 1, 0, startLvalCPUC)).collect(Collectors.toList());
     }
 
-    private static CPUCLink createSingleCPUCLink(long datarate, long pixel, int ports, int lval, int phaseCount) {//TODO do we need long?
-        String notes = "";//TODO
-        CPUCLink cpucLink = new CPUCLink(datarate, pixel, 85000000, notes);
+    /**
+     * returns a list of two camera links for the given phases and lval.
+     * The first one will have ports 0 to portsForOne, the other one the remaining ports.
+     */
+    private static List<CPUCLink.CameraLink> fillTwoCameraLinks(int phases, int ports, int portsForOne, int lval, int startLvalCPUC) {
+        CPUCLink.CameraLink cameraLink1 = createCameraLink(phases, portsForOne, lval, 1, 0, startLvalCPUC);
+        return Stream.of(cameraLink1, createCameraLink(phases, ports - portsForOne, lval, 2, cameraLink1.getEndPixel() + 1, 0)).collect(Collectors.toList());
+    }
 
-        //TODO ports -> see photo
+    /**
+     * throws a new CIS exception. The message text is build according to the given parameters.
+     */
+    private static void throwTooManyPortsException(int maxPortsAllowed, int phases, int requiredPorts) {
+        throw new CISException(Util.getString("error too many ports 1")
+                + maxPortsAllowed
+                + Util.getString("error too many ports 2")
+                + (phases < 3 ? 1 + Util.getString("error too many ports or") + 2 : phases)
+                + Util.getString("error too many ports 3")
+                + requiredPorts
+                + Util.getString("error too many ports 4"));
+    }
+
+    /**
+     * returns a list of camera links for 1 or 2 phases:
+     * if we have 10 ports or fewer -> use single camera link (up to deca)
+     * if we have 12 ports -> use two medium
+     * if we have 16 or less -> use two full
+     * if we have more -> use two deca (or 1 deca and 1 full)
+     */
+    private static List<CPUCLink.CameraLink> calculateCameraLinksFor1Or2Phases(int ports, int lval, boolean is1Phase, int startLvalCPUC) {
+        if (ports > 20)
+            throwTooManyPortsException(20, is1Phase ? 1 : 2, ports);
+        if (ports <= 10)
+            //fill one camera link (up to deca)
+            return fillSingleCameraLink(is1Phase ? 1 : 2, ports, lval, startLvalCPUC);
+        if (ports == 12) //TODO check whether this works or we go with full + medium
+            //fill two camera links up to medium
+            return fillTwoCameraLinks(is1Phase ? 1 : 2, ports, 6, lval, startLvalCPUC);
+        if (ports <= 16)
+            //fill two camera links up to full
+            return fillTwoCameraLinks(is1Phase ? 1 : 2, ports, 8, lval, startLvalCPUC);
+        //else: fill two camera links up to deca
+        return fillTwoCameraLinks(is1Phase ? 1 : 2, ports, 10, lval, startLvalCPUC);
+    }
+
+    /**
+     * returns a list of camera links for 3 phases:
+     * if we have 10 ports or fewer -> use single camera link (up to deca)
+     * if we have 12 ports -> use two medium
+     * if we have more -> use two deca (or 1 deca and 1 full)
+     */
+    private static List<CPUCLink.CameraLink> calculateCameraLinksFor3Phases(int ports, int lval, int startLvalCPUC) {
+        if (ports > 18)
+            throwTooManyPortsException(18, 3, ports);
+        if (ports <= 10) // 3, 6 or 9 ports
+            //fill one camera link (up to deca)
+            return fillSingleCameraLink(3, ports, lval, startLvalCPUC);
+        if (ports == 12)
+            //fill two camera links up to medium
+            return fillTwoCameraLinks(3, ports, 6, lval, startLvalCPUC);
+        //else: fill two camera links up to deca -> 15 or 18 ports
+        return fillTwoCameraLinks(3, ports, 9, lval, startLvalCPUC);
+    }
+
+    /**
+     * returns a list of camera links for 4 phases:
+     * if we have 10 ports or fewer -> use single camera link (medium or full)
+     * if we have more -> use two full (or 1 full and 1 medium)
+     */
+    private static List<CPUCLink.CameraLink> calculateCameraLinksFor4Phases(int ports, int lval, int startLvalCPUC) {
+        if (ports > 16)
+            throwTooManyPortsException(16, 4, ports);
+        if (ports <= 10) // 4 or 8 ports
+            //fill one camera link (up to deca)
+            return fillSingleCameraLink(4, ports, lval, startLvalCPUC);
+        // else: fill two camera links up to full -> 12 or 16 ports
+        return fillTwoCameraLinks(4, ports, 8, lval, startLvalCPUC);
+    }
+
+    /**
+     * returns a list of camera links for 5 phases:
+     * if we have 10 ports or fewer -> use single camera link (up to deca)
+     * if we have more -> use two deca (or 1 deca and 1 medium)
+     */
+    private static List<CPUCLink.CameraLink> calculateCameraLinksFor5Phases(int ports, int lval, int startLvalCPUC) {
+        if (ports > 20)
+            throwTooManyPortsException(20, 5, ports);
+        if (ports <= 10) // 5 or 10 ports
+            //fill one camera link (up to deca)
+            return fillSingleCameraLink(5, ports, lval, startLvalCPUC);
+        // else: fill two camera links up to deca -> 15 or 20 ports
+        return fillTwoCameraLinks(5, ports, 10, lval, startLvalCPUC);
+    }
+
+    /**
+     * returns a list of camera links for 6 phases:
+     * if we have 10 ports or fewer -> use single camera link (up to medium)
+     * if we have more -> use two medium
+     */
+    private static List<CPUCLink.CameraLink> calculateCameraLinksFor6Phases(int ports, int lval, int startLvalCPUC) {
+        if (ports > 12)
+            throwTooManyPortsException(12, 6, ports);
+        if (ports <= 10) // 6 ports
+            //fill one camera link (up to medium)
+            return fillSingleCameraLink(6, ports, lval, startLvalCPUC);
+        // else: fill two camera links (up to medium)
+        return fillTwoCameraLinks(6, ports, 6, lval, startLvalCPUC);
+    }
+
+    /**
+     * creates a single CPUCLink with its camera link configuration
+     */
+    private static CPUCLink createSingleCPUCLink(double dataratePer85, long pixel, int ports, int lval, int phaseCount, long pixelClock, int startLvalCPUC) {
+        String notes = ""; // don't really need any extra info on print out
+        CPUCLink cpucLink = new CPUCLink((long) dataratePer85 * pixelClock, pixel, pixelClock, notes);
+
         switch (phaseCount) {
             case 1:
-                calculateCameraLinksFor1Phase(ports, lval).forEach(cpucLink::addCameraLink);
+            case 2:
+                calculateCameraLinksFor1Or2Phases(ports, lval, phaseCount == 1, startLvalCPUC).forEach(cpucLink::addCameraLink);
+                break;
+            case 3:
+                calculateCameraLinksFor3Phases(ports, lval, startLvalCPUC).forEach(cpucLink::addCameraLink);
+                break;
+            case 4:
+                calculateCameraLinksFor4Phases(ports, lval, startLvalCPUC).forEach(cpucLink::addCameraLink);
+                break;
+            case 5:
+                calculateCameraLinksFor5Phases(ports, lval, startLvalCPUC).forEach(cpucLink::addCameraLink);
+                break;
+            case 6:
+                calculateCameraLinksFor6Phases(ports, lval, startLvalCPUC).forEach(cpucLink::addCameraLink);
                 break;
             default:
-                throw new UnsupportedOperationException("not implemented yet");
+                throw new IllegalStateException("unsupported phase count");
         }
         return cpucLink;
+    }
+
+    /**
+     * class to collect data for camera link calculation for a single cpuc link
+     */
+    private static class CLCalcCPUCLink {
+
+        public CLCalcCPUCLink(int pixels) {
+            this.pixels = pixels;
+        }
+
+        int pixels;
+        double datarateCPUPer85;
+        int ports;
+        int lvals;
+        int taps;
     }
 
     /**
@@ -445,84 +567,22 @@ public class VUCIS extends CIS {
         double lineRateKHz = getSelectedLineRate() / 1000.0;
         int resolution = getSelectedResolution().getActualResolution();
         int numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() * resolution / 1200);
-        double totalDataratePer85 = numOfPixNominal * lineRateKHz * getPhaseCount() / 85000;
+        long pixelClock = reducedPixelClock ? PIXEL_CLOCK_REDUCED : PIXEL_CLOCK_NORMAL;
 
         List<Integer> pixelsCPU = roundPixel(numSensorBoards, numCPUCLink, numOfPixNominal);
-        List<Double> dataratesCPUPer85 = pixelsCPU.stream().map(pixel -> pixel * lineRateKHz * getPhaseCount() / 85000).collect(Collectors.toList());
-        List<Integer> ports = dataratesCPUPer85.stream().map(dr -> (int) (Math.ceil(dr / getPhaseCount()) * getPhaseCount())).collect(Collectors.toList());
-        List<Integer> lvals = Util.zip(pixelsCPU, dataratesCPUPer85).stream().map(pair -> (int) (pair.getKey() / Math.ceil(pair.getValue() / getPhaseCount()))).collect(Collectors.toList());
-        List<Integer> taps = Util.zip(pixelsCPU, lvals).stream().map(pair -> pair.getKey() / pair.getValue()).collect(Collectors.toList());
-        List<Integer> cables = ports.stream().map(VUCIS::calculateCablesPerCPUCLink).collect(Collectors.toList());
-        List<Integer> grabbers = ports.stream().map(VUCIS::calculateGrabbersPerCPUCLink).collect(Collectors.toList());
-
-        int cableTotal = cables.stream().mapToInt(Integer::intValue).sum();
-        int grabberTotal = grabbers.stream().mapToInt(Integer::intValue).sum();
+        List<CLCalcCPUCLink> clcalcCPUCLinks = pixelsCPU.stream().map(CLCalcCPUCLink::new).collect(Collectors.toList());
+        clcalcCPUCLinks.forEach(c -> c.datarateCPUPer85 = c.pixels * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
+        clcalcCPUCLinks.forEach(c -> c.ports = (int) (Math.ceil(c.datarateCPUPer85 / getPhaseCount()) * getPhaseCount()));
+        clcalcCPUCLinks.forEach(c -> c.lvals = (int) (c.pixels / Math.ceil(c.datarateCPUPer85 / getPhaseCount())));
+        clcalcCPUCLinks.forEach(c -> c.taps = c.pixels / c.lvals);
 
         List<CPUCLink> cpucLinks = new LinkedList<>();
-        for (int i = 0; i < numCPUCLink; i++) {
-            //cpucLinks.add(createSingleCPUCLink()); //TODO go on here... : make above lists to maps (cpucNumber -> item) to retrieve the needed stuff here
-            //TODO or make some mad/ugly multi zipping with streams
+        int startLvalCPUC = 0;
+        for (CLCalcCPUCLink c : clcalcCPUCLinks) {
+            cpucLinks.add(createSingleCPUCLink(c.datarateCPUPer85, c.pixels, c.ports, c.lvals, getPhaseCount(), pixelClock, startLvalCPUC));
+            startLvalCPUC += c.pixels;
         }
-
-        //TODO throw Exceptions if not valid
-
-        //old calc -> used for now
-        int taps_;
-        int pixPerTap;
-        int lval;
-
-        sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
-        numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() / (1200 / getSelectedResolution().getActualResolution()));
-        long mhzLineRate = (long) numOfPixNominal * getSelectedLineRate() / 1000000;
-        taps_ = (int) Math.ceil(1.01 * mhzLineRate / 85.0);
-        pixPerTap = numOfPixNominal / taps_;
-        lval = pixPerTap - pixPerTap % 16;
-
-        long datarate = (long) getPhaseCount() * numOfPixNominal * getSelectedLineRate();
-        LinkedList<CPUCLink.CameraLink> cameraLinks = new LinkedList<>();
-        int portLimit = 10;
-
-        int blockSize;
-        if (getPhaseCount() == 1) {
-            blockSize = 1;
-        } else {
-            blockSize = 3 * (getPhaseCount() / 3);
-            if (blockSize < getPhaseCount()) {
-                blockSize += 3;
-            }
-        }
-
-        for (int i = 0; i < taps_; ) {
-            cameraLinks.add(new CPUCLink.CameraLink(0, (char) (CPUCLink.Port.DEFAULT_NAME + cameraLinks.stream()
-                    .mapToInt(CPUCLink.CameraLink::getPortCount)
-                    .sum())));
-
-            while (cameraLinks.getLast().getPortCount() <= portLimit - blockSize && i < taps_) {
-                for (int k = 0; k < blockSize; k++) {
-                    if (k < getPhaseCount()) {
-                        cameraLinks.getLast().addPorts(new CPUCLink.Port(i * lval, (i + 1) * lval - 1));
-                    } else {
-                        cameraLinks.getLast().addPorts(new CPUCLink.Port(0, 0));
-                    }
-                }
-                i++;
-            }
-        }
-
-        String notes = "LVAL(Modulo 8): " + lval + "\n" +
-                Util.getString("numPhases") + getPhaseCount() + "\n";
-
-        CPUCLink CPUCLink = new CPUCLink(datarate, numOfPixNominal, 85000000, notes);
-        cameraLinks.forEach(CPUCLink::addCameraLink);
-
-        if (taps_ > (portLimit / blockSize) * 2) {
-            throw new CISException("Number of required taps (" + taps_ * getPhaseCount() + ") is too high. Please reduce the data rate.");
-        }
-        if (getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680) {
-            throw new CISException("Out of Flash memory. Please reduce the scan width or resolution.");
-        }
-
-        return Collections.singletonList(CPUCLink);
+        return cpucLinks;
     }
 
     public LightColor getLeftBrightField() {
@@ -713,6 +773,16 @@ public class VUCIS extends CIS {
         boolean oldValue = this.cloudyDay;
         this.cloudyDay = cloudyDay;
         observers.firePropertyChange("cloudyDay", oldValue, cloudyDay);
+    }
+
+    public boolean isReducedPixelClock() {
+        return reducedPixelClock;
+    }
+
+    public void setReducedPixelClock(boolean reducedPixelClock) {
+        boolean oldValue = this.reducedPixelClock;
+        this.reducedPixelClock = reducedPixelClock;
+        observers.firePropertyChange("reducedPixelClock", oldValue, reducedPixelClock);
     }
 
     public boolean hasCoax() {

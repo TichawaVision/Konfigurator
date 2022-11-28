@@ -27,6 +27,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     @FXML
     public CheckBox LensDOF;
     @FXML
+    public CheckBox ReducedPixelClock;
+    @FXML
     private ChoiceBox<String> BrightFieldLeft;
     @FXML
     private ChoiceBox<String> Coax;
@@ -314,6 +316,14 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     }
 
     /**
+     * initializes the interface section
+     */
+    private void initInterface() {
+        Interface.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
+        ReducedPixelClock.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
+    }
+
+    /**
      * initializes all choice boxes and checkboxes
      */
     @Override
@@ -331,7 +341,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
 
         // initialize other stuff
         Cooling.setVisible(false); //make invisible as this is not used for VUCIS for now (but comes from config/MaskController)
-        Interface.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
+        initInterface();
     }
 
     /**
@@ -410,6 +420,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 return;
             case "transportSpeed":
                 handleTransportSpeedChange((int) evt.getNewValue());
+                return;
+            // interface
+            case "reducedPixelClock":
+                ReducedPixelClock.setSelected((boolean) evt.getNewValue());
                 return;
         }
     }

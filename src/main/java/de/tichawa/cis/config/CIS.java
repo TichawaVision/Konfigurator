@@ -708,8 +708,11 @@ public abstract class CIS {
             List<CPUCLink> clCalc = getCLCalc(numOfPix);
             if (!clCalc.isEmpty()) {
                 printout.append("\n\t\n");
-                for (CPUCLink CPUCLink : clCalc)
-                    printout.append(CPUCLink.toString()).append("\n");
+                int i = 1;
+                for (CPUCLink CPUCLink : clCalc) {
+                    printout.append("Board ").append(i++).append(":\n");
+                    printout.append(CPUCLink.toString("  ")).append("\n\n\n");
+                }
             } else {
                 return null;
             }

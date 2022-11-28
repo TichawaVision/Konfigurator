@@ -56,24 +56,34 @@ public class CPUCLink {
     }
 
     @Override
-    public String toString() { //TODO don't use this for VUCIS output but individual methods
-        StringBuilder output = new StringBuilder(Util.getString("datarate"))
+    public String toString() {
+        return toString("");
+    }
+
+    public String toString(String indentation) {
+        StringBuilder output = new StringBuilder(indentation)
+                .append(Util.getString("datarate"))
                 .append(Math.round(getDataRate() / 100000.0) / 10.0)
                 .append(" MByte/s\n");
-        output.append(Util.getString("nomPix"))
+        output.append(indentation)
+                .append(Util.getString("nomPix"))
                 .append(getPixelCount())
                 .append("\n");
-        output.append(Util.getString("numofcons"))
+        output.append(indentation)
+                .append(Util.getString("numofcons"))
                 .append(getCameraLinkCount())
                 .append("\n");
-        output.append(Util.getString("numofport"))
+        output.append(indentation)
+                .append(Util.getString("numofport"))
                 .append(getPortNumber())
                 .append("\n");
-        output.append("Pixel clock: ")
+        output.append(indentation)
+                .append("Pixel clock: ")
                 .append(getPixelClock() / 1000000)
                 .append("MHz\n");
         if (getNotes() != null) {
-            output.append(getNotes())
+            output.append(indentation)
+                    .append(getNotes())
                     .append("\n");
         }
 
@@ -140,14 +150,25 @@ public class CPUCLink {
 
         @Override
         public String toString() {
-            return "CameraLink " + getId() + ":\n" + getPorts().stream()
+            return "CameraLink " + getId() + " (" + getCLFormat() + "):\n" + getPorts().stream()
                     .map(Port::toString)
                     .map(s -> "    " + s)
                     .collect(Collectors.joining("\n"));
         }
 
+
         public int getEndPixel() {
             return ports.getLast().getEndPixel();
+        }
+
+        private String getCLFormat() {
+            if (getPortCount() <= 3)
+                return "Base";
+            if (getPortCount() <= 6)
+                return "Medium";
+            if (getPortCount() <= 8)
+                return "Full";
+            return "Deca";
         }
     }
 
