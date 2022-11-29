@@ -64,7 +64,7 @@ public class CPUCLink {
         StringBuilder output = new StringBuilder(indentation)
                 .append(Util.getString("datarate"))
                 .append(Math.round(getDataRate() / 100000.0) / 10.0)
-                .append(" MByte/s\n");
+                .append("\u200aMByte/s\n");
         output.append(indentation)
                 .append(Util.getString("nomPix"))
                 .append(getPixelCount())
@@ -80,7 +80,7 @@ public class CPUCLink {
         output.append(indentation)
                 .append("Pixel clock: ")
                 .append(getPixelClock() / 1000000)
-                .append("MHz\n");
+                .append("\u200aMHz\n");
         if (getNotes() != null) {
             output.append(indentation)
                     .append(getNotes())
@@ -203,10 +203,11 @@ public class CPUCLink {
         public String toString() {
             String noteString = getNote() == null ? "" : " (" + getNote() + ")";
             if (getEndPixel() == 0) {
-                return "Port " + getName() + ": " + "          " + " - " + " ";
+                return "Port " + getName() + ":\t\t" + "          " + " - " + " ";
             }
-            return "Port " + getName() + noteString + ": "
-                    + String.format("%05d", getStartPixel()) + " - " + String.format("%05d", getEndPixel());
+            return "Port " + getName() + noteString + ":"
+                    + (getName() == 'H' ? "" : "\t") // small letters (all but H) get an extra tab for alignment...
+                    + "\t" + String.format("%05d", getStartPixel()) + " - " + String.format("%05d", getEndPixel());
         }
     }
 }

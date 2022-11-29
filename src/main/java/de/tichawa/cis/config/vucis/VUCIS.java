@@ -511,9 +511,9 @@ public class VUCIS extends CIS {
     /**
      * creates a single CPUCLink with its camera link configuration
      */
-    private static CPUCLink createSingleCPUCLink(double dataratePer85, long pixel, int ports, int lval, int phaseCount, long pixelClock, int startLvalCPUC) {
+    private static CPUCLink createSingleCPUCLink(double dataratePerPixelClock, long pixel, int ports, int lval, int phaseCount, long pixelClock, int startLvalCPUC) {
         String notes = ""; // don't really need any extra info on print out
-        CPUCLink cpucLink = new CPUCLink((long) dataratePer85 * pixelClock, pixel, pixelClock, notes);
+        CPUCLink cpucLink = new CPUCLink((long) (dataratePerPixelClock * pixelClock), pixel, pixelClock, notes);
 
         switch (phaseCount) {
             case 1:
@@ -543,15 +543,19 @@ public class VUCIS extends CIS {
      */
     private static class CLCalcCPUCLink {
 
-        public CLCalcCPUCLink(int pixels) {
-            this.pixels = pixels;
+        public CLCalcCPUCLink(int pixelsMax) {
+            this.pixelsMax = pixelsMax;
         }
 
-        int pixels;
-        double datarateCPUPer85;
+        int pixelsMax; // the maximum/wanted/raw number of pixels for this CPUCLink
+        double datarateCPUPerPixelClockMax; // the maximum/wanted/raw datarate
         int ports;
-        int lvals;
+        int lvalMax; // the maximum/wanted/raw lval
         int taps;
+        int numberOf16Blocks;
+        int lval; // actual lval we can use
+        int pixels; //actual pixel we have
+        double datarateCPUPerPixelClock;
     }
 
     /**
@@ -571,15 +575,19 @@ public class VUCIS extends CIS {
 
         List<Integer> pixelsCPU = roundPixel(numSensorBoards, numCPUCLink, numOfPixNominal);
         List<CLCalcCPUCLink> clcalcCPUCLinks = pixelsCPU.stream().map(CLCalcCPUCLink::new).collect(Collectors.toList());
-        clcalcCPUCLinks.forEach(c -> c.datarateCPUPer85 = c.pixels * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
-        clcalcCPUCLinks.forEach(c -> c.ports = (int) (Math.ceil(c.datarateCPUPer85 / getPhaseCount()) * getPhaseCount()));
-        clcalcCPUCLinks.forEach(c -> c.lvals = (int) (c.pixels / Math.ceil(c.datarateCPUPer85 / getPhaseCount())));
-        clcalcCPUCLinks.forEach(c -> c.taps = c.pixels / c.lvals);
+        clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClockMax = c.pixelsMax * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
+        clcalcCPUCLinks.forEach(c -> c.ports = (int) (Math.ceil(c.datarateCPUPerPixelClockMax / getPhaseCount()) * getPhaseCount()));
+        clcalcCPUCLinks.forEach(c -> c.lvalMax = (int) (c.pixelsMax / Math.ceil(c.datarateCPUPerPixelClockMax / getPhaseCount())));
+        clcalcCPUCLinks.forEach(c -> c.taps = c.pixelsMax / c.lvalMax);
+        clcalcCPUCLinks.forEach(c -> c.numberOf16Blocks = (int) (c.lvalMax / (double) c.taps / 16.0));
+        clcalcCPUCLinks.forEach(c -> c.lval = c.numberOf16Blocks * 16 * c.taps);
+        clcalcCPUCLinks.forEach(c -> c.pixels = c.lval * c.taps);
+        clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClock = c.pixels * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
 
         List<CPUCLink> cpucLinks = new LinkedList<>();
         int startLvalCPUC = 0;
         for (CLCalcCPUCLink c : clcalcCPUCLinks) {
-            cpucLinks.add(createSingleCPUCLink(c.datarateCPUPer85, c.pixels, c.ports, c.lvals, getPhaseCount(), pixelClock, startLvalCPUC));
+            cpucLinks.add(createSingleCPUCLink(c.datarateCPUPerPixelClock, c.pixels, c.ports, c.lval, getPhaseCount(), pixelClock, startLvalCPUC));
             startLvalCPUC += c.pixels;
         }
         return cpucLinks;
