@@ -951,8 +951,19 @@ public class VUCIS extends CIS {
         updateTransportSpeed();
     }
 
+    /**
+     * sets the selected line rate.
+     * Only allows 1% increments so the value is rounded to 1% of the possible maximum line rate.
+     */
     @Override
     public void setSelectedLineRate(int selectedLineRate) {
+        //manual round to 1% of max line rate
+        double maxLineRatePercent = getMaxLineRate() / 100;
+        int factor = (int) (selectedLineRate / maxLineRatePercent);
+        int lower = (int) (factor * maxLineRatePercent);
+        int higher = (int) ((factor + 1) * maxLineRatePercent);
+        selectedLineRate = selectedLineRate - lower > higher - selectedLineRate ? higher : lower;
+        //set the rounded line rate
         super.setSelectedLineRate(selectedLineRate);
         updateTransportSpeed();
     }
