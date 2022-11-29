@@ -248,13 +248,15 @@ public class VUCIS extends CIS {
     }
 
     /**
-     * determines the L value for the current light selection (sum of individual L values)
+     * determines the L value for the current light selection (sum of individual L values).
+     * If the sum is greater than 10, 10 is returned instead since this is the maximum allowed LED channels
      */
     @Override
     public int getLedLines() {
-        return getLights().chars().mapToObj(c -> LightColor.findByCode((char) c))
+        int sum = getLights().chars().mapToObj(c -> LightColor.findByCode((char) c))
                 .filter(Optional::isPresent).map(Optional::get)
                 .mapToInt(this::getLValue).sum();
+        return Math.min(sum, 10); //max 10 allowed
     }
 
     /**
