@@ -255,14 +255,14 @@ public class VUCIS extends CIS {
     public int getLedLines() {
         int sum = getLights().chars().mapToObj(c -> LightColor.findByCode((char) c))
                 .filter(Optional::isPresent).map(Optional::get)
-                .mapToInt(this::getLValue).sum();
+                .mapToInt(VUCIS::getLValue).sum();
         return Math.min(sum, 10); //max 10 allowed
     }
 
     /**
      * determine L value for each light: RGB = 3, IRUV = 2, Rebz8 = 8, other = 1
      */
-    private int getLValue(LightColor lightColor) {
+    public static int getLValue(LightColor lightColor) {
         switch (lightColor) {
             case NONE:
                 return 0;

@@ -2,7 +2,7 @@ package de.tichawa.cis.config;
 
 import lombok.*;
 
-import java.util.LinkedList;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -18,39 +18,33 @@ public class CPUCLink {
     long pixelClock;
     String notes;
 
-    @Getter(AccessLevel.PRIVATE)
-    LinkedList<CameraLink> cameraLinks = new LinkedList<>();
+    @Getter
+    List<CameraLink> cameraLinks = new LinkedList<>();
 
     public CPUCLink(long dataRate, long pixelCount, long pixelClock) {
         this(dataRate, pixelCount, pixelClock, null);
     }
 
     public void addCameraLink(CameraLink cameraLink) {
-        int nextCLId = this.getCameraLinks().isEmpty() ? CameraLink.DEFAULT_ID : this.getCameraLinks().getLast().getId() + 1;
+        int nextCLId = this.getCameraLinks().isEmpty() ? CameraLink.DEFAULT_ID : cameraLinks.get(cameraLinks.size() - 1).getId() + 1;
         this.getCameraLinks().add(cameraLink.withId(nextCLId));
     }
 
-    public int getCameraLinkCount() {
-        int kabelCount;
-        if (getPortCount() / this.getCameraLinks().size() <= 2) {
-            kabelCount = this.getCameraLinks().size();
-        } else if (getPortCount() > 3 && this.getCameraLinks().size() == 1) {
-            kabelCount = 2;
-        } else {
-            kabelCount = getPortCount() / 3;
-        }
-        return kabelCount;
-
+    /**
+     * calculates the needed cables by adding the needed cables for each camera link
+     */
+    public int getCableCount() {
+        return cameraLinks.stream().mapToInt(CameraLink::getCableCount).sum();
     }
 
     public int getPortCount() {
-        return this.getCameraLinks().stream()
+        return cameraLinks.stream()
                 .mapToInt(CameraLink::getPortCount)
                 .sum();
     }
 
     public int getPortNumber() {
-        return this.getCameraLinks().stream()
+        return cameraLinks.stream()
                 .mapToInt(CameraLink::getPortNumber)
                 .sum();
     }
@@ -71,7 +65,7 @@ public class CPUCLink {
                 .append("\n");
         output.append(indentation)
                 .append(Util.getString("numofcons"))
-                .append(getCameraLinkCount())
+                .append(getCableCount())
                 .append("\n");
         output.append(indentation)
                 .append(Util.getString("numofport"))
@@ -161,7 +155,7 @@ public class CPUCLink {
             return ports.getLast().getEndPixel();
         }
 
-        private String getCLFormat() {
+        public String getCLFormat() {
             if (getPortCount() <= 3)
                 return "Base";
             if (getPortCount() <= 6)
@@ -169,6 +163,14 @@ public class CPUCLink {
             if (getPortCount() <= 8)
                 return "Full";
             return "Deca";
+        }
+
+        /**
+         * calculates the needed cables for this camera link.
+         * If there are more than three ports, 2 cables are needed otherwise 1.
+         */
+        public int getCableCount() {
+            return getPortCount() > 3 ? 2 : 1;
         }
     }
 

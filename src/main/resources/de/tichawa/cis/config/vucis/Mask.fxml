@@ -84,6 +84,10 @@
                 <HBox alignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="3" GridPane.columnSpan="2">
                     <CheckBox text="Liquid Cooling (right)" fx:id="CoolingRight"/>
                 </HBox>
+                <!-- info message -->
+                <HBox alignment="CENTER" GridPane.rowIndex="4" GridPane.columnSpan="5">
+                    <Label fx:id="LightInfo"/>
+                </HBox>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" GridPane.columnSpan="3" GridPane.fillHeight="true" GridPane.fillWidth="true"
@@ -199,7 +203,7 @@
             </GridPane>
         </TitledPane>
 
-        <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.columnSpan="3" GridPane.rowIndex="3">
+        <GridPane alignment="CENTER_RIGHT" hgap="5.0" vgap="5.0" GridPane.columnSpan="2" GridPane.rowIndex="3">
             <HBox alignment="CENTER" spacing="5.0">
                 <Label text="Interface:"/>
                 <ComboBox fx:id="Interface" disable="true" promptText="CameraLink">
@@ -212,7 +216,10 @@
             </HBox>
             <CheckBox fx:id="ReducedPixelClock" text="Reduced camera link frequency" GridPane.columnIndex="1"/>
         </GridPane>
-        <HBox alignment="CENTER" spacing="5.0" GridPane.rowIndex="3" GridPane.columnIndex="2">
+        <HBox alignment="CENTER_RIGHT" GridPane.rowIndex="3" GridPane.columnIndex="2">
+            <Label fx:id="CameraLinkInfo" text="Placeholder Camera Link Info" minHeight="75"/>
+        </HBox>
+        <HBox alignment="CENTER" spacing="5.0" GridPane.rowIndex="3" GridPane.columnIndex="0">
             <ComboBox fx:id="Cooling" disable="true" promptText="Liquid Cooling (Default)">
                 <items>
                     <FXCollections fx:factory="observableArrayList">

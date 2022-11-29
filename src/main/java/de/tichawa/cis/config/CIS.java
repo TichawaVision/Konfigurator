@@ -63,7 +63,6 @@ public abstract class CIS {
     private boolean gigeInterface;
     @Getter
     private Resolution selectedResolution;
-    @Getter
     @Setter
     private int numOfPix;
     @Getter
@@ -665,8 +664,9 @@ public abstract class CIS {
         printout.append(getInternalLightsForPrintOut());
         printout.append("\n\n");
 
+        // - scan width
+        printout.append(Util.getString("scan width")).append(getScanWidth()).append("\u200amm\n");
         // - selected line rate
-        int numOfPix = getNumOfPix();
         printout.append(Util.getString("sellinerate")).append(Math.round(getSelectedLineRate() / 100.0) / 10.0).append("\u200akHz\n");
         // - transport speed
         printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor())).append("\u200amm/s\n");
@@ -1258,5 +1258,13 @@ public abstract class CIS {
         public CISNextSizeException(String message) {
             super(message);
         }
+    }
+
+    /**
+     * calculates the number of pixel and returns it
+     */
+    public int getNumOfPix() {
+        setNumOfPix(calcNumOfPix());
+        return numOfPix;
     }
 }

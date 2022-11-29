@@ -1,6 +1,6 @@
 package de.tichawa.cis.config.vucis;
 
-import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.*;
 import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -28,6 +28,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     public CheckBox LensDOF;
     @FXML
     public CheckBox ReducedPixelClock;
+    @FXML
+    public Label CameraLinkInfo;
+    @FXML
+    public Label LightInfo;
     @FXML
     private ChoiceBox<String> BrightFieldLeft;
     @FXML
@@ -342,6 +346,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         // initialize other stuff
         Cooling.setVisible(false); //make invisible as this is not used for VUCIS for now (but comes from config/MaskController)
         initInterface();
+        updateCameraLinkInfo();
     }
 
     /**
@@ -364,31 +369,37 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 selectLightChoiceBox(DarkFieldLeft, (CIS.LightColor) evt.getNewValue());
                 updateScanWidthOptions();
                 setLightPresetToManual();
+                updateLightInfo();
                 return;
             case "leftBrightField":
                 selectLightChoiceBox(BrightFieldLeft, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
+                updateLightInfo();
                 return;
             case "coaxLight":
                 handleCoaxChange((CIS.LightColor) evt.getOldValue(), (CIS.LightColor) evt.getNewValue());
                 selectLightChoiceBox(Coax, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
+                updateLightInfo();
                 return;
             case "rightBrightField":
                 selectLightChoiceBox(BrightFieldRight, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
+                updateLightInfo();
                 return;
             case "rightDarkField":
                 selectLightChoiceBox(DarkFieldRight, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
+                updateLightInfo();
                 return;
             case "phaseCount":
                 Phases selectedPhase = Phases.findByPhaseCount((int) evt.getNewValue()).orElseThrow(() -> new IllegalArgumentException("selected phase count not found"));
                 handlePhasesChange(selectedPhase);
                 setLightPresetToManual();
+                updateCameraLinkInfo();
                 return;
             case "cloudyDay":
                 CloudyDay.setSelected((boolean) evt.getNewValue());
@@ -410,13 +421,16 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             // resolution and scan width
             case "resolution":
                 handleResolutionChange((CIS.Resolution) evt.getNewValue());
+                updateCameraLinkInfo();
                 return;
             case "scanWidth":
                 ScanWidth.getSelectionModel().select(evt.getNewValue() + " mm");
+                updateCameraLinkInfo();
                 return;
             // line rate and transport speed
             case "lineRate":
                 handleLineRateChange((int) evt.getNewValue());
+                updateCameraLinkInfo();
                 return;
             case "transportSpeed":
                 handleTransportSpeedChange((int) evt.getNewValue());
@@ -424,6 +438,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             // interface
             case "reducedPixelClock":
                 ReducedPixelClock.setSelected((boolean) evt.getNewValue());
+                updateCameraLinkInfo();
                 return;
         }
     }
@@ -600,5 +615,54 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
      */
     private void updateLensTypeChoiceBox() {
         LensType.setDisable(CIS_DATA.isShapeFromShading());
+    }
+
+    /**
+     * updates the camera link info text.
+     * Calculates the camera link configuration and displays needed boards, cables and number of used ports.
+     */
+    private void updateCameraLinkInfo() {
+        try {
+            List<CPUCLink> clcalc = CIS_DATA.getCLCalc(CIS_DATA.getNumOfPix());
+            StringJoiner displayText = new StringJoiner("\n");
+            int boardNumber = 1;
+            for (CPUCLink c : clcalc) {
+                String boardText = "Board " + boardNumber++ + " " // board number
+                        // camera link format (base, medium, full, deca)
+                        + c.getCameraLinks().stream().map(CPUCLink.CameraLink::getCLFormat).collect(Collectors.joining("+", "(", ")"))
+                        // needed cables and ports
+                        + ": " + c.getCableCount() + " cable, " + c.getPortCount() + " ports";
+                displayText.add(boardText);
+            }
+            CameraLinkInfo.setText(displayText.toString());
+        } catch (CISException e) {
+            CameraLinkInfo.setText(e.getMessage());
+        }
+    }
+
+    private void updateLightInfo() {
+        if (CIS_DATA.getLedLines() < 10) { // smaller than 10 is fine, 10 might not be fine if it's actually more
+            LightInfo.setText("");
+            return;
+        } //else 10 or more
+        int ledLines = CIS_DATA.getLights().chars().mapToObj(c -> CIS.LightColor.findByCode((char) c))
+                .filter(Optional::isPresent).map(Optional::get)
+                .mapToInt(VUCIS::getLValue).sum();
+        if (ledLines == 10) { // might be actually 10 and 10 is fine
+            LightInfo.setText("");
+            return;
+        } //else more than 10
+        StringBuilder displayText = new StringBuilder("Too many LED channels. ");
+        //might be able to combine bright fields
+        if (CIS_DATA.getLeftBrightField() == CIS_DATA.getRightBrightField() && CIS_DATA.getLeftBrightField() != CIS.LightColor.NONE
+                && ledLines - VUCIS.getLValue(CIS_DATA.getLeftBrightField()) <= 10)
+            displayText.append("\tBright Field channels from both sides might be combined.");
+        //might be able to combine dark fields
+        if (CIS_DATA.getLeftDarkField() == CIS_DATA.getRightDarkField() && CIS_DATA.getLeftDarkField() != CIS.LightColor.NONE
+                && ledLines - VUCIS.getLValue(CIS_DATA.getLeftDarkField()) <= 10)
+            displayText.append("\tDark Field channels from both sides might be combined.");
+        //might be able to combine all
+        //TODO check condition on when we can combine all 88XXX ? 88X88 ? 88XAA ? ...
+        LightInfo.setText(displayText.toString());
     }
 }
