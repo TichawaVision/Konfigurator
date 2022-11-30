@@ -33,6 +33,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     @FXML
     public Label LightInfo;
     @FXML
+    public ChoiceBox<String> Mod;
+    @FXML
     private ChoiceBox<String> BrightFieldLeft;
     @FXML
     private ChoiceBox<String> Coax;
@@ -325,6 +327,11 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     private void initInterface() {
         Interface.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
         ReducedPixelClock.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
+        //TODO cleanup, init list the right way
+        Mod.getItems().clear();
+        Mod.getItems().addAll("1", "4", "8", "16", "32");
+        Mod.getSelectionModel().select(String.valueOf(CIS_DATA.getMod()));
+        Mod.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setMod(Integer.parseInt(newValue)));
     }
 
     /**
@@ -440,6 +447,11 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 ReducedPixelClock.setSelected((boolean) evt.getNewValue());
                 updateCameraLinkInfo();
                 return;
+            // mod
+            case "mod":
+                Mod.setValue(String.valueOf((int) evt.getNewValue()));
+                updateCameraLinkInfo();
+                return; //TODO cleanup?
         }
     }
 
@@ -634,7 +646,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                         + ": " + c.getCableCount() + " cable, " + c.getPortCount() + " ports";
                 displayText.add(boardText);
             }
-            CameraLinkInfo.setText(displayText.toString());
+            CameraLinkInfo.setText(displayText + "\nActual scan width: " + CIS.getActualSupportedScanWidth(clcalc, CIS_DATA.getSelectedResolution().getActualResolution()) + "\u200amm");
+            //TODO make method not static to avoid params
         } catch (CISException e) {
             CameraLinkInfo.setText(e.getMessage());
         }

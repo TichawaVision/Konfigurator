@@ -28,6 +28,7 @@ public class VUCIS extends CIS {
     private boolean coolingRight;
     private boolean cloudyDay;
     private boolean reducedPixelClock;
+    private int mod;
 
     /**
      * returns whether the given light color is a valid option for VUCIS
@@ -152,6 +153,7 @@ public class VUCIS extends CIS {
         this.setPhaseCount(1);
         this.setSelectedLineRate((int) getMaxLineRate());
         this.setCooling(Cooling.LICO);
+        this.setMod(16);
     }
 
     public static List<Resolution> getResolutions() {
@@ -556,7 +558,7 @@ public class VUCIS extends CIS {
         int ports;
         int lvalMax; // the maximum/wanted/raw lval
         int taps;
-        int numberOf16Blocks;
+        int numberOfBlocks;
         int lval; // actual lval we can use
         int pixels; //actual pixel we have
         double datarateCPUPerPixelClock;
@@ -586,12 +588,12 @@ public class VUCIS extends CIS {
         clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClockMax = c.pixelsMax * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
         // calculate maximum possible lval
         clcalcCPUCLinks.forEach(c -> c.lvalMax = (int) (c.pixelsMax / Math.ceil(c.datarateCPUPerPixelClockMax / getPhaseCount())));
+        // calculate lval that is dividable by mod
+        clcalcCPUCLinks.forEach(c -> c.numberOfBlocks = c.lvalMax / mod); // int division to round down
+        clcalcCPUCLinks.forEach(c -> c.lval = c.numberOfBlocks * mod);
         // calculate needed taps
         clcalcCPUCLinks.forEach(c -> c.taps = c.pixelsMax / c.lvalMax);
-        // calculate lval that is dividable by 16
-        clcalcCPUCLinks.forEach(c -> c.numberOf16Blocks = (int) (c.lvalMax / (double) c.taps / 16.0));
-        clcalcCPUCLinks.forEach(c -> c.lval = c.numberOf16Blocks * 16 * c.taps);
-        // calculate actual pixel number (with lval dividable by 16)
+        // calculate actual pixel number (with lval dividable by mod)
         clcalcCPUCLinks.forEach(c -> c.pixels = c.lval * c.taps);
         // calculate actual datarate
         clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClock = c.pixels * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
@@ -1220,5 +1222,15 @@ public class VUCIS extends CIS {
     @Override
     protected boolean hasLEDs() {
         return getLedLines() > 0;
+    }
+
+    public void setMod(int mod) {
+        int oldValue = this.mod;
+        this.mod = mod;
+        observers.firePropertyChange("mod", oldValue, mod);
+    }
+
+    public int getMod() {
+        return mod;
     }
 }

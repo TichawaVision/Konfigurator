@@ -214,7 +214,11 @@
                     </items>
                 </ComboBox>
             </HBox>
-            <CheckBox fx:id="ReducedPixelClock" text="Reduced camera link frequency" GridPane.columnIndex="1"/>
+            <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1">
+                <Label text="Mod:"/>
+                <ChoiceBox fx:id="Mod"/>
+            </HBox>
+            <CheckBox fx:id="ReducedPixelClock" text="Reduced camera link frequency" GridPane.columnIndex="2"/>
         </GridPane>
         <HBox alignment="CENTER_RIGHT" GridPane.rowIndex="3" GridPane.columnIndex="2">
             <Label fx:id="CameraLinkInfo" text="Placeholder Camera Link Info" minHeight="75"/>
