@@ -25,6 +25,9 @@ public class CPUCLink {
         this(dataRate, pixelCount, pixelClock, null);
     }
 
+    /**
+     * adds the given camera link to the camera links list and sets its id
+     */
     public void addCameraLink(CameraLink cameraLink) {
         int nextCLId = this.getCameraLinks().isEmpty() ? CameraLink.DEFAULT_ID : cameraLinks.get(cameraLinks.size() - 1).getId() + 1;
         this.getCameraLinks().add(cameraLink.withId(nextCLId));
@@ -37,12 +40,18 @@ public class CPUCLink {
         return cameraLinks.stream().mapToInt(CameraLink::getCableCount).sum();
     }
 
+    /**
+     * returns the sum of ports for all camera links of this CPUCLink
+     */
     public int getPortCount() {
         return cameraLinks.stream()
                 .mapToInt(CameraLink::getPortCount)
                 .sum();
     }
 
+    /**
+     * returns the sum of ports in use for all camera links of this CPUCLink
+     */
     public int getPortNumber() {
         return cameraLinks.stream()
                 .mapToInt(CameraLink::getPortNumber)
@@ -54,6 +63,16 @@ public class CPUCLink {
         return toString("");
     }
 
+    /**
+     * returns the String representation of this CPUCLink:
+     * - datarate
+     * - number of pixels
+     * - number of needed cables
+     * - number of used ports
+     * - pixel clock
+     * - notes (if not empty)
+     * Indents each line by the given indentation (prepends it to the line)
+     */
     public String toString(String indentation) {
         StringBuilder output = new StringBuilder(indentation)
                 .append(Util.getString("datarate"))
@@ -115,33 +134,40 @@ public class CPUCLink {
             this(id, defaultPort, new LinkedList<>());
         }
 
+        /**
+         * adds the given ports if there is space (see {@link #MAX_PORT_COUNT})
+         * Also sets the port name for each port to the next letter
+         */
         public boolean addPorts(Port... ports) {
             if (getPorts().size() + ports.length <= MAX_PORT_COUNT) {
                 for (Port port : ports) {
                     char nextPortName = getPorts().isEmpty() ? Port.DEFAULT_NAME : (char) (getPorts().getLast().getName() + 1);
                     getPorts().add(port.withName(nextPortName));
                 }
-
                 return true;
-            } else {
-                return false;
-            }
+            } //else
+            return false;
         }
 
+        /**
+         * returns the number of ports in the ports list
+         */
         public int getPortCount() {
             return getPorts().size();
         }
 
-        public int getPortNumber() {
-            int num = 0;
-            for (int i = 0; i < getPortCount(); ++i) {
-                if (!(getPorts().get(i).getEndPixel() == 0)) {
-                    num++;
-                }
-            }
-            return num;
+        /**
+         * returns the number of ports in the ports list where the end pixel is not 0
+         */
+        public int getPortNumber() { //TODO is this needed?
+            return (int) getPorts().stream().filter(p -> p.getEndPixel() != 0).count();
         }
 
+        /**
+         * returns the string representation of this camera link:
+         * - "CameraLink" number with format (BASE, MEDIUM, FULL, DECA)
+         * - each port in one line
+         */
         @Override
         public String toString() {
             return "CameraLink " + getId() + " (" + getCLFormat() + "):\n" + getPorts().stream()
@@ -150,11 +176,20 @@ public class CPUCLink {
                     .collect(Collectors.joining("\n"));
         }
 
-
+        /**
+         * returns the last pixel of this camera link
+         */
         public int getEndPixel() {
             return ports.getLast().getEndPixel();
         }
 
+        /**
+         * returns the camera link format string depending on the number of ports:
+         * - "Base" if <=3
+         * - "Medium" if <=6
+         * - "Full" if <=8
+         * - "Deca" otherwise
+         */
         public String getCLFormat() {
             if (getPortCount() <= 3)
                 return "Base";
@@ -201,6 +236,10 @@ public class CPUCLink {
             return getEndPixel() - getStartPixel() + 1;
         }
 
+        /**
+         * returns the string representation of this port:
+         * - "Port" portName: start and end pixel
+         */
         @Override
         public String toString() {
             String noteString = getNote() == null ? "" : " (" + getNote() + ")";

@@ -515,8 +515,10 @@ public class VUCIS extends CIS {
      */
     private static CPUCLink createSingleCPUCLink(double dataratePerPixelClock, long pixel, int ports, int lval, int phaseCount, long pixelClock, int startLvalCPUC) {
         String notes = ""; // don't really need any extra info on print out
+        // create CPUCLink object
         CPUCLink cpucLink = new CPUCLink((long) (dataratePerPixelClock * pixelClock), pixel, pixelClock, notes);
 
+        // add camera links
         switch (phaseCount) {
             case 1:
             case 2:
@@ -561,37 +563,50 @@ public class VUCIS extends CIS {
     }
 
     /**
-     * calculates the camera link configuration
+     * calculates the camera link configuration.
+     * Determines the maximum number of pixels per CPUCLink and calculates a lval that is dividable by 16 (some pixels are lost in the process)
+     * Calculates port allocation accordingly.
      */
     @Override
     public List<CPUCLink> getCLCalc(int numOfPix) {
-        //new calc
-
+        // calculate maximum number of pixels
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         int numSensorBoards = getBoardCount();
-        int numCPUCLink = getNumOfCPUCLink();
-        double lineRateKHz = getSelectedLineRate() / 1000.0;
         int resolution = getSelectedResolution().getActualResolution();
         int numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() * resolution / 1200);
+        // other data needed for calculations
         long pixelClock = reducedPixelClock ? PIXEL_CLOCK_REDUCED : PIXEL_CLOCK_NORMAL;
+        int numCPUCLink = getNumOfCPUCLink();
+        double lineRateKHz = getSelectedLineRate() / 1000.0;
 
+        // calculate maximum possible number of pixels per CPUCLink and create an CLCalcCPUCLink object for further calculations
         List<Integer> pixelsCPU = roundPixel(numSensorBoards, numCPUCLink, numOfPixNominal);
         List<CLCalcCPUCLink> clcalcCPUCLinks = pixelsCPU.stream().map(CLCalcCPUCLink::new).collect(Collectors.toList());
+        // calculate maximum possible datarate for each CPUCLink
         clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClockMax = c.pixelsMax * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
-        clcalcCPUCLinks.forEach(c -> c.ports = (int) (Math.ceil(c.datarateCPUPerPixelClockMax / getPhaseCount()) * getPhaseCount()));
+        // calculate maximum possible lval
         clcalcCPUCLinks.forEach(c -> c.lvalMax = (int) (c.pixelsMax / Math.ceil(c.datarateCPUPerPixelClockMax / getPhaseCount())));
+        // calculate needed taps
         clcalcCPUCLinks.forEach(c -> c.taps = c.pixelsMax / c.lvalMax);
+        // calculate lval that is dividable by 16
         clcalcCPUCLinks.forEach(c -> c.numberOf16Blocks = (int) (c.lvalMax / (double) c.taps / 16.0));
         clcalcCPUCLinks.forEach(c -> c.lval = c.numberOf16Blocks * 16 * c.taps);
+        // calculate actual pixel number (with lval dividable by 16)
         clcalcCPUCLinks.forEach(c -> c.pixels = c.lval * c.taps);
+        // calculate actual datarate
         clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClock = c.pixels * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
+        // calculate ports
+        clcalcCPUCLinks.forEach(c -> c.ports = (int) (Math.ceil(c.datarateCPUPerPixelClockMax / getPhaseCount()) * getPhaseCount()));
 
+        // create CPUCLink objects with calculated data
         List<CPUCLink> cpucLinks = new LinkedList<>();
-        int startLvalCPUC = 0;
+        int startLvalCPUC = 0; // later CPUCLinks start with the end pixel of the previous one +1
         for (CLCalcCPUCLink c : clcalcCPUCLinks) {
             cpucLinks.add(createSingleCPUCLink(c.datarateCPUPerPixelClock, c.pixels, c.ports, c.lval, getPhaseCount(), pixelClock, startLvalCPUC));
             startLvalCPUC += c.pixels;
         }
+        // just print this out here for now, may add it somewhere else later
+        System.out.println("actual supported scan width: " + getActualSupportedScanWidth(cpucLinks, getSelectedResolution().getActualResolution()));
         return cpucLinks;
     }
 
@@ -599,7 +614,10 @@ public class VUCIS extends CIS {
         return leftBrightField;
     }
 
-    private LensType getLowDistanceLens(LensType lensType) {
+    /**
+     * returns the smaller distance lens (TC54 or TC54L) for the given lens type.
+     */
+    private static LensType getLowDistanceLens(LensType lensType) {
         switch (lensType) {
             case TC54:
             case TC80:

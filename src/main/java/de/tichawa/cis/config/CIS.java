@@ -114,7 +114,6 @@ public abstract class CIS {
         RED_SFS("Red (Shape from Shading)", "RS", 'R'),
         WHITE_SFS("White (Shape from Shading)", "WS", 'W');
 
-
         private final String description;
         private final String shortHand;
         private final char code;
@@ -713,6 +712,8 @@ public abstract class CIS {
                     printout.append("Board ").append(i++).append(":\n");
                     printout.append(CPUCLink.toString("  ")).append("\n\n\n");
                 }
+                // print out here for now, maybe add this somewhere else in the future
+                //System.out.println("actual supported scan width: " + getActualSupportedScanWidth(clCalc, getSelectedResolution().getActualResolution()));
             } else {
                 return null;
             }
@@ -1266,5 +1267,14 @@ public abstract class CIS {
     public int getNumOfPix() {
         setNumOfPix(calcNumOfPix());
         return numOfPix;
+    }
+
+    /**
+     * calculates the actual supported scan width that resulting from the pixel count of the cpucLinks.
+     * Might be lower than the selected scan width because lvals should be dividable by 16 and therefore some pixels might be lost.
+     */
+    public static double getActualSupportedScanWidth(List<CPUCLink> cpucLinks, int resolution) {
+        long pixelSum = cpucLinks.stream().mapToLong(CPUCLink::getPixelCount).sum();
+        return pixelSum * (21 + 1. / 6) * 1200 / resolution / 1000;
     }
 }

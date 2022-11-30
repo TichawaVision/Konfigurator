@@ -130,7 +130,7 @@ public class DataSheetController implements Initializable {
         }
     }
 
-    public void print() { //TODO make this not take a screenshot
+    public void print() { //TODO make this not take a screenshot -> maybe by using labels instead of text areas
         PrinterJob p = PrinterJob.createPrinterJob();
         Pane printable = Grid;
 
