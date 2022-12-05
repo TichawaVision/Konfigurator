@@ -193,7 +193,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         lightBox.valueProperty().addListener((property, oldValue, newValue) -> {
             if (newValue != null) { // when clearing and resetting choice boxes this may be null
                 //set light color in model on light change
-                String lightName = ((ChoiceBox) ((ObjectProperty) property).getBean()).getId();
+                String lightName = ((ChoiceBox<?>) ((ObjectProperty<?>) property).getBean()).getId();
                 CIS_DATA.setLightColor(lightName,
                         CIS.LightColor.findByDescription(newValue).orElseThrow(() -> new IllegalArgumentException("selected light color for light " + lightName + " does not exist: " + newValue)));
             }
@@ -325,11 +325,13 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
      * initializes the interface section
      */
     private void initInterface() {
+        // disable interface choice
         Interface.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
+        // listener for reduced pixel clock
         ReducedPixelClock.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
-        //TODO cleanup, init list the right way
+        // setup choice box for valid mod options
         Mod.getItems().clear();
-        Mod.getItems().addAll("1", "4", "8", "16", "32");
+        Mod.getItems().addAll(VUCIS.VALID_MODS.stream().map(Object::toString).collect(Collectors.toList()));
         Mod.getSelectionModel().select(String.valueOf(CIS_DATA.getMod()));
         Mod.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setMod(Integer.parseInt(newValue)));
     }
@@ -451,7 +453,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             case "mod":
                 Mod.setValue(String.valueOf((int) evt.getNewValue()));
                 updateCameraLinkInfo();
-                return; //TODO cleanup?
+                return;
         }
     }
 
@@ -646,7 +648,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                         + ": " + c.getCableCount() + " cable, " + c.getPortCount() + " ports";
                 displayText.add(boardText);
             }
-            CameraLinkInfo.setText(displayText + "\nActual scan width: " + CIS.getActualSupportedScanWidth(clcalc, CIS_DATA.getSelectedResolution().getActualResolution()) + "\u200amm");
+            CameraLinkInfo.setText(displayText + "\n"
+                    + "Actual scan width: "
+                    + String.format(Locale.US, "%.2f", CIS_DATA.getActualSupportedScanWidth(clcalc))
+                    + "\u200amm");
             //TODO make method not static to avoid params
         } catch (CISException e) {
             CameraLinkInfo.setText(e.getMessage());

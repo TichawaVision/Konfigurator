@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.*?>
-<AnchorPane id="AnchorPane" prefHeight="510.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/8"
+<AnchorPane id="AnchorPane" prefHeight="640.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/8"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.tichawa.cis.config.vucis.MaskController">
     <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
@@ -17,6 +17,7 @@
             <RowConstraints vgrow="SOMETIMES" prefHeight="220"/>
             <RowConstraints vgrow="SOMETIMES" prefHeight="80"/>
             <RowConstraints vgrow="SOMETIMES" prefHeight="120"/>
+            <RowConstraints vgrow="SOMETIMES" prefHeight="130"/>
         </rowConstraints>
 
         <TitledPane animated="false" prefHeight="220.0" collapsible="false" GridPane.columnSpan="3"
@@ -202,27 +203,36 @@
                 <Label fx:id="Speedips" text="0 ips" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
             </GridPane>
         </TitledPane>
-
-        <GridPane alignment="CENTER_RIGHT" hgap="5.0" vgap="5.0" GridPane.columnSpan="2" GridPane.rowIndex="3">
-            <HBox alignment="CENTER" spacing="5.0">
-                <Label text="Interface:"/>
-                <ComboBox fx:id="Interface" disable="true" promptText="CameraLink">
-                    <items>
-                        <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="CameraLink"/>
-                        </FXCollections>
-                    </items>
-                </ComboBox>
-            </HBox>
-            <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1">
-                <Label text="Mod:"/>
-                <ChoiceBox fx:id="Mod"/>
-            </HBox>
-            <CheckBox fx:id="ReducedPixelClock" text="Reduced camera link frequency" GridPane.columnIndex="2"/>
-        </GridPane>
-        <HBox alignment="CENTER_RIGHT" GridPane.rowIndex="3" GridPane.columnIndex="2">
-            <Label fx:id="CameraLinkInfo" text="Placeholder Camera Link Info" minHeight="75"/>
-        </HBox>
+        <TitledPane collapsible="false" minHeight="130" GridPane.columnSpan="3"
+                    GridPane.fillWidth="true" GridPane.rowIndex="3"
+                    text="Interface">
+            <GridPane alignment="CENTER" hgap="20">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="20"/><!-- Interface -->
+                    <ColumnConstraints percentWidth="20"/><!-- Mod -->
+                    <ColumnConstraints percentWidth="20"/><!-- Reduced pixel clock -->
+                    <ColumnConstraints percentWidth="35"/><!-- Camera link info -->
+                </columnConstraints>
+                <HBox alignment="CENTER" spacing="5.0">
+                    <Label text="Interface:"/>
+                    <ComboBox fx:id="Interface" disable="true" promptText="CameraLink">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="CameraLink"/>
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </HBox>
+                <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1">
+                    <Label text="Mod:"/>
+                    <ChoiceBox fx:id="Mod"/>
+                </HBox>
+                <CheckBox fx:id="ReducedPixelClock" text="Reduced camera link frequency" GridPane.columnIndex="2"/>
+                <HBox alignment="CENTER_RIGHT" GridPane.columnIndex="3">
+                    <Label fx:id="CameraLinkInfo" text="Placeholder Camera Link Info" minHeight="75"/>
+                </HBox>
+            </GridPane>
+        </TitledPane>
         <HBox alignment="CENTER" spacing="5.0" GridPane.rowIndex="3" GridPane.columnIndex="0">
             <ComboBox fx:id="Cooling" disable="true" promptText="Liquid Cooling (Default)">
                 <items>
@@ -245,6 +255,5 @@
         </HBox>
         <Label fx:id="Infotext" text="For special options, please contact sales@tichawa.de" GridPane.columnSpan="3"
                GridPane.rowIndex="6"/>
-
     </GridPane>
 </AnchorPane>

@@ -11,6 +11,7 @@ import java.util.stream.*;
  * Handles language selection for the GUI
  */
 public class Util {
+
     @Getter
     private static Locale locale = Locale.getDefault(); // start with default language
 
@@ -36,10 +37,9 @@ public class Util {
      * switches languages (DE <-> EN)
      */
     public static void switchLanguage() {
-        if (getLocale().toString().equals("de_DE")) {
-            locale = new Locale("en", "US");
-        } else if (getLocale().toString().equals("en_US")) {
-            locale = new Locale("de", "DE");
-        }
+        if (locale == Locale.GERMANY)
+            locale = Locale.US;
+        else
+            locale = Locale.GERMANY;
     }
 }

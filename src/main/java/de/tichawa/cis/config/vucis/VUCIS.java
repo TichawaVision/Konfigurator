@@ -17,6 +17,7 @@ public class VUCIS extends CIS {
     public static final long PIXEL_CLOCK_NORMAL = 85000000;
     public static final long PIXEL_CLOCK_REDUCED = 53000000;
     public static final List<Resolution> resolutions;
+    public static final List<Integer> VALID_MODS;
 
     private LightColor leftBrightField;
     private LightColor coaxLight;
@@ -133,6 +134,7 @@ public class VUCIS extends CIS {
                 new CIS.Resolution(75, 300, false, 6.0, 0.339),
                 new CIS.Resolution(50, 300, false, 8.0, 0.5),
                 new CIS.Resolution(25, 300, false, 10.0, 1.0));
+        VALID_MODS = Arrays.asList(1, 4, 8, 16, 32);
     }
 
     public VUCIS() {
@@ -608,7 +610,7 @@ public class VUCIS extends CIS {
             startLvalCPUC += c.pixels;
         }
         // just print this out here for now, may add it somewhere else later
-        System.out.println("actual supported scan width: " + getActualSupportedScanWidth(cpucLinks, getSelectedResolution().getActualResolution()));
+        System.out.println("actual supported scan width: " + getActualSupportedScanWidth(cpucLinks));
         return cpucLinks;
     }
 
@@ -1224,7 +1226,7 @@ public class VUCIS extends CIS {
         return getLedLines() > 0;
     }
 
-    public void setMod(int mod) {
+    public void setMod(int mod) { //TODO maybe change label for mod
         int oldValue = this.mod;
         this.mod = mod;
         observers.firePropertyChange("mod", oldValue, mod);

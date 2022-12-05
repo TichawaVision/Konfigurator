@@ -1273,8 +1273,8 @@ public abstract class CIS {
      * calculates the actual supported scan width that resulting from the pixel count of the cpucLinks.
      * Might be lower than the selected scan width because lvals should be dividable by 16 and therefore some pixels might be lost.
      */
-    public static double getActualSupportedScanWidth(List<CPUCLink> cpucLinks, int resolution) {
+    public double getActualSupportedScanWidth(List<CPUCLink> cpucLinks) {
         long pixelSum = cpucLinks.stream().mapToLong(CPUCLink::getPixelCount).sum();
-        return pixelSum * (21 + 1. / 6) * 1200 / resolution / 1000;
+        return pixelSum * (21 + 1. / 6) * 1200 / selectedResolution.actualResolution / 1000;
     }
 }
