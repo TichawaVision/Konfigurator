@@ -162,17 +162,20 @@
                     text="Pixel &amp; Defect Size">
             <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <columnConstraints>
-                    <ColumnConstraints maxWidth="80.0" minWidth="80.0" prefWidth="80.0"/>
+                    <ColumnConstraints minWidth="120.0"/>
                     <ColumnConstraints maxWidth="100.0" minWidth="100.0" prefWidth="100.0"/>
                 </columnConstraints>
                 <rowConstraints>
-                    <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0"/>
-                    <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0"/>
+                    <RowConstraints minHeight="20.0"/>
+                    <RowConstraints minHeight="20.0"/>
+                    <RowConstraints minHeight="20.0"/>
                 </rowConstraints>
                 <Label text="Pixel Size:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                 <Label fx:id="PixelSize" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
                 <Label text="Defect Size:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                 <Label fx:id="DefectSize" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="Number of pixels:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label fx:id="PixelCount" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" GridPane.columnIndex="2" GridPane.fillHeight="true"
@@ -209,8 +212,8 @@
             <GridPane alignment="CENTER" hgap="20">
                 <columnConstraints>
                     <ColumnConstraints percentWidth="20"/><!-- Interface -->
-                    <ColumnConstraints percentWidth="20"/><!-- Mod -->
-                    <ColumnConstraints percentWidth="20"/><!-- Reduced pixel clock -->
+                    <ColumnConstraints percentWidth="15"/><!-- Mod -->
+                    <ColumnConstraints percentWidth="25"/><!-- Reduced pixel clock -->
                     <ColumnConstraints percentWidth="35"/><!-- Camera link info -->
                 </columnConstraints>
                 <HBox alignment="CENTER" spacing="5.0">
@@ -227,7 +230,8 @@
                     <Label text="Mod:"/>
                     <ChoiceBox fx:id="Mod"/>
                 </HBox>
-                <CheckBox fx:id="ReducedPixelClock" text="Reduced camera link frequency" GridPane.columnIndex="2"/>
+                <CheckBox fx:id="ReducedPixelClock" text="Reduced camera link frequency (53 kHz)"
+                          GridPane.columnIndex="2"/>
                 <HBox alignment="CENTER_RIGHT" GridPane.columnIndex="3">
                     <Label fx:id="CameraLinkInfo" text="Placeholder Camera Link Info" minHeight="75"/>
                 </HBox>

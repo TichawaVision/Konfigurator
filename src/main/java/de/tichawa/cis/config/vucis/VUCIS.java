@@ -570,9 +570,10 @@ public class VUCIS extends CIS {
      * calculates the camera link configuration.
      * Determines the maximum number of pixels per CPUCLink and calculates a lval that is dividable by 16 (some pixels are lost in the process)
      * Calculates port allocation accordingly.
+     * calculation may be null!
      */
     @Override
-    public List<CPUCLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation) { //TODO maybe remove calculation (maybe overload method where it is needed - or use a getter?)
         // calculate maximum number of pixels
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         int numSensorBoards = getBoardCount();
@@ -1110,26 +1111,26 @@ public class VUCIS extends CIS {
      * will return the double max value if there is no light
      */
     @Override
-    protected double getMinFreq() {
+    protected double getMinFreq(CISCalculation calculation) {
         return Collections.min(Arrays.asList(
-                getMinFreqForLight(leftDarkField, true, false),
-                getMinFreqForLight(leftBrightField, false, false),
-                getMinFreqForLight(coaxLight, false, true),
-                getMinFreqForLight(rightBrightField, false, false),
-                getMinFreqForLight(rightDarkField, true, false)));
+                getMinFreqForLight(leftDarkField, true, false, calculation),
+                getMinFreqForLight(leftBrightField, false, false, calculation),
+                getMinFreqForLight(coaxLight, false, true, calculation),
+                getMinFreqForLight(rightBrightField, false, false, calculation),
+                getMinFreqForLight(rightDarkField, true, false, calculation)));
     }
 
     /**
      * returns the minimum frequency for the given light by calculating:
      * 100 * I_p * gamma * n * tau * S_v / (1.5 * m)
      */
-    private double getMinFreqForLight(LightColor lightColor, boolean isDarkfield, boolean isCoax) {
+    private double getMinFreqForLight(LightColor lightColor, boolean isDarkfield, boolean isCoax, CISCalculation calculation) {
         if (lightColor == LightColor.NONE)
             return Double.MAX_VALUE;
         double I_p = getIpValue(lightColor, isDarkfield);
         double gamma = getGeometryFactor(lightColor, isDarkfield, isCoax);
         double n = getNFactor(isDarkfield, isCoax);
-        double tau = mechaSums[4]; // only Lens will have a photo value in mecha table
+        double tau = calculation.mechaSums[4]; // only Lens will have a photo value in mecha table
         double S_v = getSensitivityFactor();
         double m = getPhaseCount();
         return 100 * I_p * gamma * n * tau * S_v / (1.5 * m);
@@ -1143,7 +1144,7 @@ public class VUCIS extends CIS {
         String shortHand = lightColor.isShapeFromShading() ?
                 lightColor.getCode() + (isDarkfield ? "D" : "B") // add D for darkfield, B for brightfield to the short code
                 : lightColor.getShortHand(); // normal short hand for all other lights
-        return getDatabase().orElseThrow(() -> new IllegalStateException("database not found"))
+        return Util.getDatabase().orElseThrow(() -> new IllegalStateException("database not found"))
                 .select(min(PRICE.PHOTO_VALUE))
                 .from(PRICE.join(ELECTRONIC).on(PRICE.ART_NO.eq(ELECTRONIC.ART_NO)))
                 .where(ELECTRONIC.CIS_TYPE.eq(getClass().getSimpleName()))
@@ -1226,7 +1227,7 @@ public class VUCIS extends CIS {
         return getLedLines() > 0;
     }
 
-    public void setMod(int mod) { //TODO maybe change label for mod
+    public void setMod(int mod) { //TODO change label for mod: mod for lval
         int oldValue = this.mod;
         this.mod = mod;
         observers.firePropertyChange("mod", oldValue, mod);

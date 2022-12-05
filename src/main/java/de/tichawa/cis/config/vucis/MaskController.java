@@ -35,6 +35,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     @FXML
     public ChoiceBox<String> Mod;
     @FXML
+    public Label PixelCount;
+    @FXML
     private ChoiceBox<String> BrightFieldLeft;
     @FXML
     private ChoiceBox<String> Coax;
@@ -93,7 +95,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         COAX(CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.RED, 1, "Coax (Red)", false),
         BF_RGB(CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.NONE, 1, "BrightField (Red)", false),
         BF_RGB_S(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.NONE, 3, "BrightField (RGB)", false),
-        CLOUDY_DAY(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.NONE, 3, "Cloudy Day (RGB)", true);
+        CLOUDY_DAY(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.NONE, 3, "Cloudy Day (RGB)", true),
+        DF_RED(CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, 1, "DarkField (Red)", false),
+        WAFER(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, 3, "Wafer (RGB strong)", false);
 
         private final CIS.LightColor leftBrightField, leftDarkField, rightBrightField, rightDarkField, coax;
         private final int phaseCount;
@@ -634,10 +638,11 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     /**
      * updates the camera link info text.
      * Calculates the camera link configuration and displays needed boards, cables and number of used ports.
+     * Also updates the total pixel count.
      */
     private void updateCameraLinkInfo() {
         try {
-            List<CPUCLink> clcalc = CIS_DATA.getCLCalc(CIS_DATA.getNumOfPix());
+            List<CPUCLink> clcalc = CIS_DATA.getCLCalc(CIS_DATA.getNumOfPix(), null);
             StringJoiner displayText = new StringJoiner("\n");
             int boardNumber = 1;
             for (CPUCLink c : clcalc) {
@@ -652,7 +657,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                     + "Actual scan width: "
                     + String.format(Locale.US, "%.2f", CIS_DATA.getActualSupportedScanWidth(clcalc))
                     + "\u200amm");
-            //TODO make method not static to avoid params
+            //pixel count
+            long pixelCount = clcalc.stream().mapToLong(CPUCLink::getPixelCount).sum();
+            PixelCount.setText(pixelCount + "");
         } catch (CISException e) {
             CameraLinkInfo.setText(e.getMessage());
         }
@@ -684,3 +691,4 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         LightInfo.setText(displayText.toString());
     }
 }
+//TODO mod on datasheet

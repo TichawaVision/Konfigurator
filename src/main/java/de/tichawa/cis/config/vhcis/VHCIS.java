@@ -21,7 +21,7 @@ public class VHCIS extends VSCIS {
     }
 
     @Override
-    public List<CPUCLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation) {
         int numOfPixNominal;
         int taps;
         int pixPerTap;

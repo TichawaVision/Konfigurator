@@ -94,7 +94,7 @@ public class MXCIS extends CIS {
     }
 
     @Override
-    public List<CPUCLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation) {
         double fpgaDataRate;
         int tapsPerFpga;
         int lval;
@@ -120,7 +120,7 @@ public class MXCIS extends CIS {
         pixPerFpga = sensPerFpga * sensorBoard.getChips() * sensorChip.getPixelPerSensor() / getBinning();
         fpgaDataRate = pixPerFpga * getSelectedLineRate() / 1000.0;
         tapsPerFpga = (int) Math.ceil(fpgaDataRate / (84 * 1000.0));
-        if (getPhaseCount() == 1 && getNumFPGA() > 1 && tapsPerFpga % 2 == 1) {
+        if (getPhaseCount() == 1 && calculation.numFPGA > 1 && tapsPerFpga % 2 == 1) {
             tapsPerFpga++;
         }
 
@@ -134,7 +134,7 @@ public class MXCIS extends CIS {
         CPUCLink CPUCLink = new CPUCLink(dataRate, numOfPix, 85000000);
 
         if (getPhaseCount() == 4) {
-            for (int x = 0; x < tapsPerFpga * getNumFPGA(); x++) {
+            for (int x = 0; x < tapsPerFpga * calculation.numFPGA; x++) {
                 int endPixel = lval > numOfPix ? numOfPix - 1 : (x + 1) * lval - 1;
                 CPUCLink.CameraLink conn = new CPUCLink.CameraLink();
                 conn.addPorts(new CPUCLink.Port(x * lval, endPixel, "Red"),

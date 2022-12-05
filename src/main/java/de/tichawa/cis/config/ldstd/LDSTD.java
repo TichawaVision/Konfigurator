@@ -48,7 +48,7 @@ public class LDSTD extends CIS {
     }
 
     @Override
-    public List<CPUCLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation) {
         return new LinkedList<>();
     }
 
@@ -64,6 +64,8 @@ public class LDSTD extends CIS {
 
     @Override
     public String createPrntOut() {
+        CISCalculation calculation = calculate();
+
         String printout = getTiViKey();
         printout += "\n\t\n";
         printout += Util.getString("suitedfor") + getScanWidth() + Util.getString("mm CIS scan width") + "\n";
@@ -84,8 +86,12 @@ public class LDSTD extends CIS {
         printout += Util.getString("glass pane, see drawing") + "\n";
         printout += Util.getString("shading") + "\n";
         printout += Util.getString("powersource") + "(24 +/- 1) VDC\n";
-        printout += Util.getString("Needed power:") + (((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + " A").replace(" 0 A", " ???") + " +/- 20%\n";
-        printout += Util.getString("weight") + ": ~ " + (Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
+        printout += Util.getString("Needed power:")
+                + (((calculation.electSums[2] == null) ? 0.0 : (Math.round(10.0 * calculation.electSums[2]) / 10.0)) + " A")
+                .replace(" 0 A", " ???") + " +/- 20%\n";
+        printout += Util.getString("weight") + ": ~ "
+                + (Math.round((((calculation.electSums[3] == null) ? 0.0 : calculation.electSums[3])
+                + ((calculation.mechaSums[3] == null) ? 0.0 : calculation.mechaSums[3])) * 10) / 10.0 + " kg").replace(" 0 kg", " ???") + "\n";
 
         return printout;
     }

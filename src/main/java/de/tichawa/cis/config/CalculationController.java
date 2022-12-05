@@ -45,7 +45,7 @@ public class CalculationController implements Initializable {
 
     }
 
-    public void passData(CIS data) {
+    public void passData(CIS data) { //TODO create copy of data since data could be changed afterwards but this.CIS_DATA should not
         this.CIS_DATA = data;
 
         load();
@@ -455,7 +455,7 @@ public class CalculationController implements Initializable {
         }
     }
 
-    private class CustomIntCell extends TableCell<CalcLine, Integer> {
+    private static class CustomIntCell extends TableCell<CalcLine, Integer> {
         @Override
         public void updateItem(final Integer item, boolean empty) {
             if (item != null) {
@@ -464,7 +464,7 @@ public class CalculationController implements Initializable {
         }
     }
 
-    private class CustomDoubleCell extends TableCell<CalcLine, Double> {
+    private static class CustomDoubleCell extends TableCell<CalcLine, Double> {
         @Override
         public void updateItem(final Double item, boolean empty) {
             if (item != null) {

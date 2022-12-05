@@ -7,13 +7,9 @@ import de.tichawa.cis.config.vdcis.VDCIS;
 import de.tichawa.cis.config.vucis.VUCIS;
 import de.tichawa.util.MathEval;
 import lombok.*;
-import org.apache.commons.dbcp2.BasicDataSource;
-import org.jooq.*;
 import org.jooq.exception.DataAccessException;
-import org.jooq.impl.DSL;
 
 import java.beans.*;
-import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
@@ -24,31 +20,48 @@ import static de.tichawa.cis.config.model.Tables.*;
 
 // Alle allgemeine CIS Funktionen
 public abstract class CIS {
-    protected PropertyChangeSupport observers; // part of 'observer' pattern (via property change) to communicate changes to the model (this class) e.g. to the GUI
-    // observer currently only supported by VUCIS so only methods used by VUCIS will fire property changes (for now)
-
+    // global constants
     public static final int BASE_LENGTH = 260;
     private static final Pattern LIGHT_PATTERN = Pattern.compile("(\\d+)D(\\d+)C");
+    private static final Map<String, AdcBoardRecord> ADC_BOARDS;
+    private static final Map<String, SensorChipRecord> SENSOR_CHIPS;
+    private static final Map<String, SensorBoardRecord> SENSOR_BOARDS;
+    private static final HashMap<Integer, Integer> MAX_RATE_FOR_HALF_MODE;
+
+    static {
+        // global information from database
+        ADC_BOARDS = Util.getDatabase()
+                .map(context -> context.selectFrom(ADC_BOARD).stream())
+                .orElse(Stream.empty())
+                .collect(Collectors.toMap(AdcBoardRecord::getName, Function.identity()));
+        SENSOR_CHIPS = Util.getDatabase()
+                .map(context -> context.selectFrom(SENSOR_CHIP).stream())
+                .orElse(Stream.empty())
+                .collect(Collectors.toMap(SensorChipRecord::getName, Function.identity()));
+        SENSOR_BOARDS = Util.getDatabase()
+                .map(context -> context.selectFrom(SENSOR_BOARD).stream())
+                .orElse(Stream.empty())
+                .collect(Collectors.toMap(SensorBoardRecord::getName, Function.identity()));
+        // other constants
+        MAX_RATE_FOR_HALF_MODE = new HashMap<>();
+        MAX_RATE_FOR_HALF_MODE.put(25, 27);
+        MAX_RATE_FOR_HALF_MODE.put(50, 27);
+        MAX_RATE_FOR_HALF_MODE.put(75, 18);
+        MAX_RATE_FOR_HALF_MODE.put(100, 27);
+        MAX_RATE_FOR_HALF_MODE.put(150, 18);
+        MAX_RATE_FOR_HALF_MODE.put(200, 27);
+        MAX_RATE_FOR_HALF_MODE.put(300, 18);
+        MAX_RATE_FOR_HALF_MODE.put(400, 13);
+        MAX_RATE_FOR_HALF_MODE.put(600, 10);
+    }
+
+    // members
+    protected PropertyChangeSupport observers; // part of 'observer' pattern (via property change) to communicate changes of the model (this class) e.g. to the GUI
+    // observer currently only supported by VUCIS so only methods used by VUCIS will fire property changes (for now)
 
     public final String cisName;
-
-    protected final HashMap<Integer, Integer> maxRateForHalfMode;
-
-    private final Properties dbProperties;
-    private final BasicDataSource dataSource;
-    private final Map<String, AdcBoardRecord> adcBoards;
-    private final Map<String, SensorChipRecord> sensChips;
-    private final Map<String, SensorBoardRecord> sensBoards;
     @Getter
     private final Set<LightColor> lightColors;
-
-    protected Map<PriceRecord, Integer> electConfig;
-    protected Map<PriceRecord, Integer> mechaConfig;
-    protected Double[] electSums;
-    protected Double[] mechaSums;
-    protected Double[] totalPrices;
-    protected int numFPGA;
-
     @Getter
     @Setter
     private int mode;
@@ -83,6 +96,16 @@ public abstract class CIS {
     @Setter
     private int coaxLightSources;
 
+    protected CIS() {
+        // init for observer pattern via property change
+        observers = new PropertyChangeSupport(this); // create observer list
+
+        // other inits (known at creation)
+        String fullName = this.getClass().getName();
+        cisName = fullName.substring(fullName.lastIndexOf('.') + 1);
+        this.lightColors = new HashSet<>();
+    }
+
     /**
      * adds the given observer to the list of observers that will get notified by changes to the model (this class)
      */
@@ -95,188 +118,9 @@ public abstract class CIS {
         getLightColors().add(lightColor);
     }
 
-    public enum LightColor {
-        NONE("None", "NO", 'X'),
-        RED("Red", "AM", 'A'),
-        GREEN("Green", "GR", 'G'),
-        BLUE("Blue", "BL", 'B'),
-        YELLOW("Yellow", "YE", 'Y'),
-        WHITE("White", "WH", 'L'),
-        IR("IR", "IR", 'I'),
-        IR950("IR 950nm", "JR", 'J'),
-        UVA("UVA 365nm", "UV", 'U'),
-        VERDE("Verde", "VE", 'V'),
-        RGB_S("RGB (strong)", "RGB_S", 'C'),
-        RGB("RGB", "RGB", 'P'),
-        IRUV("LEDIRUV", "HI", 'H'),
-        RGB8("RGB8", "REBZ8", '8'),
-        REBELMIX("REBELMIX", "REBEL", 'E'),
-        RED_SFS("Red (Shape from Shading)", "RS", 'R'),
-        WHITE_SFS("White (Shape from Shading)", "WS", 'W');
-
-        private final String description;
-        private final String shortHand;
-        private final char code;
-
-        public String getDescription() {
-            return description;
-        }
-
-        public char getCode() {
-            return code;
-        }
-
-        @SuppressWarnings("unused")
-        public String getShortHand() {
-            return shortHand;
-        }
-
-        LightColor(String description, String shortHand, char code) {
-            this.description = description;
-            this.shortHand = shortHand;
-            this.code = code;
-        }
-
-        public static Optional<LightColor> findByDescription(String description) {
-            return Arrays.stream(LightColor.values())
-                    .filter(c -> c.getDescription().equals(description))
-                    .findFirst();
-        }
-
-        @SuppressWarnings("unused")
-        public static Optional<LightColor> findByShortHand(String shortHand) {
-            return Arrays.stream(LightColor.values())
-                    .filter(c -> c.getShortHand().equals(shortHand))
-                    .findFirst();
-        }
-
-        @SuppressWarnings("unused")
-        public static Optional<LightColor> findByCode(char code) {
-            return Arrays.stream(LightColor.values())
-                    .filter(c -> c.getCode() == code)
-                    .findFirst();
-        }
-
-        public boolean isShapeFromShading() {
-            return this == WHITE_SFS || this == RED_SFS;
-        }
-    }
-
-    public enum Cooling {
-        NONE("NOCO", "None", "none"),
-        PAIR("PAIR", "Passive Air", "passair"),
-        FAIR("", "Int. Forced Air (Default)", "intforced"),
-        EAIR("FAIR", "Ext. Forced Air", "extforced"),
-        LICO("LICO", "Liquid Cooling", "lico");
-
-        private final String code;
-        private final String description;
-        private final String shortHand;
-
-        Cooling(String code, String description, String shortHand) {
-            this.code = code;
-            this.description = description;
-            this.shortHand = shortHand;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        public String getShortHand() {
-            return shortHand;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public static Optional<Cooling> findByDescription(String description) {
-            return Arrays.stream(Cooling.values())
-                    .filter(c -> c.getDescription().equals(description))
-                    .findFirst();
-        }
-
-        @SuppressWarnings("unused")
-        public static Optional<Cooling> findByCode(String code) {
-            return Arrays.stream(Cooling.values())
-                    .filter(c -> c.getCode().equals(code))
-                    .findFirst();
-        }
-    }
-
-    @Value
-    public static class Resolution {
-        int boardResolution;
-        double pixelSize;
-        boolean switchable;
-        int actualResolution;
-        double depthOfField;
-
-        public Resolution(int actualResolution, int boardResolution, boolean switchable, double depthOfField, double pixelSize) {
-            this.pixelSize = pixelSize;
-            this.boardResolution = boardResolution;
-            this.switchable = switchable;
-            this.depthOfField = depthOfField;
-            this.actualResolution = actualResolution;
-        }
-    }
-
     public abstract double getMaxLineRate();
 
-    protected CIS() {
-        observers = new PropertyChangeSupport(this); // create observer list
-
-        this.lightColors = new HashSet<>();
-        maxRateForHalfMode = new HashMap<>();
-        maxRateForHalfMode.put(25, 27);
-        maxRateForHalfMode.put(50, 27);
-        maxRateForHalfMode.put(75, 18);
-        maxRateForHalfMode.put(100, 27);
-        maxRateForHalfMode.put(150, 18);
-        maxRateForHalfMode.put(200, 27);
-        maxRateForHalfMode.put(300, 18);
-        maxRateForHalfMode.put(400, 13);
-        maxRateForHalfMode.put(600, 10);
-
-        String fullName = this.getClass().getName();
-        cisName = fullName.substring(fullName.lastIndexOf('.') + 1);
-        dbProperties = new Properties();
-        dataSource = new BasicDataSource();
-        try {
-            dbProperties.loadFromXML(new FileInputStream("U:/SW/PC/Java/Konfigurator/connection.xml"));
-
-            switch (dbProperties.getProperty("dbType")) {
-                case "SQLite":
-                    dataSource.setUrl("jdbc:sqlite:" + "U:/SW/PC/Java/Konfigurator" + "/" + dbProperties.getProperty("dbFile"));
-                    break;
-                case "MariaDB":
-                    dataSource.setUrl("jdbc:mariadb://" + dbProperties.getProperty("dbHost") + ":" + dbProperties.getProperty("dbPort")
-                            + "/" + dbProperties.getProperty("dbName"));
-                    dataSource.setUsername(dbProperties.getProperty("dbUser"));
-                    dataSource.setPassword(dbProperties.getProperty("dbPwd"));
-                    break;
-                default:
-                    break;
-            }
-        } catch (IOException ignored) {
-        }
-
-        adcBoards = getDatabase()
-                .map(context -> context.selectFrom(ADC_BOARD).stream())
-                .orElse(Stream.empty())
-                .collect(Collectors.toMap(AdcBoardRecord::getName, Function.identity()));
-        sensChips = getDatabase()
-                .map(context -> context.selectFrom(SENSOR_CHIP).stream())
-                .orElse(Stream.empty())
-                .collect(Collectors.toMap(SensorChipRecord::getName, Function.identity()));
-        sensBoards = getDatabase()
-                .map(context -> context.selectFrom(SENSOR_BOARD).stream())
-                .orElse(Stream.empty())
-                .collect(Collectors.toMap(SensorBoardRecord::getName, Function.identity()));
-    }
-
-    public abstract List<CPUCLink> getCLCalc(int numOfPix);
+    public abstract List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation);
 
     public abstract String getTiViKey();
 
@@ -296,52 +140,27 @@ public abstract class CIS {
     }
 
     public Optional<AdcBoardRecord> getADC(String name) {
-        return Optional.ofNullable(adcBoards.get(name));
+        return Optional.ofNullable(ADC_BOARDS.get(name));
     }
 
     public Optional<SensorBoardRecord> getSensorBoard(String name) {
-        return Optional.ofNullable(sensBoards.get(name));
+        return Optional.ofNullable(SENSOR_BOARDS.get(name));
     }
 
     public Optional<SensorChipRecord> getSensorChip(String name) {
-        return Optional.ofNullable(sensChips.get(name));
+        return Optional.ofNullable(SENSOR_CHIPS.get(name));
     }
 
     public static double round(double value, int digits) {
         return Math.round(Math.pow(10.0, digits) * value) / Math.pow(10.0, digits);
     }
 
-    public Optional<DSLContext> getDatabase() {
-        try {
-            SQLDialect dialect;
-            switch (dbProperties.getProperty("dbType")) {
-                case "SQLite":
-                    dialect = SQLDialect.SQLITE;
-                    break;
-                case "MariaDB":
-                    dialect = SQLDialect.MARIADB;
-                    break;
-                default:
-                    dialect = SQLDialect.MYSQL;
-            }
-            DSLContext context = DSL.using(dataSource, dialect);
+    public CISCalculation calculate() {
+        CISCalculation calculation = new CISCalculation();
 
-            return Optional.of(context);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return Optional.empty();
-        }
-    }
-
-    public void calculate() {
         Map<Integer, PriceRecord> priceRecords = new HashMap<>();
-        mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
-        electSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
-        totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
-        mechaConfig = new HashMap<>();
-        electConfig = new HashMap<>();
 
-        getDatabase().ifPresent(context ->
+        Util.getDatabase().ifPresent(context ->
         {
             context.selectFrom(PRICE).stream()
                     .forEach(priceRecord -> priceRecords.put(priceRecord.getArtNo(), priceRecord));
@@ -354,7 +173,7 @@ public abstract class CIS {
             } else if ((this instanceof VDCIS && getPhaseCount() > 1) || (this instanceof MXCIS && getPhaseCount() == 4)) {
                 //FULL (RGB)
                 sensPerFpga = 2;
-            } else if (getMaxRateForHalfMode(getSelectedResolution())
+            } else if (getMAX_RATE_FOR_HALF_MODE(getSelectedResolution())
                     .map(rate -> getSelectedLineRate() / 1000 <= rate)
                     .orElse(false)) {
                 //HALF
@@ -367,7 +186,7 @@ public abstract class CIS {
             setMode(sensPerFpga);
 
             double lengthPerSens = BASE_LENGTH * sensPerFpga;
-            numFPGA = (int) Math.ceil(getScanWidth() / lengthPerSens);
+            calculation.numFPGA = (int) Math.ceil(getScanWidth() / lengthPerSens);
 
             try {
                 // Einlesen der Elektronik-Tabelle
@@ -382,14 +201,14 @@ public abstract class CIS {
                                     * MathEval.evaluate(electronicRecord.getAmount()
                                     .replace(" ", "")
                                     .replace("L", "" + getLedLines())
-                                    .replace("F", "" + numFPGA)
+                                    .replace("F", "" + calculation.numFPGA)
                                     .replace("S", "" + getBoardCount())
                                     .replace("N", "" + getScanWidth())));
 
-                            calculateAndAddSinglePrice(electronicRecord.getArtNo(), amount, electConfig, electSums, priceRecords);
+                            calculateAndAddSinglePrice(electronicRecord.getArtNo(), amount, calculation.electConfig, calculation.electSums, priceRecords);
 
                             if (amount > 0 && electronicRecord.getSelectCode() != null && electronicRecord.getSelectCode().contains("FPGA")) {
-                                numFPGA += amount;
+                                calculation.numFPGA += amount;
                             }
                         });
             } catch (DataAccessException e) {
@@ -408,13 +227,13 @@ public abstract class CIS {
                             try {
                                 return isApplicable(mechanicRecord.getSelectCode());
                             } catch (CISNextSizeException e) { // need next size
-                                calculateNextSizeMechanics(mechanicRecord, priceRecords);
+                                calculateNextSizeMechanics(calculation, mechanicRecord, priceRecords);
                                 return false; //don't take this size if we need next larger one
                             }
                         })
                         .forEach(mechanicRecord -> {
-                            int amount = getMechaFactor(mechanicRecord.getAmount());
-                            calculateAndAddSinglePrice(mechanicRecord.getArtNo(), amount, mechaConfig, mechaSums, priceRecords);
+                            int amount = getMechaFactor(mechanicRecord.getAmount(), calculation);
+                            calculateAndAddSinglePrice(mechanicRecord.getArtNo(), amount, calculation.mechaConfig, calculation.mechaSums, priceRecords);
                         });
             } catch (DataAccessException e) {
                 throw new CISException("Error in Mechanics");
@@ -424,6 +243,7 @@ public abstract class CIS {
                 setNumOfPix(calcNumOfPix());
             }
         });
+        return calculation;
     }
 
     /**
@@ -454,14 +274,14 @@ public abstract class CIS {
      * calculates and adds the article given in next_size_art_no for the given mechanical record if the remaining select code is applicable.
      * If the next article number is the same as the current one, instead the amount will get one size bigger
      */
-    private void calculateNextSizeMechanics(MechanicRecord mechanicRecord, Map<Integer, PriceRecord> priceRecords) {
+    private void calculateNextSizeMechanics(CISCalculation calculation, MechanicRecord mechanicRecord, Map<Integer, PriceRecord> priceRecords) {
         String selectCodeWithoutSpaces = mechanicRecord.getSelectCode().replaceAll("\\s", "");
         String selectCodeWithoutS = "S".equals(selectCodeWithoutSpaces) ? "" : selectCodeWithoutSpaces.replace("S&", "");
         if (isApplicable(selectCodeWithoutS)) { // only add if select code without S works
-            int amount = getMechaFactor(mechanicRecord.getAmount());
+            int amount = getMechaFactor(mechanicRecord.getAmount(), calculation);
             if (mechanicRecord.getNextSizeArtNo().equals(mechanicRecord.getArtNo())) // same number -> depends on N -> make N next size (+260)
-                amount = getMechaFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + BASE_LENGTH)));
-            calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, mechaConfig, mechaSums, priceRecords);
+                amount = getMechaFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + BASE_LENGTH)), calculation);
+            calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, calculation.mechaConfig, calculation.mechaSums, priceRecords);
         }
     }
 
@@ -470,7 +290,7 @@ public abstract class CIS {
     }
 
     public String getMechaVersion() {
-        return "_" + getDatabase().flatMap(context -> context.selectFrom(CONFIG)
+        return "_" + Util.getDatabase().flatMap(context -> context.selectFrom(CONFIG)
                         .where(CONFIG.CIS_TYPE.eq(getClass().getSimpleName()))
                         .and(CONFIG.KEY.eq("VERSION"))
                         .fetchOptional(CONFIG.VALUE))
@@ -481,9 +301,9 @@ public abstract class CIS {
         return "Version: " + getVersion() + "; " + SimpleDateFormat.getInstance().format(new Date());
     }
 
-    public Optional<Integer> getMaxRateForHalfMode(Resolution res) {
-        if (maxRateForHalfMode.containsKey(res.getActualResolution())) {
-            return Optional.of(maxRateForHalfMode.get(res.getActualResolution()));
+    public Optional<Integer> getMAX_RATE_FOR_HALF_MODE(Resolution res) { //TODO make this a public constant
+        if (MAX_RATE_FOR_HALF_MODE.containsKey(res.getActualResolution())) {
+            return Optional.of(MAX_RATE_FOR_HALF_MODE.get(res.getActualResolution()));
         } else {
             return Optional.empty();
         }
@@ -645,6 +465,8 @@ public abstract class CIS {
      * this method creates a print out for the datasheet
      */
     public String createPrntOut() {
+        CISCalculation calculation = calculate();
+
         // header section: key
         StringBuilder printout = new StringBuilder(getTiViKey());
         printout.append("\n\t\n");
@@ -683,16 +505,19 @@ public abstract class CIS {
         printout.append(Util.getString("shading")).append("\n");
         // - power
         printout.append(Util.getString("powersource")).append("(24 +/- 1)\u200aVDC\n");
-        printout.append(Util.getString("Needed power:")).append((" " + ((electSums[2] == null) ? 0.0 : (Math.round(10.0 * electSums[2]) / 10.0)) + "\u200aA").replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
+        printout.append(Util.getString("Needed power:")).append((" " + ((calculation.electSums[2] == null) ? 0.0 : (Math.round(10.0 * calculation.electSums[2]) / 10.0)) + "\u200aA").replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
         // - frequency limit
         if (hasLEDs()) // only print this if there are lights
-            printout.append(Util.getString("FrequencyLimit")).append(" ").append(getMinFreq() < 0 // if < 0 there are values missing in database -> give error msg
+            printout.append(Util.getString("FrequencyLimit")).append(" ").append(getMinFreq(calculation) < 0 // if < 0 there are values missing in database -> give error msg
                     ? Util.getString("missing photo values") + "\n"
-                    : "~" + Math.round(1000 * getMinFreq()) / 1000 + "\u200akHz\n");
+                    : "~" + Math.round(1000 * getMinFreq(calculation)) / 1000 + "\u200akHz\n");
         // - cooling
         printout.append(Util.getString(getCooling().getShortHand())).append("\n");
         // - weight
-        printout.append(Util.getString("weight")).append(": ~ ").append((" " + Math.round((((electSums[3] == null) ? 0.0 : electSums[3]) + ((mechaSums[3] == null) ? 0.0 : mechaSums[3])) * 10) / 10.0 + "\u200akg").replace(" 0\u200akg", " ???")).append("\n");
+        printout.append(Util.getString("weight")).append(": ~ ")
+                .append((" " + Math.round((((calculation.electSums[3] == null) ? 0.0 : calculation.electSums[3])
+                        + ((calculation.mechaSums[3] == null) ? 0.0 : calculation.mechaSums[3])) * 10) / 10.0 + "\u200akg")
+                        .replace(" 0\u200akg", " ???")).append("\n");
         // - interface
         printout.append("Interface: ").append(isGigeInterface() ? "GigE" : "CameraLink (max. 5\u200am)").append("\n");
         // - end of specs
@@ -704,7 +529,7 @@ public abstract class CIS {
             printout.append("Pixel Clock: 40\u200aMHz\n");
             printout.append(Util.getString("numofpix")).append(numOfPix).append("\n");
         } else {
-            List<CPUCLink> clCalc = getCLCalc(numOfPix);
+            List<CPUCLink> clCalc = getCLCalc(numOfPix, calculation);
             if (!clCalc.isEmpty()) {
                 printout.append("\n\t\n");
                 int i = 1;
@@ -893,11 +718,11 @@ public abstract class CIS {
         }
     }
 
-    private int getMechaFactor(String factor) {
+    private int getMechaFactor(String factor, CISCalculation calculation) {
         if (isInteger(factor)) {
             return Integer.parseInt(factor);
         } else {
-            String ev = factor.replace("F", "" + numFPGA)
+            String ev = factor.replace("F", "" + calculation.numFPGA)
                     .replace("S", "" + getScanWidth() / BASE_LENGTH)
                     .replace("N", "" + getScanWidth())
                     .replace(" ", "")
@@ -948,19 +773,13 @@ public abstract class CIS {
         return -1;
     }
 
-    public Map<PriceRecord, Integer> getMechaConfig() {
-        return mechaConfig;
-    }
-
-    public Map<PriceRecord, Integer> getElectConfig() {
-        return electConfig;
-    }
-
     protected int getBoardCount() {
         return getScanWidth() / BASE_LENGTH;
     }
 
     public String createCalculation() {
+        CISCalculation calculation = calculate();
+
         String printout = getTiViKey() + "\n\t\n";
         StringBuilder electOutput = new StringBuilder(Util.getString("Electronics")).append(":").append("\n\n");
         StringBuilder mechaOutput = new StringBuilder(Util.getString("Mechanics")).append(":").append("\n\n");
@@ -980,7 +799,7 @@ public abstract class CIS {
                 .append(Util.getString("Price/pc (EUR)")).append("\t")
                 .append(Util.getString("Weight/pc (kg)")).append("\n");
 
-        getElectConfig().forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
+        calculation.electConfig.forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
                 .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
                 .append(amount).append("\t")
                 .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
@@ -991,12 +810,12 @@ public abstract class CIS {
         electOutput.append("\n\t\n").append(Util.getString("Totals")).append("\t")
                 .append(" \t")
                 .append("0\t")
-                .append(String.format(Util.getLocale(), "%.2f", electSums[0])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", electSums[3])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", electSums[1])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", electSums[2])).append("\n");
+                .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[3])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[1])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[2])).append("\n");
 
-        getMechaConfig().forEach((priceRecord, amount) -> mechaOutput.append(priceRecord.getFerixKey()).append("\t")
+        calculation.mechaConfig.forEach((priceRecord, amount) -> mechaOutput.append(priceRecord.getFerixKey()).append("\t")
                 .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
                 .append(amount).append("\t")
                 .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
@@ -1005,48 +824,48 @@ public abstract class CIS {
         mechaOutput.append("\n\t\n").append(Util.getString("Totals")).append("\t")
                 .append(" \t")
                 .append("0\t")
-                .append(String.format(Util.getLocale(), "%.2f", mechaSums[0])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", mechaSums[3])).append("\n");
+                .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[0])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[3])).append("\n");
 
         try {
-            Map<String, Double> calcMap = getDatabase().map(Stream::of).orElse(Stream.empty())
+            Map<String, Double> calcMap = Util.getDatabase().map(Stream::of).orElse(Stream.empty())
                     .flatMap(context -> context.selectFrom(CONFIG)
                             .where(CONFIG.CIS_TYPE.eq(getClass().getSimpleName())).stream())
                     .collect(Collectors.toMap(ConfigRecord::getKey, configRecord -> Double.parseDouble(configRecord.getValue())));
 
             totalOutput.append(Util.getString("calcfor10")).append("\t \t \t \t ").append("\n");
             totalOutput.append(Util.getString("Electronics")).append(":\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", electSums[0])).append("\t \n");
-            totalPrices[2] = electSums[0];
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0])).append("\t \n");
+            calculation.totalPrices[2] = calculation.electSums[0];
             totalOutput.append(Util.getString("Overhead Electronics")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
-            totalPrices[2] += electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100);
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
+            calculation.totalPrices[2] += calculation.electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100);
             totalOutput.append(Util.getString("Testing")).append(":\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", electSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
-            totalPrices[2] += electSums[1] * calcMap.get("STUNDENSATZ");
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
+            calculation.totalPrices[2] += calculation.electSums[1] * calcMap.get("STUNDENSATZ");
             if (isGigeInterface()) {
                 totalOutput.append(Util.getString("Overhead GigE")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
-                        .append(String.format(Util.getLocale(), "%.2f", electSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
-                totalPrices[2] += electSums[0] * (calcMap.get("Z_GIGE") / 100);
+                        .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
+                calculation.totalPrices[2] += calculation.electSums[0] * (calcMap.get("Z_GIGE") / 100);
             }
             totalOutput.append(Util.getString("Mechanics")).append(":\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", mechaSums[0])).append("\t \n");
-            totalPrices[2] += mechaSums[0];
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[0])).append("\t \n");
+            calculation.totalPrices[2] += calculation.mechaSums[0];
             totalOutput.append(Util.getString("Overhead Mechanics")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", mechaSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
-            totalPrices[2] += mechaSums[0] * (calcMap.get("A_MECHANIK") / 100);
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
+            calculation.totalPrices[2] += calculation.mechaSums[0] * (calcMap.get("A_MECHANIK") / 100);
             totalOutput.append(Util.getString("Assembly")).append(":\t \t ")
                     .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()).append(" h\t")
                     .append(String.format(Util.getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ"))).append("\t \n");
-            totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ");
+            calculation.totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ");
 
             int addition = 0;
             double surcharge = 0.0;
 
-            totalPrices[0] = totalPrices[2] * calcMap.get("F_1") / 100;
-            totalPrices[1] = totalPrices[2] * calcMap.get("F_5") / 100;
-            totalPrices[2] = totalPrices[2] * calcMap.get("F_10") / 100;
-            totalPrices[3] = totalPrices[2] * calcMap.get("F_25") / 100;
+            calculation.totalPrices[0] = calculation.totalPrices[2] * calcMap.get("F_1") / 100;
+            calculation.totalPrices[1] = calculation.totalPrices[2] * calcMap.get("F_5") / 100;
+            calculation.totalPrices[2] = calculation.totalPrices[2] * calcMap.get("F_10") / 100;
+            calculation.totalPrices[3] = calculation.totalPrices[2] * calcMap.get("F_25") / 100;
             totalOutput.append(" \t(1 ").append(Util.getString("pc")).append(")\t")
                     .append("(5 ").append(Util.getString("pcs")).append(")\t")
                     .append("(10 ").append(Util.getString("pcs")).append(")\t")
@@ -1055,33 +874,33 @@ public abstract class CIS {
             String format = "%.2f";
             double value = calcMap.get("Z_TRANSPORT") / 100;
             totalOutput.append(Util.getString("Price/pc")).append(":\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[0])).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[1])).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[2])).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[3])).append("\n");
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[0])).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[1])).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[2])).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[3])).append("\n");
             totalOutput.append(Util.getString("Surcharge Transport")).append(" (").append(value).append("%):\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[0] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[1] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[2] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[3] * value)).append("\n");
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[0] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[1] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[2] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[3] * value)).append("\n");
             surcharge += value;
 
             if (this instanceof MXCIS) {
                 String cat = getTiViKey().split("_")[4];
                 value = calcMap.get("Z_" + cat) / 100;
                 totalOutput.append(Util.getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
-                        .append(String.format(Util.getLocale(), "%.2f", totalPrices[0] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), "%.2f", totalPrices[1] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), "%.2f", totalPrices[2] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), "%.2f", totalPrices[3] * value)).append("\n");
+                        .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[0] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[1] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[2] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[3] * value)).append("\n");
                 surcharge += value;
             } else if (!(this instanceof LDSTD)) {
                 value = calcMap.get(getDpiCode()) / 100.0;
                 totalOutput.append(Util.getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
-                        .append(String.format(Util.getLocale(), format, totalPrices[0] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), format, totalPrices[1] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), format, totalPrices[2] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), format, totalPrices[3] * value)).append("\n");
+                        .append(String.format(Util.getLocale(), format, calculation.totalPrices[0] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), format, calculation.totalPrices[1] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), format, calculation.totalPrices[2] * value)).append("\t")
+                        .append(String.format(Util.getLocale(), format, calculation.totalPrices[3] * value)).append("\n");
                 surcharge += value;
             }
 
@@ -1097,27 +916,27 @@ public abstract class CIS {
             format = "%.2f";
             value = calcMap.get("Z_DISCONT") / 100;
             totalOutput.append(Util.getString("Discount Surcharge")).append(" (").append(value).append("%):\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[0] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[1] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[2] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[3] * value)).append("\n");
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[0] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[1] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[2] * value)).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[3] * value)).append("\n");
             surcharge += value;
 
-            totalPrices[0] *= 1 + surcharge;
-            totalPrices[1] *= 1 + surcharge;
-            totalPrices[2] *= 1 + surcharge;
-            totalPrices[3] *= 1 + surcharge;
+            calculation.totalPrices[0] *= 1 + surcharge;
+            calculation.totalPrices[1] *= 1 + surcharge;
+            calculation.totalPrices[2] *= 1 + surcharge;
+            calculation.totalPrices[3] *= 1 + surcharge;
 
-            totalPrices[0] += addition;
-            totalPrices[1] += addition;
-            totalPrices[2] += addition;
-            totalPrices[3] += addition;
+            calculation.totalPrices[0] += addition;
+            calculation.totalPrices[1] += addition;
+            calculation.totalPrices[2] += addition;
+            calculation.totalPrices[3] += addition;
 
             totalOutput.append(Util.getString("Totals")).append(" (EUR):").append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[0])).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[1])).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[2])).append("\t")
-                    .append(String.format(Util.getLocale(), format, totalPrices[3])).append("\n");
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[0])).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[1])).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[2])).append("\t")
+                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[3])).append("\n");
         } catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException e) {
             e.printStackTrace();
             throw new CISException(Util.getString("MissingConfigTables"));
@@ -1156,10 +975,6 @@ public abstract class CIS {
         return numOfPix;
     }
 
-    public int getNumFPGA() {
-        return numFPGA;
-    }
-
     /**
      * calculates the minimum frequency.
      * Unless overwritten by subclass the calculation is:
@@ -1169,11 +984,11 @@ public abstract class CIS {
      * currently coax is tested by C_ in key
      * currently phase values are determined by the last read value -> this is probably wrong
      */
-    protected double getMinFreq() {
+    protected double getMinFreq(CISCalculation calculation) {
         String key = getTiViKey();
         boolean coax = key.contains("C_");
-        return 100 * electSums[4]
-                * mechaSums[4]
+        return 100 * calculation.electSums[4]
+                * calculation.mechaSums[4]
                 * (coax ? 1 : getLedLines())
                 * getGeometryFactor(coax)
                 * getSensitivityFactor() / (1.5 * (key.contains("RGB") ? 3 : 1));
@@ -1276,5 +1091,145 @@ public abstract class CIS {
     public double getActualSupportedScanWidth(List<CPUCLink> cpucLinks) {
         long pixelSum = cpucLinks.stream().mapToLong(CPUCLink::getPixelCount).sum();
         return pixelSum * (21 + 1. / 6) * 1200 / selectedResolution.actualResolution / 1000;
+    }
+
+    public enum LightColor {
+        NONE("None", "NO", 'X'),
+        RED("Red", "AM", 'A'),
+        GREEN("Green", "GR", 'G'),
+        BLUE("Blue", "BL", 'B'),
+        YELLOW("Yellow", "YE", 'Y'),
+        WHITE("White", "WH", 'L'),
+        IR("IR", "IR", 'I'),
+        IR950("IR 950nm", "JR", 'J'),
+        UVA("UVA 365nm", "UV", 'U'),
+        VERDE("Verde", "VE", 'V'),
+        RGB_S("RGB (strong)", "RGB_S", 'C'),
+        RGB("RGB", "RGB", 'P'),
+        IRUV("LEDIRUV", "HI", 'H'),
+        RGB8("RGB8", "REBZ8", '8'),
+        REBELMIX("REBELMIX", "REBEL", 'E'),
+        RED_SFS("Red (Shape from Shading)", "RS", 'R'),
+        WHITE_SFS("White (Shape from Shading)", "WS", 'W');
+
+        private final String description;
+        private final String shortHand;
+        private final char code;
+
+        public String getDescription() {
+            return description;
+        }
+
+        public char getCode() {
+            return code;
+        }
+
+        @SuppressWarnings("unused")
+        public String getShortHand() {
+            return shortHand;
+        }
+
+        LightColor(String description, String shortHand, char code) {
+            this.description = description;
+            this.shortHand = shortHand;
+            this.code = code;
+        }
+
+        public static Optional<LightColor> findByDescription(String description) {
+            return Arrays.stream(LightColor.values())
+                    .filter(c -> c.getDescription().equals(description))
+                    .findFirst();
+        }
+
+        @SuppressWarnings("unused")
+        public static Optional<LightColor> findByShortHand(String shortHand) {
+            return Arrays.stream(LightColor.values())
+                    .filter(c -> c.getShortHand().equals(shortHand))
+                    .findFirst();
+        }
+
+        @SuppressWarnings("unused")
+        public static Optional<LightColor> findByCode(char code) {
+            return Arrays.stream(LightColor.values())
+                    .filter(c -> c.getCode() == code)
+                    .findFirst();
+        }
+
+        public boolean isShapeFromShading() {
+            return this == WHITE_SFS || this == RED_SFS;
+        }
+    }
+
+    public enum Cooling {
+        NONE("NOCO", "None", "none"),
+        PAIR("PAIR", "Passive Air", "passair"),
+        FAIR("", "Int. Forced Air (Default)", "intforced"),
+        EAIR("FAIR", "Ext. Forced Air", "extforced"),
+        LICO("LICO", "Liquid Cooling", "lico");
+
+        private final String code;
+        private final String description;
+        private final String shortHand;
+
+        Cooling(String code, String description, String shortHand) {
+            this.code = code;
+            this.description = description;
+            this.shortHand = shortHand;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getShortHand() {
+            return shortHand;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public static Optional<Cooling> findByDescription(String description) {
+            return Arrays.stream(Cooling.values())
+                    .filter(c -> c.getDescription().equals(description))
+                    .findFirst();
+        }
+
+        @SuppressWarnings("unused")
+        public static Optional<Cooling> findByCode(String code) {
+            return Arrays.stream(Cooling.values())
+                    .filter(c -> c.getCode().equals(code))
+                    .findFirst();
+        }
+    }
+
+    @Value
+    public static class Resolution {
+        int boardResolution;
+        double pixelSize;
+        boolean switchable;
+        int actualResolution;
+        double depthOfField;
+
+        public Resolution(int actualResolution, int boardResolution, boolean switchable, double depthOfField, double pixelSize) {
+            this.pixelSize = pixelSize;
+            this.boardResolution = boardResolution;
+            this.switchable = switchable;
+            this.depthOfField = depthOfField;
+            this.actualResolution = actualResolution;
+        }
+    }
+
+    /**
+     * class for a CIS calculation. Collects electronics and mechanics items and prices.
+     */
+    protected static class CISCalculation {
+        public Double[] electSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
+        public Double[] mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
+        public int numFPGA;
+        Map<PriceRecord, Integer> electConfig = new HashMap<>();
+        Map<PriceRecord, Integer> mechaConfig = new HashMap<>();
+        Double[] totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
+
     }
 }

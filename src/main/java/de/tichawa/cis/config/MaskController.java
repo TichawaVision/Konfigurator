@@ -155,8 +155,9 @@ public abstract class MaskController<C extends CIS> implements Initializable {
     @FXML
     @SuppressWarnings("unused")
     public void handlePartList(ActionEvent a) {
+        CIS.CISCalculation calculation;
         try {
-            CIS_DATA.calculate();
+            calculation = CIS_DATA.calculate();
         } catch (CISException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText(e.getMessage());
@@ -178,8 +179,8 @@ public abstract class MaskController<C extends CIS> implements Initializable {
                 writer.flush();
 
                 // sort lists by ferix key (could also add both configs to one list if desired)
-                List<Entry<PriceRecord, Integer>> electList = new ArrayList<>(CIS_DATA.getElectConfig().entrySet());
-                List<Entry<PriceRecord, Integer>> mechaList = new ArrayList<>(CIS_DATA.getMechaConfig().entrySet());
+                List<Entry<PriceRecord, Integer>> electList = new ArrayList<>(calculation.electConfig.entrySet());
+                List<Entry<PriceRecord, Integer>> mechaList = new ArrayList<>(calculation.mechaConfig.entrySet());
                 electList.sort(Comparator.comparing(e -> e.getKey().getFerixKey()));
                 mechaList.sort(Comparator.comparing(m -> m.getKey().getFerixKey()));
 
@@ -307,7 +308,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         Scene printScene = new Scene(printPane);
 
         SimpleBooleanProperty pale = new SimpleBooleanProperty(false);
-        CIS_DATA.getDatabase().ifPresent(context ->
+        Util.getDatabase().ifPresent(context ->
         {
             context.select(EQUIPMENT.asterisk(), PRICE.FERIX_KEY)
                     .from(EQUIPMENT.join(PRICE).on(EQUIPMENT.ART_NO.eq(PRICE.ART_NO))).stream()

@@ -55,7 +55,7 @@ public class VDCIS extends CIS {
     }
 
     @Override
-    public List<CPUCLink> getCLCalc(int numOfPix) {
+    public List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation) {
         int numOfPixNominal;
         int taps;
         int pixPerTap;
