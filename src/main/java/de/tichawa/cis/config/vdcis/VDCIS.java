@@ -15,6 +15,11 @@ public class VDCIS extends CIS {
         super();
     }
 
+    protected VDCIS(VDCIS cis) {
+        super(cis);
+        this.cLMode = cis.cLMode;
+    }
+
     @Override
     public String getTiViKey() {
         String key = "G_VDCIS";
@@ -183,5 +188,10 @@ public class VDCIS extends CIS {
             default:
                 throw new UnsupportedOperationException();
         }
+    }
+
+    @Override
+    public CIS copy() {
+        return new VDCIS(this);
     }
 }

@@ -12,6 +12,10 @@ public class VHCIS extends VSCIS {
         super();
     }
 
+    protected VHCIS(VHCIS cis) {
+        super(cis);
+    }
+
     @Override
     public double getMaxLineRate() throws CISException {
         AdcBoardRecord adcBoard = getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
@@ -81,7 +85,6 @@ public class VHCIS extends VSCIS {
                 }
             }
         }
-
         cameraLinks.forEach(cl::addCameraLink);
         return Collections.singletonList(cl);
     }
@@ -89,5 +92,10 @@ public class VHCIS extends VSCIS {
     @Override
     public double getGeometryFactor(boolean coax) {
         return 1;
+    }
+
+    @Override
+    public CIS copy() {
+        return new VHCIS(this);
     }
 }

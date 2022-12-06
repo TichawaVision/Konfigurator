@@ -56,7 +56,7 @@ public abstract class CIS {
     }
 
     // members
-    protected PropertyChangeSupport observers; // part of 'observer' pattern (via property change) to communicate changes of the model (this class) e.g. to the GUI
+    protected transient PropertyChangeSupport observers; // part of 'observer' pattern (via property change) to communicate changes of the model (this class) e.g. to the GUI
     // observer currently only supported by VUCIS so only methods used by VUCIS will fire property changes (for now)
 
     public final String cisName;
@@ -105,6 +105,32 @@ public abstract class CIS {
         cisName = fullName.substring(fullName.lastIndexOf('.') + 1);
         this.lightColors = new HashSet<>();
     }
+
+    /**
+     * Copy constructor that just sets all attributes
+     */
+    protected CIS(CIS cis) {
+        this.binning = cis.binning;
+        this.cisName = cis.cisName;
+        this.coaxLightSources = cis.coaxLightSources;
+        this.cooling = cis.cooling;
+        this.diffuseLightSources = cis.diffuseLightSources;
+        this.externalTrigger = cis.externalTrigger;
+        this.gigeInterface = cis.gigeInterface;
+        this.lightColors = new HashSet<>(cis.lightColors);
+        this.mode = cis.mode;
+        this.numOfPix = cis.numOfPix;
+        this.phaseCount = cis.phaseCount;
+        this.scanWidth = cis.scanWidth;
+        this.selectedLineRate = cis.selectedLineRate;
+        this.selectedResolution = cis.selectedResolution; //resolutions don't change so we can copy reference
+        this.transportSpeed = cis.transportSpeed;
+    }
+
+    /**
+     * creates a copy (to be able to handle multiple configurations at once)
+     */
+    public abstract CIS copy();
 
     /**
      * adds the given observer to the list of observers that will get notified by changes to the model (this class)
@@ -1230,6 +1256,5 @@ public abstract class CIS {
         Map<PriceRecord, Integer> electConfig = new HashMap<>();
         Map<PriceRecord, Integer> mechaConfig = new HashMap<>();
         Double[] totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
-
     }
 }

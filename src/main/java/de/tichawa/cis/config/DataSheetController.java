@@ -42,12 +42,10 @@ public class DataSheetController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-
     }
 
     public void passData(CIS data) {
-        this.CIS_DATA = data;
-
+        this.CIS_DATA = data.copy();
         load();
     }
 

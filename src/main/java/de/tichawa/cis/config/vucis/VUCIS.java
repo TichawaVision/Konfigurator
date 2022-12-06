@@ -19,17 +19,25 @@ public class VUCIS extends CIS {
     public static final List<Resolution> resolutions;
     public static final List<Integer> VALID_MODS;
 
-    private LightColor leftBrightField;
-    private LightColor coaxLight;
-    private LightColor rightBrightField;
-    private LightColor leftDarkField;
-    private LightColor rightDarkField;
-    private LensType lensType;
-    private boolean coolingLeft;
-    private boolean coolingRight;
-    private boolean cloudyDay;
-    private boolean reducedPixelClock;
-    private int mod;
+    static {
+        resolutions = Arrays.asList(
+                new CIS.Resolution(1200, 1200, true, 0.25, 0.02115),
+                new CIS.Resolution(1200, 1200, false, 0.5, 0.02115),
+                new CIS.Resolution(600, 600, false, 1.0, 0.0423),
+                new CIS.Resolution(400, 1200, false, 1.0, 0.0635),
+                new CIS.Resolution(300, 300, false, 1.5, 0.0847),
+                new CIS.Resolution(200, 600, false, 2.0, 0.125),
+                new CIS.Resolution(150, 300, false, 3.0, 0.167),
+                new CIS.Resolution(100, 300, false, 4.0, 0.25),
+                new CIS.Resolution(75, 300, false, 6.0, 0.339),
+                new CIS.Resolution(50, 300, false, 8.0, 0.5),
+                new CIS.Resolution(25, 300, false, 10.0, 1.0));
+        VALID_MODS = Arrays.asList(1, 4, 8, 16, 32);
+    }
+
+    public static List<Resolution> getResolutions() {
+        return resolutions;
+    }
 
     /**
      * returns whether the given light color is a valid option for VUCIS
@@ -71,82 +79,43 @@ public class VUCIS extends CIS {
     }
 
     /**
-     * determines if there is a shape from shading by checking if any light color is a shape from shading one
+     * determine L value for each light: RGB = 3, IRUV = 2, Rebz8 = 8, other = 1
      */
-    public boolean isShapeFromShading() {
-        return leftBrightField.isShapeFromShading() || leftDarkField.isShapeFromShading()
-                || rightBrightField.isShapeFromShading() || rightDarkField.isShapeFromShading()
-                || coaxLight.isShapeFromShading(); //coax sfs should not be possible anyway
-    }
-
-    public enum LensType {
-        TC48("TC48", "10"),
-        TC48L("TC48 with long DOF", "1L"),
-        TC54("TC54", "20"),
-        TC54L("TC54 with long DOF", "2L"),
-        TC80("TC80", "30"),
-        TC80L("TC80 with long DOF", "3L"),
-        TC99("TC99", "40"),
-        TC147("TC147", "50"),
-        OBJ("OL_OBJ_M12x0.5R_25mm_GLAS_0_ß=1:4", "64");
-
-        private final String description;
-        private final String code;
-
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        LensType(String description, String code) {
-            this.description = description;
-            this.code = code;
-        }
-
-        public static Optional<LensType> findByDescription(String description) {
-            return Arrays.stream(LensType.values())
-                    .filter(c -> c.getDescription().equals(description))
-                    .findFirst();
-        }
-
-        @SuppressWarnings("unused")
-        public static Optional<LensType> findByCode(String code) {
-            return Arrays.stream(LensType.values())
-                    .filter(c -> c.getCode().equals(code))
-                    .findFirst();
+    public static int getLValue(LightColor lightColor) {
+        switch (lightColor) {
+            case NONE:
+                return 0;
+            case IRUV:
+                return 2;
+            case RGB:
+            case RGB_S:
+                return 3;
+            case RGB8:
+                return 8;
+            default:
+                return 1;
         }
     }
 
-    static {
-        resolutions = Arrays.asList(
-                new CIS.Resolution(1200, 1200, true, 0.25, 0.02115),
-                new CIS.Resolution(1200, 1200, false, 0.5, 0.02115),
-                new CIS.Resolution(600, 600, false, 1.0, 0.0423),
-                new CIS.Resolution(400, 1200, false, 1.0, 0.0635),
-                new CIS.Resolution(300, 300, false, 1.5, 0.0847),
-                new CIS.Resolution(200, 600, false, 2.0, 0.125),
-                new CIS.Resolution(150, 300, false, 3.0, 0.167),
-                new CIS.Resolution(100, 300, false, 4.0, 0.25),
-                new CIS.Resolution(75, 300, false, 6.0, 0.339),
-                new CIS.Resolution(50, 300, false, 8.0, 0.5),
-                new CIS.Resolution(25, 300, false, 10.0, 1.0));
-        VALID_MODS = Arrays.asList(1, 4, 8, 16, 32);
-    }
+    private LightColor brightFieldLeft;
+    private LightColor coaxLight;
+    private LightColor brightFieldRight;
+    private LightColor darkFieldLeft;
+    private LightColor darkFieldRight;
+    private LensType lensType;
+    private boolean coolingLeft;
+    private boolean coolingRight;
+    private boolean cloudyDay;
+    private boolean reducedPixelClock;
+    private int mod;
 
     public VUCIS() {
-        super();
-
         this.setExternalTrigger(false);
-
-        this.leftBrightField = LightColor.RED;
+        this.brightFieldLeft = LightColor.RED;
         this.coaxLight = LightColor.NONE;
-        this.rightBrightField = LightColor.RED;
-        this.leftDarkField = LightColor.NONE;
-        this.rightDarkField = LightColor.NONE;
+        this.brightFieldRight = LightColor.RED;
+        this.darkFieldLeft = LightColor.NONE;
+        this.darkFieldRight = LightColor.NONE;
         this.lensType = LensType.TC54;
         this.coolingLeft = true;
         this.coolingRight = true;
@@ -158,9 +127,30 @@ public class VUCIS extends CIS {
         this.setMod(16);
     }
 
-    public static List<Resolution> getResolutions() {
-        return resolutions;
+    protected VUCIS(VUCIS cis) {
+        super(cis);
+        this.cloudyDay = cis.cloudyDay;
+        this.coaxLight = cis.coaxLight;
+        this.coolingLeft = cis.coolingLeft;
+        this.coolingRight = cis.coolingRight;
+        this.brightFieldLeft = cis.brightFieldLeft;
+        this.darkFieldLeft = cis.darkFieldLeft;
+        this.lensType = cis.lensType;
+        this.mod = cis.mod;
+        this.reducedPixelClock = cis.reducedPixelClock;
+        this.brightFieldRight = cis.brightFieldRight;
+        this.darkFieldRight = cis.darkFieldRight;
     }
+
+    /**
+     * determines if there is a shape from shading by checking if any light color is a shape from shading one
+     */
+    public boolean isShapeFromShading() {
+        return brightFieldLeft.isShapeFromShading() || darkFieldLeft.isShapeFromShading()
+                || brightFieldRight.isShapeFromShading() || darkFieldRight.isShapeFromShading()
+                || coaxLight.isShapeFromShading(); //coax sfs should not be possible anyway
+    }
+
 
     @Override
     public String getTiViKey() {
@@ -218,36 +208,36 @@ public class VUCIS extends CIS {
         String key = "";
         if (cloudyDay) {
             key += "D";
-            key += getLeftBrightField().getCode();
+            key += getBrightFieldLeft().getCode();
             key += getCoaxLight().getCode();
-            key += getRightBrightField().getCode();
+            key += getBrightFieldRight().getCode();
             key += "D";
             return key;
         }
         if (isShapeFromShading()) {
             // if no coax -> S in middle
             if (!hasCoax()) {
-                key += getLeftDarkField().getCode();
-                key += getLeftBrightField().getCode();
+                key += getDarkFieldLeft().getCode();
+                key += getBrightFieldLeft().getCode();
                 key += 'S';
-                key += getRightBrightField().getCode();
-                key += getRightDarkField().getCode();
+                key += getBrightFieldRight().getCode();
+                key += getDarkFieldRight().getCode();
                 return key;
             }
             //else: (there is coax light) -> (sfs only on right side) -> S on dark field left (no coax and dark field so dark is free)
             key += 'S';
-            key += getLeftBrightField().getCode();
+            key += getBrightFieldLeft().getCode();
             key += getCoaxLight().getCode();
-            key += getRightBrightField().getCode();
-            key += getRightDarkField().getCode();
+            key += getBrightFieldRight().getCode();
+            key += getDarkFieldRight().getCode();
             return key;
         }
         //default: just take the code from the lights
-        key += getLeftDarkField().getCode();
-        key += getLeftBrightField().getCode();
+        key += getDarkFieldLeft().getCode();
+        key += getBrightFieldLeft().getCode();
         key += getCoaxLight().getCode();
-        key += getRightBrightField().getCode();
-        key += getRightDarkField().getCode();
+        key += getBrightFieldRight().getCode();
+        key += getDarkFieldRight().getCode();
         return key;
     }
 
@@ -261,25 +251,6 @@ public class VUCIS extends CIS {
                 .filter(Optional::isPresent).map(Optional::get)
                 .mapToInt(VUCIS::getLValue).sum();
         return Math.min(sum, 10); //max 10 allowed
-    }
-
-    /**
-     * determine L value for each light: RGB = 3, IRUV = 2, Rebz8 = 8, other = 1
-     */
-    public static int getLValue(LightColor lightColor) {
-        switch (lightColor) {
-            case NONE:
-                return 0;
-            case IRUV:
-                return 2;
-            case RGB:
-            case RGB_S:
-                return 3;
-            case RGB8:
-                return 8;
-            default:
-                return 1;
-        }
     }
 
     /**
@@ -339,8 +310,8 @@ public class VUCIS extends CIS {
      */
     private int getNonSfsLEDsInMiddle() {
         int sum = 0;
-        if (leftBrightField != LightColor.NONE && !leftBrightField.isShapeFromShading()) sum++;
-        if (rightBrightField != LightColor.NONE && !rightBrightField.isShapeFromShading()) sum++;
+        if (brightFieldLeft != LightColor.NONE && !brightFieldLeft.isShapeFromShading()) sum++;
+        if (brightFieldRight != LightColor.NONE && !brightFieldRight.isShapeFromShading()) sum++;
         if (coaxLight != LightColor.NONE) sum++;
         return sum;
     }
@@ -573,7 +544,7 @@ public class VUCIS extends CIS {
      * calculation may be null!
      */
     @Override
-    public List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation) { //TODO maybe remove calculation (maybe overload method where it is needed - or use a getter?)
+    public List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation) {
         // calculate maximum number of pixels
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         int numSensorBoards = getBoardCount();
@@ -615,8 +586,8 @@ public class VUCIS extends CIS {
         return cpucLinks;
     }
 
-    public LightColor getLeftBrightField() {
-        return leftBrightField;
+    public LightColor getBrightFieldLeft() {
+        return brightFieldLeft;
     }
 
     /**
@@ -641,19 +612,19 @@ public class VUCIS extends CIS {
      * - setting the lens working distance to 10mm if there is shape from shading
      * or resets the cooling if there is no light on the left
      */
-    public void setLeftBrightField(LightColor leftBrightField) {
+    public void setBrightFieldLeft(LightColor brightFieldLeft) {
         // set/reset left cooling
-        if (leftBrightField != LightColor.NONE)
+        if (brightFieldLeft != LightColor.NONE)
             setCoolingLeft(true);
-        else if (coaxLight == LightColor.NONE && leftDarkField == LightColor.NONE)
+        else if (coaxLight == LightColor.NONE && darkFieldLeft == LightColor.NONE)
             setCoolingLeft(false); //set no left cooling if not needed
         // set to 10mm working distance if shape from shading
-        if (leftBrightField.isShapeFromShading())
+        if (brightFieldLeft.isShapeFromShading())
             setLensType(getLowDistanceLens(lensType));
         // update value and notify observers
-        LightColor oldValue = this.leftBrightField;
-        this.leftBrightField = leftBrightField;
-        observers.firePropertyChange("leftBrightField", oldValue, leftBrightField);
+        LightColor oldValue = this.brightFieldLeft;
+        this.brightFieldLeft = brightFieldLeft;
+        observers.firePropertyChange("leftBrightField", oldValue, brightFieldLeft);
     }
 
     public LightColor getCoaxLight() {
@@ -671,16 +642,16 @@ public class VUCIS extends CIS {
     public void setCoaxLight(LightColor coaxLight) {
         if (coaxLight != LightColor.NONE) { // selected coax light
             // set left dark field to NONE (no coax + left dark field)
-            setLeftDarkField(LightColor.NONE);
+            setDarkFieldLeft(LightColor.NONE);
             // set left bright field to NONE if it is shape from shading (no left sided sfs + coax)
-            if (leftBrightField.isShapeFromShading())
-                setLeftBrightField(LightColor.NONE);
+            if (brightFieldLeft.isShapeFromShading())
+                setBrightFieldLeft(LightColor.NONE);
             // set scan width to max allowed value if it is bigger
             if (getScanWidth() > MAX_SCAN_WIDTH_WITH_COAX)
                 setScanWidth(MAX_SCAN_WIDTH_WITH_COAX);
             // set left cooling
             setCoolingLeft(true);
-        } else if (leftBrightField == LightColor.NONE && leftDarkField == LightColor.NONE)
+        } else if (brightFieldLeft == LightColor.NONE && darkFieldLeft == LightColor.NONE)
             setCoolingLeft(false); // set no left cooling if not needed
         //update value and notify observers
         LightColor oldValue = this.coaxLight;
@@ -688,8 +659,8 @@ public class VUCIS extends CIS {
         observers.firePropertyChange("coaxLight", oldValue, coaxLight);
     }
 
-    public LightColor getRightBrightField() {
-        return rightBrightField;
+    public LightColor getBrightFieldRight() {
+        return brightFieldRight;
     }
 
     /**
@@ -698,23 +669,23 @@ public class VUCIS extends CIS {
      * - setting the lens working distance to 10mm if there is shape from shading
      * or resets the cooling if there is no light on the right
      */
-    public void setRightBrightField(LightColor rightBrightField) {
+    public void setBrightFieldRight(LightColor brightFieldRight) {
         // set/reset cooling
-        if (rightBrightField != LightColor.NONE)
+        if (brightFieldRight != LightColor.NONE)
             setCoolingRight(true);
-        else if (rightDarkField == LightColor.NONE)
+        else if (darkFieldRight == LightColor.NONE)
             setCoolingRight(false); // set no right cooling if not needed
         // set to 10mm working distance if shape from shading
-        if (rightBrightField.isShapeFromShading())
+        if (brightFieldRight.isShapeFromShading())
             setLensType(getLowDistanceLens(lensType));
         // update value and notify observers
-        LightColor oldValue = this.rightBrightField;
-        this.rightBrightField = rightBrightField;
-        observers.firePropertyChange("rightBrightField", oldValue, rightBrightField);
+        LightColor oldValue = this.brightFieldRight;
+        this.brightFieldRight = brightFieldRight;
+        observers.firePropertyChange("rightBrightField", oldValue, brightFieldRight);
     }
 
-    public LightColor getLeftDarkField() {
-        return leftDarkField;
+    public LightColor getDarkFieldLeft() {
+        return darkFieldLeft;
     }
 
     /**
@@ -723,23 +694,23 @@ public class VUCIS extends CIS {
      * - setting the lens working distance to 10mm if there is shape from shading
      * or resets the cooling if there is no light on the left
      */
-    public void setLeftDarkField(LightColor leftDarkField) {
+    public void setDarkFieldLeft(LightColor darkFieldLeft) {
         // set/reset left cooling
-        if (leftDarkField != LightColor.NONE)
+        if (darkFieldLeft != LightColor.NONE)
             setCoolingLeft(true);
-        else if (coaxLight == LightColor.NONE && leftBrightField == LightColor.NONE)
+        else if (coaxLight == LightColor.NONE && brightFieldLeft == LightColor.NONE)
             setCoolingLeft(false); //set no left cooling if not needed
         // set to 10mm working distance if shape from shading
-        if (leftDarkField.isShapeFromShading())
+        if (darkFieldLeft.isShapeFromShading())
             setLensType(getLowDistanceLens(lensType));
         // update value and notify observers
-        LightColor oldValue = this.leftDarkField;
-        this.leftDarkField = leftDarkField;
-        observers.firePropertyChange("leftDarkField", oldValue, leftDarkField);
+        LightColor oldValue = this.darkFieldLeft;
+        this.darkFieldLeft = darkFieldLeft;
+        observers.firePropertyChange("leftDarkField", oldValue, darkFieldLeft);
     }
 
-    public LightColor getRightDarkField() {
-        return rightDarkField;
+    public LightColor getDarkFieldRight() {
+        return darkFieldRight;
     }
 
     /**
@@ -748,19 +719,19 @@ public class VUCIS extends CIS {
      * - setting the lens working distance to 10mm if there is shape from shading
      * or resets the cooling if there is no light on the right
      */
-    public void setRightDarkField(LightColor rightDarkField) {
+    public void setDarkFieldRight(LightColor darkFieldRight) {
         // set/reset cooling
-        if (rightDarkField != LightColor.NONE)
+        if (darkFieldRight != LightColor.NONE)
             setCoolingRight(true);
-        else if (rightBrightField == LightColor.NONE)
+        else if (brightFieldRight == LightColor.NONE)
             setCoolingRight(false); // set no right cooling if not needed
         // set to 10mm working distance if shape from shading
-        if (rightDarkField.isShapeFromShading())
+        if (darkFieldRight.isShapeFromShading())
             setLensType(getLowDistanceLens(lensType));
         // update value and notify observers
-        LightColor oldValue = this.rightDarkField;
-        this.rightDarkField = rightDarkField;
-        observers.firePropertyChange("rightDarkField", oldValue, rightDarkField);
+        LightColor oldValue = this.darkFieldRight;
+        this.darkFieldRight = darkFieldRight;
+        observers.firePropertyChange("rightDarkField", oldValue, darkFieldRight);
     }
 
     public LensType getLensType() {
@@ -799,8 +770,8 @@ public class VUCIS extends CIS {
 
     public void setCloudyDay(boolean cloudyDay) {
         if (cloudyDay) { // cloudy day has no dark field
-            setLeftDarkField(LightColor.NONE);
-            setRightDarkField(LightColor.NONE);
+            setDarkFieldLeft(LightColor.NONE);
+            setDarkFieldRight(LightColor.NONE);
         }
         // update value and notify observers
         boolean oldValue = this.cloudyDay;
@@ -838,7 +809,7 @@ public class VUCIS extends CIS {
     }
 
     public int getColorCount() {
-        List<LightColor> colors = Arrays.asList(getLeftBrightField(), getCoaxLight(), getRightBrightField(), getLeftDarkField(), getRightDarkField());
+        List<LightColor> colors = Arrays.asList(getBrightFieldLeft(), getCoaxLight(), getBrightFieldRight(), getDarkFieldLeft(), getDarkFieldRight());
         return Math.max((int) colors.stream()
                 .distinct()
                 .filter(c -> c != LightColor.NONE)
@@ -863,7 +834,7 @@ public class VUCIS extends CIS {
     }
 
     private boolean hasBrightFieldShapeFromShading() {
-        return leftBrightField.isShapeFromShading() || rightBrightField.isShapeFromShading();
+        return brightFieldLeft.isShapeFromShading() || brightFieldRight.isShapeFromShading();
     }
 
     /**
@@ -933,22 +904,22 @@ public class VUCIS extends CIS {
     public void setLightColor(String light, LightColor value) {
         switch (light) {
             case "DarkFieldLeft":
-                setLeftDarkField(value);
+                setDarkFieldLeft(value);
                 updateScanWidth();
                 return;
             case "BrightFieldLeft":
-                setLeftBrightField(value);
+                setBrightFieldLeft(value);
                 updateScanWidth();
                 return;
             case "Coax":
                 setCoaxLight(value);
                 return;
             case "BrightFieldRight":
-                setRightBrightField(value);
+                setBrightFieldRight(value);
                 updateScanWidth();
                 return;
             case "DarkFieldRight":
-                setRightDarkField(value);
+                setDarkFieldRight(value);
                 updateScanWidth();
                 return;
             default:
@@ -1004,14 +975,14 @@ public class VUCIS extends CIS {
         if (!hasLEDs())
             return Util.getString("no light");
         String lights = "\n";
-        if (leftBrightField != LightColor.NONE)
-            lights += "\t" + Util.getString("Brightfield") + " " + Util.getString("left") + ": " + Util.getString(leftBrightField.getDescription()) + "\n";
-        if (rightBrightField != LightColor.NONE)
-            lights += "\t" + Util.getString("Brightfield") + " " + Util.getString("right") + ": " + Util.getString(rightBrightField.getDescription()) + "\n";
-        if (leftDarkField != LightColor.NONE)
-            lights += "\t" + Util.getString("Darkfield") + " " + Util.getString("left") + ": " + Util.getString(leftDarkField.getDescription()) + "\n";
-        if (rightDarkField != LightColor.NONE)
-            lights += "\t" + Util.getString("Darkfield") + " " + Util.getString("right") + ": " + Util.getString(rightDarkField.getDescription()) + "\n";
+        if (brightFieldLeft != LightColor.NONE)
+            lights += "\t" + Util.getString("Brightfield") + " " + Util.getString("left") + ": " + Util.getString(brightFieldLeft.getDescription()) + "\n";
+        if (brightFieldRight != LightColor.NONE)
+            lights += "\t" + Util.getString("Brightfield") + " " + Util.getString("right") + ": " + Util.getString(brightFieldRight.getDescription()) + "\n";
+        if (darkFieldLeft != LightColor.NONE)
+            lights += "\t" + Util.getString("Darkfield") + " " + Util.getString("left") + ": " + Util.getString(darkFieldLeft.getDescription()) + "\n";
+        if (darkFieldRight != LightColor.NONE)
+            lights += "\t" + Util.getString("Darkfield") + " " + Util.getString("right") + ": " + Util.getString(darkFieldRight.getDescription()) + "\n";
         if (coaxLight != LightColor.NONE)
             lights += "\t" + Util.getString("Coaxial") + ": " + Util.getString(coaxLight.getDescription()) + "\n";
         return lights.substring(0, lights.length() - 1); // remove last line break
@@ -1113,11 +1084,11 @@ public class VUCIS extends CIS {
     @Override
     protected double getMinFreq(CISCalculation calculation) {
         return Collections.min(Arrays.asList(
-                getMinFreqForLight(leftDarkField, true, false, calculation),
-                getMinFreqForLight(leftBrightField, false, false, calculation),
+                getMinFreqForLight(darkFieldLeft, true, false, calculation),
+                getMinFreqForLight(brightFieldLeft, false, false, calculation),
                 getMinFreqForLight(coaxLight, false, true, calculation),
-                getMinFreqForLight(rightBrightField, false, false, calculation),
-                getMinFreqForLight(rightDarkField, true, false, calculation)));
+                getMinFreqForLight(brightFieldRight, false, false, calculation),
+                getMinFreqForLight(darkFieldRight, true, false, calculation)));
     }
 
     /**
@@ -1195,8 +1166,8 @@ public class VUCIS extends CIS {
             if (getPhaseCount() == 1)
                 return 4; // shape from shading and 1 phase -> multiply by 4
             else return 1; // shape from shading and not 1 phase -> 1
-        if (isDarkfield && leftDarkField != LightColor.NONE && leftDarkField == rightDarkField ||
-                !isDarkfield && leftBrightField != LightColor.NONE && leftBrightField == rightBrightField)
+        if (isDarkfield && darkFieldLeft != LightColor.NONE && darkFieldLeft == darkFieldRight ||
+                !isDarkfield && brightFieldLeft != LightColor.NONE && brightFieldLeft == brightFieldRight)
             // if this is darkfield and both dark fields same -> 2 (same for brightfield)
             return 2;
         return 1; // default is 1 for any other case
@@ -1227,7 +1198,7 @@ public class VUCIS extends CIS {
         return getLedLines() > 0;
     }
 
-    public void setMod(int mod) { //TODO change label for mod: mod for lval
+    public void setMod(int mod) {
         int oldValue = this.mod;
         this.mod = mod;
         observers.firePropertyChange("mod", oldValue, mod);
@@ -1235,5 +1206,52 @@ public class VUCIS extends CIS {
 
     public int getMod() {
         return mod;
+    }
+
+    @Override
+    public CIS copy() {
+        return new VUCIS(this);
+    }
+
+    public enum LensType {
+        TC48("TC48", "10"),
+        TC48L("TC48 with long DOF", "1L"),
+        TC54("TC54", "20"),
+        TC54L("TC54 with long DOF", "2L"),
+        TC80("TC80", "30"),
+        TC80L("TC80 with long DOF", "3L"),
+        TC99("TC99", "40"),
+        TC147("TC147", "50"),
+        OBJ("OL_OBJ_M12x0.5R_25mm_GLAS_0_ß=1:4", "64");
+
+        private final String description;
+        private final String code;
+
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        LensType(String description, String code) {
+            this.description = description;
+            this.code = code;
+        }
+
+        public static Optional<LensType> findByDescription(String description) {
+            return Arrays.stream(LensType.values())
+                    .filter(c -> c.getDescription().equals(description))
+                    .findFirst();
+        }
+
+        @SuppressWarnings("unused")
+        public static Optional<LensType> findByCode(String code) {
+            return Arrays.stream(LensType.values())
+                    .filter(c -> c.getCode().equals(code))
+                    .findFirst();
+        }
     }
 }

@@ -42,12 +42,10 @@ public class CalculationController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-
     }
 
-    public void passData(CIS data) { //TODO create copy of data since data could be changed afterwards but this.CIS_DATA should not
-        this.CIS_DATA = data;
-
+    public void passData(CIS data) {
+        this.CIS_DATA = data.copy();
         load();
     }
 

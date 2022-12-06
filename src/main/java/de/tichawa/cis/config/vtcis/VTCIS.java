@@ -17,6 +17,11 @@ public class VTCIS extends VSCIS {
         super();
     }
 
+    protected VTCIS(VTCIS cis) {
+        super(cis);
+        this.cLMode = cis.cLMode;
+    }
+
     @Override
     public List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation) {
         int numOfPixNominal;
@@ -149,5 +154,10 @@ public class VTCIS extends VSCIS {
             default:
                 throw new UnsupportedOperationException("selected board resolution not supported");
         }
+    }
+
+    @Override
+    public CIS copy() {
+        return new VTCIS(this);
     }
 }

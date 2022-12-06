@@ -8,6 +8,14 @@ import java.util.*;
 // Alle MXCIS spezifische Funktionen 
 public class MXCIS extends CIS {
     private static final HashMap<Integer, String> resToSens = new HashMap<>();
+    private static final HashMap<Integer, Integer> dpiToRate = new HashMap<>();
+
+    public MXCIS() {
+    }
+
+    protected MXCIS(MXCIS cis) {
+        super(cis);
+    }
 
     static {
         resToSens.put(200, "PI3033");
@@ -16,11 +24,7 @@ public class MXCIS extends CIS {
         resToSens.put(600, "PI3039");
         resToSens.put(1200, "PI5002_1200");
         resToSens.put(2400, "PI5002_2400");
-    }
 
-    private static final HashMap<Integer, Integer> dpiToRate = new HashMap<>();
-
-    static {
         dpiToRate.put(25, 27);
         dpiToRate.put(50, 27);
         dpiToRate.put(75, 18);
@@ -289,5 +293,10 @@ public class MXCIS extends CIS {
             throw new CISException(Util.getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
         return numOfPix;
+    }
+
+    @Override
+    public CIS copy() {
+        return new MXCIS(this);
     }
 }

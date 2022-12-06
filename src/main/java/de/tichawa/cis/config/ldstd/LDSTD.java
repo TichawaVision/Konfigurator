@@ -11,6 +11,10 @@ public class LDSTD extends CIS {
         this.setSelectedResolution(new Resolution(100, 100, false, 1.0, 1.0));
     }
 
+    protected LDSTD(LDSTD cis) {
+        super(cis);
+    }
+
     @Override
     public double getMaxLineRate() {
         return 0;
@@ -110,5 +114,10 @@ public class LDSTD extends CIS {
     @Override
     protected String getCaseProfile() {
         return Util.getString("Aluminium case profile: 53x50mm (HxT) with bonded");
+    }
+
+    @Override
+    public CIS copy() {
+        return new LDSTD(this);
     }
 }

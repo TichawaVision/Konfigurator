@@ -12,6 +12,10 @@ public class VSCIS extends CIS {
         super();
     }
 
+    protected VSCIS(VSCIS cis) {
+        super(cis);
+    }
+
     @Override
     public String getTiViKey() {
         String key = "G_" + getClass().getSimpleName();
@@ -168,5 +172,10 @@ public class VSCIS extends CIS {
         if (getSelectedResolution().isSwitchable())
             return Util.getString("binning200");
         return super.getResolutionString();
+    }
+
+    @Override
+    public CIS copy() {
+        return new VSCIS(this);
     }
 }

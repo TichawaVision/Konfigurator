@@ -140,10 +140,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         CIS_DATA.setCloudyDay(lightPreset.cloudyDay);
         // set lights in model and view
         CIS_DATA.setCoaxLight(lightPreset.coax); // coax first so left dark field won't reach an illegal state (no coax + left df)
-        CIS_DATA.setLeftDarkField(lightPreset.leftDarkField);
-        CIS_DATA.setLeftBrightField(lightPreset.leftBrightField);
-        CIS_DATA.setRightBrightField(lightPreset.rightBrightField);
-        CIS_DATA.setRightDarkField(lightPreset.rightDarkField);
+        CIS_DATA.setDarkFieldLeft(lightPreset.leftDarkField);
+        CIS_DATA.setBrightFieldLeft(lightPreset.leftBrightField);
+        CIS_DATA.setBrightFieldRight(lightPreset.rightBrightField);
+        CIS_DATA.setDarkFieldRight(lightPreset.rightDarkField);
         // set phase count in model and view
         CIS_DATA.setPhaseCount(lightPreset.phaseCount);
     }
@@ -208,10 +208,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
      * initializes the lights: left/right dark/bright field and coax
      */
     private void initLights() {
-        initLight(BrightFieldLeft, CIS_DATA.getLeftBrightField().getDescription(), false);
-        initLight(BrightFieldRight, CIS_DATA.getRightBrightField().getDescription(), false);
-        initLight(DarkFieldLeft, CIS_DATA.getLeftDarkField().getDescription(), false);
-        initLight(DarkFieldRight, CIS_DATA.getRightDarkField().getDescription(), false);
+        initLight(BrightFieldLeft, CIS_DATA.getBrightFieldLeft().getDescription(), false);
+        initLight(BrightFieldRight, CIS_DATA.getBrightFieldRight().getDescription(), false);
+        initLight(DarkFieldLeft, CIS_DATA.getDarkFieldLeft().getDescription(), false);
+        initLight(DarkFieldRight, CIS_DATA.getDarkFieldRight().getDescription(), false);
         initLight(Coax, CIS_DATA.getCoaxLight().getDescription(), true);
     }
 
@@ -331,7 +331,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     private void initInterface() {
         // disable interface choice
         Interface.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
-        // listener for reduced pixel clock
+        // listener and text output for reduced pixel clock
+        ReducedPixelClock.setText(ReducedPixelClock.getText() + " (" + (VUCIS.PIXEL_CLOCK_REDUCED / 1000000) + "\u200akHz)");
         ReducedPixelClock.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
         // setup choice box for valid mod options
         Mod.getItems().clear();
@@ -595,7 +596,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             //enable/disable left dark field (no dark field + coax)
             DarkFieldLeft.setDisable(hasCoax);
             //select current values
-            selectLightChoiceBox(BrightFieldLeft, CIS_DATA.getLeftBrightField());
+            selectLightChoiceBox(BrightFieldLeft, CIS_DATA.getBrightFieldLeft());
             ScanWidth.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
         }
     }
@@ -679,12 +680,12 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         } //else more than 10
         StringBuilder displayText = new StringBuilder("Too many LED channels. ");
         //might be able to combine bright fields
-        if (CIS_DATA.getLeftBrightField() == CIS_DATA.getRightBrightField() && CIS_DATA.getLeftBrightField() != CIS.LightColor.NONE
-                && ledLines - VUCIS.getLValue(CIS_DATA.getLeftBrightField()) <= 10)
+        if (CIS_DATA.getBrightFieldLeft() == CIS_DATA.getBrightFieldRight() && CIS_DATA.getBrightFieldLeft() != CIS.LightColor.NONE
+                && ledLines - VUCIS.getLValue(CIS_DATA.getBrightFieldLeft()) <= 10)
             displayText.append("\tBright Field channels from both sides might be combined.");
         //might be able to combine dark fields
-        if (CIS_DATA.getLeftDarkField() == CIS_DATA.getRightDarkField() && CIS_DATA.getLeftDarkField() != CIS.LightColor.NONE
-                && ledLines - VUCIS.getLValue(CIS_DATA.getLeftDarkField()) <= 10)
+        if (CIS_DATA.getDarkFieldLeft() == CIS_DATA.getDarkFieldRight() && CIS_DATA.getDarkFieldLeft() != CIS.LightColor.NONE
+                && ledLines - VUCIS.getLValue(CIS_DATA.getDarkFieldLeft()) <= 10)
             displayText.append("\tDark Field channels from both sides might be combined.");
         //might be able to combine all
         //TODO check condition on when we can combine all 88XXX ? 88X88 ? 88XAA ? ...
