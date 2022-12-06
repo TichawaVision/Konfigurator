@@ -199,7 +199,7 @@ public abstract class CIS {
             } else if ((this instanceof VDCIS && getPhaseCount() > 1) || (this instanceof MXCIS && getPhaseCount() == 4)) {
                 //FULL (RGB)
                 sensPerFpga = 2;
-            } else if (getMAX_RATE_FOR_HALF_MODE(getSelectedResolution())
+            } else if (getMaxRateForHalfMode(getSelectedResolution())
                     .map(rate -> getSelectedLineRate() / 1000 <= rate)
                     .orElse(false)) {
                 //HALF
@@ -327,7 +327,7 @@ public abstract class CIS {
         return "Version: " + getVersion() + "; " + SimpleDateFormat.getInstance().format(new Date());
     }
 
-    public Optional<Integer> getMAX_RATE_FOR_HALF_MODE(Resolution res) { //TODO make this a public constant
+    private Optional<Integer> getMaxRateForHalfMode(Resolution res) {
         if (MAX_RATE_FOR_HALF_MODE.containsKey(res.getActualResolution())) {
             return Optional.of(MAX_RATE_FOR_HALF_MODE.get(res.getActualResolution()));
         } else {
@@ -488,6 +488,14 @@ public abstract class CIS {
     }
 
     /**
+     * returns the beginning of the camera link printout.
+     * Default is the empty string unless overwritten by subclass
+     */
+    protected String getStartOfCLPrintOut() {
+        return "";
+    }
+
+    /**
      * this method creates a print out for the datasheet
      */
     public String createPrntOut() {
@@ -550,27 +558,24 @@ public abstract class CIS {
         printout.append(getEndOfSpecs());
 
         //CL Config
+        printout.append("\n\t\n");
+        printout.append(getStartOfCLPrintOut());
         if (isGigeInterface()) {
-            printout.append("\n\t\n");
             printout.append("Pixel Clock: 40\u200aMHz\n");
             printout.append(Util.getString("numofpix")).append(numOfPix).append("\n");
         } else {
             List<CPUCLink> clCalc = getCLCalc(numOfPix, calculation);
             if (!clCalc.isEmpty()) {
-                printout.append("\n\t\n");
                 int i = 1;
                 for (CPUCLink CPUCLink : clCalc) {
                     printout.append("Board ").append(i++).append(":\n");
                     printout.append(CPUCLink.toString("  ")).append("\n\n\n");
                 }
-                // print out here for now, maybe add this somewhere else in the future
-                //System.out.println("actual supported scan width: " + getActualSupportedScanWidth(clCalc, getSelectedResolution().getActualResolution()));
             } else {
                 return null;
             }
             printout.append(getEndOfCameraLinkSection());
         }
-
         return printout.toString();
     }
 

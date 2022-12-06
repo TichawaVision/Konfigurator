@@ -692,4 +692,3 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         LightInfo.setText(displayText.toString());
     }
 }
-//TODO mod on datasheet

@@ -1190,6 +1190,11 @@ public class VUCIS extends CIS {
         }
     }
 
+    @Override
+    protected String getStartOfCLPrintOut() {
+        return Util.getString("mod for lval") + mod + "\n";
+    }
+
     /**
      * returns whether the VUCIS has LEDs or not
      */
