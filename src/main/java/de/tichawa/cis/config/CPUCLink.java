@@ -121,32 +121,35 @@ public class CPUCLink {
         char defaultPort;
         @Getter(AccessLevel.PRIVATE)
         LinkedList<Port> ports;
+        boolean forcedDeca;
 
         public CameraLink() {
             this(DEFAULT_ID, Port.DEFAULT_NAME);
         }
 
-        public CameraLink(int id) {
-            this(id, Port.DEFAULT_NAME);
+        public CameraLink(int id, boolean forcedDeca) {
+            this(id, Port.DEFAULT_NAME, forcedDeca);
         }
 
-        public CameraLink(int id, char defaultPort) {
-            this(id, defaultPort, new LinkedList<>());
+        public CameraLink(int id, char port, boolean forcedDeca) {
+            this(id, port, new LinkedList<>(), forcedDeca);
+        }
+
+        public CameraLink(int id, char port) {
+            this(id, port, new LinkedList<>(), false);
         }
 
         /**
          * adds the given ports if there is space (see {@link #MAX_PORT_COUNT})
          * Also sets the port name for each port to the next letter
          */
-        public boolean addPorts(Port... ports) {
+        public void addPorts(Port... ports) {
             if (getPorts().size() + ports.length <= MAX_PORT_COUNT) {
                 for (Port port : ports) {
                     char nextPortName = getPorts().isEmpty() ? Port.DEFAULT_NAME : (char) (getPorts().getLast().getName() + 1);
                     getPorts().add(port.withName(nextPortName));
                 }
-                return true;
-            } //else
-            return false;
+            }
         }
 
         /**
@@ -184,13 +187,15 @@ public class CPUCLink {
         }
 
         /**
-         * returns the camera link format string depending on the number of ports:
+         * returns the camera link format string depending on the number of ports if it is not forced deca mode:
          * - "Base" if <=3
          * - "Medium" if <=6
          * - "Full" if <=8
          * - "Deca" otherwise
          */
         public String getCLFormat() {
+            if (forcedDeca)
+                return "Deca";
             if (getPortCount() <= 3)
                 return "Base";
             if (getPortCount() <= 6)
@@ -249,6 +254,6 @@ public class CPUCLink {
             return "Port " + getName() + noteString + ":"
                     + (getName() == 'H' ? "" : "\t") // small letters (all but H) get an extra tab for alignment...
                     + "\t" + String.format("%05d", getStartPixel()) + " - " + String.format("%05d", getEndPixel());
-        }
+        }//TODO if noteString not empty change number of tabs
     }
 }

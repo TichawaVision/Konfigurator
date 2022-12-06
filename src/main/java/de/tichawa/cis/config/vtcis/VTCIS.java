@@ -54,7 +54,7 @@ public class VTCIS extends VSCIS {
         for (int i = 0; i < taps; ) {
             cameraLinks.add(new CPUCLink.CameraLink(0, (char) (CPUCLink.Port.DEFAULT_NAME + cameraLinks.stream()
                     .mapToInt(CPUCLink.CameraLink::getPortCount)
-                    .sum())));
+                    .sum()), !mediumMode));
 
             while (cameraLinks.getLast().getPortCount() <= portLimit - blockSize && i < taps) {
                 for (int k = 0; k < blockSize; k++) {

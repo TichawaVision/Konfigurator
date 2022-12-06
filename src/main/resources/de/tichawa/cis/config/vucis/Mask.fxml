@@ -237,6 +237,7 @@
                 </HBox>
             </GridPane>
         </TitledPane>
+        <!-- not needed for VUCIS but part of the main class -->
         <HBox alignment="CENTER" spacing="5.0" GridPane.rowIndex="3" GridPane.columnIndex="0">
             <ComboBox fx:id="Cooling" disable="true" promptText="Liquid Cooling (Default)">
                 <items>

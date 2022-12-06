@@ -151,7 +151,6 @@ public class VUCIS extends CIS {
                 || coaxLight.isShapeFromShading(); //coax sfs should not be possible anyway
     }
 
-
     @Override
     public String getTiViKey() {
         String key = "G_VUCIS";
@@ -354,10 +353,10 @@ public class VUCIS extends CIS {
     }
 
     /**
-     * creates a camera link with the given number of ports
+     * creates a camera link with the given number of ports.
      */
-    private static CPUCLink.CameraLink createCameraLink(int phases, int numberOfports, int lval, int id, int startLval, int startLvalCPUC) {
-        CPUCLink.CameraLink cameraLink = new CPUCLink.CameraLink(id);
+    private static CPUCLink.CameraLink createCameraLink(int phases, int numberOfports, int lval, int id, int startLval, int startLvalCPUC, boolean forcedDeca) {
+        CPUCLink.CameraLink cameraLink = new CPUCLink.CameraLink(id, forcedDeca);
         List<CPUCLink.Port> ports = new LinkedList<>();
         for (int i = 0; i < numberOfports; i += phases) {
             for (int j = 0; j < phases; j++) {
@@ -373,7 +372,7 @@ public class VUCIS extends CIS {
      * returns a list containing of a single camera link created for the given phases, port number and lval
      */
     private static List<CPUCLink.CameraLink> fillSingleCameraLink(int phases, int ports, int lval, int startLvalCPUC) {
-        return Stream.of(createCameraLink(phases, ports, lval, 1, 0, startLvalCPUC)).collect(Collectors.toList());
+        return Stream.of(createCameraLink(phases, ports, lval, 1, 0, startLvalCPUC, false)).collect(Collectors.toList());
     }
 
     /**
@@ -381,8 +380,9 @@ public class VUCIS extends CIS {
      * The first one will have ports 0 to portsForOne, the other one the remaining ports.
      */
     private static List<CPUCLink.CameraLink> fillTwoCameraLinks(int phases, int ports, int portsForOne, int lval, int startLvalCPUC) {
-        CPUCLink.CameraLink cameraLink1 = createCameraLink(phases, portsForOne, lval, 1, 0, startLvalCPUC);
-        return Stream.of(cameraLink1, createCameraLink(phases, ports - portsForOne, lval, 2, cameraLink1.getEndPixel() + 1, 0)).collect(Collectors.toList());
+        boolean forcedDeca = portsForOne > 8 && ports > 8;
+        CPUCLink.CameraLink cameraLink1 = createCameraLink(phases, portsForOne, lval, 1, 0, startLvalCPUC, forcedDeca);
+        return Stream.of(cameraLink1, createCameraLink(phases, ports - portsForOne, lval, 2, cameraLink1.getEndPixel() + 1, 0, forcedDeca)).collect(Collectors.toList());
     }
 
     /**
@@ -411,9 +411,6 @@ public class VUCIS extends CIS {
         if (ports <= 10)
             //fill one camera link (up to deca)
             return fillSingleCameraLink(is1Phase ? 1 : 2, ports, lval, startLvalCPUC);
-        if (ports == 12) //TODO check whether this works or we go with full + medium
-            //fill two camera links up to medium
-            return fillTwoCameraLinks(is1Phase ? 1 : 2, ports, 6, lval, startLvalCPUC);
         if (ports <= 16)
             //fill two camera links up to full
             return fillTwoCameraLinks(is1Phase ? 1 : 2, ports, 8, lval, startLvalCPUC);
@@ -1260,3 +1257,4 @@ public class VUCIS extends CIS {
         }
     }
 }
+//TODO deca option in GUI?? -> what to do with different boards?

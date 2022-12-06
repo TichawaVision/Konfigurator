@@ -334,6 +334,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         // listener and text output for reduced pixel clock
         ReducedPixelClock.setText(ReducedPixelClock.getText() + " (" + (VUCIS.PIXEL_CLOCK_REDUCED / 1000000) + "\u200akHz)");
         ReducedPixelClock.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
+        ReducedPixelClock.setSelected(CIS_DATA.isReducedPixelClock());
         // setup choice box for valid mod options
         Mod.getItems().clear();
         Mod.getItems().addAll(VUCIS.VALID_MODS.stream().map(Object::toString).collect(Collectors.toList()));
