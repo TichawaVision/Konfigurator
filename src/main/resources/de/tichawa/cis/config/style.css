@@ -97,29 +97,50 @@
   -fx-font-weight: bold;
 }
 
-#Header, #Specs, #CLConfig
+#Header, #Specs, #CLConfig, #SpecsWarning
 {
   -fx-font-weight: bold;
   -fx-background-insets: 0;
   -fx-background-color: transparent, white, transparent, white;
 }
 
-#Header .content, #Specs .content, #CLConfig .content
+#Header .content, #Specs .content
 {
   -fx-background-color: transparent, white, transparent, white;
-  -fx-padding: 10px;
+  -fx-padding: 10px 10px 0px 10px;
   -fx-text-fill: gray;
   -fx-highlight-fill: #7ecfff;
 }
 
-#Header:focused .content, #Specs:focused .content, #CLConfig:focused .content
+#CLConfig .content
+{
+    -fx-background-color: transparent, white, transparent, white;
+    -fx-padding: 10px;
+    -fx-text-fill: gray;
+    -fx-highlight-fill: #7ecfff;
+}
+
+#SpecsWarning .content
+{
+    -fx-background-color: transparent, white, transparent, white;
+    -fx-padding: 0 0 0 10px;
+    -fx-text-fill: gray;
+    -fx-highlight-fill: #7ecfff;
+}
+
+#Header:focused .content, #Specs:focused .content, #CLConfig:focused .content, #SpecsWarning:focused .content
 {
   -fx-background-color: transparent, white, transparent, white;
 }
 
-#Header:focused, #Specs:focused, #CLConfig:focused
+#Header:focused, #Specs:focused, #CLConfig:focused, #SpecsWarning:focused
 {
   -fx-highlight-fill: #7ecfff;
+}
+
+#SpecsWarning
+{
+    -fx-text-fill: #ff0000;
 }
 
 .white
@@ -135,4 +156,13 @@
 .bolder
 {
   -fx-font-weight: bold;
+}
+
+.text-area .scroll-bar:vertical {
+    -fx-pref-width: 1;
+    -fx-opacity: 0;
+}
+.text-area .scroll-bar:horizontal {
+    -fx-pref-height: 1;
+    -fx-opacity: 0;
 }

@@ -22,6 +22,7 @@ import static de.tichawa.cis.config.model.Tables.*;
 public abstract class CIS {
     // global constants
     public static final int BASE_LENGTH = 260;
+    public static final String PRINTOUT_WARNING = "!!WARNING: ";
     private static final Pattern LIGHT_PATTERN = Pattern.compile("(\\d+)D(\\d+)C");
     private static final Map<String, AdcBoardRecord> ADC_BOARDS;
     private static final Map<String, SensorChipRecord> SENSOR_CHIPS;
@@ -522,7 +523,8 @@ public abstract class CIS {
         // - scan width
         printout.append(Util.getString("scan width")).append(getScanWidth()).append("\u200amm\n");
         // - selected line rate
-        printout.append(Util.getString("sellinerate")).append(Math.round(getSelectedLineRate() / 100.0) / 10.0).append("\u200akHz\n");
+        double lineRate = Math.round(getSelectedLineRate() / 100.0) / 10.0;
+        printout.append(Util.getString("sellinerate")).append(lineRate).append("\u200akHz\n");
         // - transport speed
         printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor())).append("\u200amm/s\n");
         // - geometry correction
@@ -541,10 +543,11 @@ public abstract class CIS {
         printout.append(Util.getString("powersource")).append("(24 +/- 1)\u200aVDC\n");
         printout.append(Util.getString("Needed power:")).append((" " + ((calculation.electSums[2] == null) ? 0.0 : (Math.round(10.0 * calculation.electSums[2]) / 10.0)) + "\u200aA").replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
         // - frequency limit
+        long minFreq = Math.round(1000 * getMinFreq(calculation)) / 1000;
         if (hasLEDs()) // only print this if there are lights
             printout.append(Util.getString("FrequencyLimit")).append(" ").append(getMinFreq(calculation) < 0 // if < 0 there are values missing in database -> give error msg
                     ? Util.getString("missing photo values") + "\n"
-                    : "~" + Math.round(1000 * getMinFreq(calculation)) / 1000 + "\u200akHz\n");
+                    : "~" + minFreq + "\u200akHz\n");
         // - cooling
         printout.append(Util.getString(getCooling().getShortHand())).append("\n");
         // - weight
@@ -556,6 +559,9 @@ public abstract class CIS {
         printout.append("Interface: ").append(isGigeInterface() ? "GigE" : "CameraLink (max. 5\u200am)").append("\n");
         // - end of specs
         printout.append(getEndOfSpecs());
+        // - add warning if necessary (if min freq is less than 2 * selected line rate)
+        if (minFreq < 2 * lineRate)
+            printout.append(PRINTOUT_WARNING).append(Util.getString("warning minfreq linerate")).append("\n");
 
         //CL Config
         printout.append("\n\t\n");

@@ -15,6 +15,8 @@ import java.util.*;
 
 // Datasheet für alle CIS
 public class DataSheetController implements Initializable {
+    private static final double LINE_HEIGHT = 17.5;
+
     protected CIS CIS_DATA;
 
     @FXML
@@ -25,6 +27,8 @@ public class DataSheetController implements Initializable {
     private TextArea Header;
     @FXML
     private TextArea Specs;
+    @FXML
+    private TextArea SpecsWarning;
     @FXML
     private TextArea CLConfig;
     @FXML
@@ -49,18 +53,6 @@ public class DataSheetController implements Initializable {
         load();
     }
 
-    public TextArea getHeader() {
-        return Header;
-    }
-
-    public TextArea getSpecs() {
-        return Specs;
-    }
-
-    public TextArea getCLConfig() {
-        return CLConfig;
-    }
-
     private void load() {
         try {
             Lang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("lang"));
@@ -75,12 +67,21 @@ public class DataSheetController implements Initializable {
 
             Header.setText(dataSheetText[0]);
             Header.setEditable(false);
-            Specs.setText(dataSheetText[1]);
+            //specs part
+            if (dataSheetText[1].contains(CIS.PRINTOUT_WARNING)) { // if the specs have a warning -> extract it and put it in the SpecsWarning TextArea
+                String[] split = dataSheetText[1].split(CIS.PRINTOUT_WARNING);
+                dataSheetText[1] = split[0]; //take the part before the warning as the spec output
+                SpecsWarning.setText(split[1].trim()); //take the part after the warning as warning text
+                SpecsWarning.setMinHeight(split[1].trim().split("\n").length * LINE_HEIGHT);
+            }
+            Specs.setText(dataSheetText[1].trim());
             Specs.setEditable(false);
-            Specs.setMinHeight((dataSheetText[1].length() - dataSheetText[1].replace("\n", "").length()) * 20);
-            CLConfig.setText(dataSheetText[2]);
+            Specs.setMinHeight(dataSheetText[1].trim().split("\n").length * LINE_HEIGHT);
+            SpecsWarning.setEditable(false);
+            SpecsWarning.lookup(".scroll-bar:vertical").setDisable(true);
+            CLConfig.setText(dataSheetText[2].trim());
             CLConfig.setEditable(false);
-            CLConfig.setMinHeight((dataSheetText[2].length() - dataSheetText[2].replace("\n", "").length()) * 20);
+            CLConfig.setMinHeight(dataSheetText[2].trim().split("\n").length * LINE_HEIGHT);
             Scroller.setStyle("-fx-background-color: #FFFFFF;");
             Grid.setStyle("-fx-background-color: #FFFFFF;");
 
@@ -183,16 +184,18 @@ public class DataSheetController implements Initializable {
      * makes the datasheet editable by setting header, specs and camera link config areas to editable
      */
     public void setEditable() {
-        getHeader().setEditable(true);
-        getSpecs().setEditable(true);
-        getCLConfig().setEditable(true);
+        Header.setEditable(true);
+        Specs.setEditable(true);
+        SpecsWarning.setEditable(true);
+        CLConfig.setEditable(true);
+
     }
 
     /**
      * returns whether the datasheet is in OEM mode by checking whether the header field is editable
      */
     private boolean isOEMMode() {
-        return getHeader().isEditable();
+        return Header.isEditable();
     }
 
     public ImageView getProfilePic() {
