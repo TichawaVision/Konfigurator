@@ -22,20 +22,26 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITHOUT_COAX = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820, 2080).collect(Collectors.toList());
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_SFS = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820).collect(Collectors.toList());
 
+    private static long lastMinFreq = 0;
+
     @FXML
-    public ChoiceBox<String> LensType;
+    private Label WarningSelectedLineRate;
     @FXML
-    public CheckBox LensDOF;
+    private ChoiceBox<String> LensType;
     @FXML
-    public CheckBox ReducedPixelClock;
+    private CheckBox LensDOF;
     @FXML
-    public Label CameraLinkInfo;
+    private CheckBox ReducedPixelClock;
     @FXML
-    public Label LightInfo;
+    private Label CameraLinkInfo;
     @FXML
-    public ChoiceBox<String> Mod;
+    private Label LightInfo;
     @FXML
-    public Label PixelCount;
+    private ChoiceBox<String> Mod;
+    @FXML
+    private Label PixelCount;
+    @FXML
+    private Label LightFrequencyLimit;
     @FXML
     private ChoiceBox<String> BrightFieldLeft;
     @FXML
@@ -243,6 +249,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         initCloudyDay();
         initLights();
         initCooling();
+        updateLightFrequencyLimit();
     }
 
     /**
@@ -385,41 +392,48 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 updateScanWidthOptions();
                 setLightPresetToManual();
                 updateLightInfo();
+                updateLightFrequencyLimit();
                 return;
             case "leftBrightField":
                 selectLightChoiceBox(BrightFieldLeft, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
+                updateLightFrequencyLimit();
                 return;
             case "coaxLight":
                 handleCoaxChange((CIS.LightColor) evt.getOldValue(), (CIS.LightColor) evt.getNewValue());
                 selectLightChoiceBox(Coax, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateLightInfo();
+                updateLightFrequencyLimit();
                 return;
             case "rightBrightField":
                 selectLightChoiceBox(BrightFieldRight, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
+                updateLightFrequencyLimit();
                 return;
             case "rightDarkField":
                 selectLightChoiceBox(DarkFieldRight, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
+                updateLightFrequencyLimit();
                 return;
             case "phaseCount":
                 Phases selectedPhase = Phases.findByPhaseCount((int) evt.getNewValue()).orElseThrow(() -> new IllegalArgumentException("selected phase count not found"));
                 handlePhasesChange(selectedPhase);
                 setLightPresetToManual();
                 updateCameraLinkInfo();
+                updateLightFrequencyLimit();
                 return;
             case "cloudyDay":
                 CloudyDay.setSelected((boolean) evt.getNewValue());
                 updateDarkFieldChoiceBoxes((boolean) evt.getNewValue());
                 setLightPresetToManual();
+                updateLightFrequencyLimit();
                 return;
             case "coolingLeft":
                 CoolingLeft.setSelected((boolean) evt.getNewValue());
@@ -432,6 +446,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             // optics
             case "lensType":
                 handleLensChange((VUCIS.LensType) evt.getNewValue());
+                updateLightFrequencyLimit();
                 return;
             // resolution and scan width
             case "resolution":
@@ -446,6 +461,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             case "lineRate":
                 handleLineRateChange((int) evt.getNewValue());
                 updateCameraLinkInfo();
+                updateSelectedLineRateWarning();
                 return;
             case "transportSpeed":
                 handleTransportSpeedChange((int) evt.getNewValue());
@@ -667,6 +683,10 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         }
     }
 
+    /**
+     * updates the light info textbox that shows a warning if the needed light channels are >10.
+     * Also shows options to combine bright or dark fields if possible.
+     */
     private void updateLightInfo() {
         if (CIS_DATA.getLedLines() < 10) { // smaller than 10 is fine, 10 might not be fine if it's actually more
             LightInfo.setText("");
@@ -691,5 +711,29 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         //might be able to combine all
         //TODO check condition on when we can combine all 88XXX ? 88X88 ? 88XAA ? ...
         LightInfo.setText(displayText.toString());
+    }
+
+    /**
+     * updates the light frequency limit label
+     */
+    private void updateLightFrequencyLimit() {
+        long minFreq = Math.round(1000 * CIS_DATA.getMinFreq(CIS_DATA.calculate())) / 1000;
+        lastMinFreq = minFreq;
+        LightFrequencyLimit.setText(minFreq < 0 // if < 0 there are values missing in database -> give error msg
+                ? Util.getString("missing photo values") + "\n"
+                : "~" + minFreq + "\u200akHz\n"
+        );
+        updateSelectedLineRateWarning();
+    }
+
+    /**
+     * updates the selected line rate warning label. The warning is shown if the minimum light frequency is smaller than twice the selected line rate.
+     */
+    private void updateSelectedLineRateWarning() {
+        double lineRate = Math.round(CIS_DATA.getSelectedLineRate() / 100.0) / 10.0;
+        if (lastMinFreq >= 0 && lastMinFreq < 2 * lineRate) // if missing values in database lastMinFreq is <0 -> don't show warning as this would overlap with other warning
+            WarningSelectedLineRate.setText(Util.getString("warning minfreq linerate").replace('\n', ' '));
+        else
+            WarningSelectedLineRate.setText("");
     }
 }

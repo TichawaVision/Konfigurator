@@ -89,6 +89,15 @@
                 <HBox alignment="CENTER" GridPane.rowIndex="4" GridPane.columnSpan="5">
                     <Label fx:id="LightInfo"/>
                 </HBox>
+                <!-- light frequency limit -->
+                <HBox alignment="CENTER_LEFT" GridPane.rowIndex="5" GridPane.columnSpan="3">
+                    <Label text="Light Frequency Limit: "/>
+                    <Label fx:id="LightFrequencyLimit"/>
+                </HBox>
+                <!-- warning if freq < 2 * selected line rate, overlapping with above label intented as the above will only span when the following is not shown-->
+                <HBox alignment="CENTER_LEFT" GridPane.rowIndex="5" GridPane.columnIndex="1" GridPane.columnSpan="4">
+                    <Label fx:id="WarningSelectedLineRate" textFill="red"/>
+                </HBox>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" GridPane.columnSpan="3" GridPane.fillHeight="true" GridPane.fillWidth="true"
@@ -181,7 +190,7 @@
         <TitledPane collapsible="false" GridPane.columnIndex="2" GridPane.fillHeight="true"
                     GridPane.fillWidth="true" GridPane.rowIndex="2"
                     text="Line Rate &amp; Transport Speed">
-            <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+            <GridPane alignment="CENTER" hgap="5.0" vgap="5.0">
                 <columnConstraints>
                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="80.0" minWidth="80.0" prefWidth="80.0"/>
                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="78.0" minWidth="78.0" prefWidth="78.0"/>
