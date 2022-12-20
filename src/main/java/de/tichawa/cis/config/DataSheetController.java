@@ -1,20 +1,28 @@
 package de.tichawa.cis.config;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.draw.LineSeparator;
 import javafx.fxml.*;
 import javafx.print.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.transform.Scale;
-import javafx.stage.Stage;
+import javafx.stage.*;
 
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
 // Datasheet für alle CIS
 public class DataSheetController implements Initializable {
+    private static final Font FONT_HEADLINE = FontFactory.getFont(FontFactory.HELVETICA, 12, BaseColor.BLACK);
+    private static final Font FONT_NORMAL = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
+    private static final Font FONT_RED = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.RED);
+
     private static final double LINE_HEIGHT = 17.5;
 
     protected CIS CIS_DATA;
@@ -40,6 +48,8 @@ public class DataSheetController implements Initializable {
     @FXML
     private MenuItem Print;
     @FXML
+    private MenuItem Save;
+    @FXML
     private Menu Lang;
     @FXML
     private MenuItem SwitchLang;
@@ -55,12 +65,12 @@ public class DataSheetController implements Initializable {
 
     private void load() {
         try {
-            Lang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("lang"));
-            SwitchLang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("switchlang"));
+            Lang.setText(Util.getString("lang"));
+            SwitchLang.setText(Util.getString("switchlang"));
 
-            File.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("File"));
-            Print.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("Print"));
-
+            File.setText(Util.getString("File"));
+            //Print.setText(Util.getString("Print"));
+            Save.setText(Util.getString("Save"));
 
             String[] dataSheetText = CIS_DATA.createPrntOut().split("\n\t\n");
             String key = CIS_DATA.getTiViKey();
@@ -129,7 +139,8 @@ public class DataSheetController implements Initializable {
         }
     }
 
-    public void print() { //TODO make this not take a screenshot -> maybe by using labels instead of text areas
+    @FXML
+    private void print() { // old print
         PrinterJob p = PrinterJob.createPrinterJob();
         Pane printable = Grid;
 
@@ -200,5 +211,67 @@ public class DataSheetController implements Initializable {
 
     public ImageView getProfilePic() {
         return ProfilePic;
+    }
+
+    /**
+     * saves the current contents of the datasheet to a pdf file.
+     * Shows a file chooser to determine the file location.
+     */
+    @FXML
+    private void save() {
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("PDF files", "*.pdf"),
+                    new FileChooser.ExtensionFilter("All files", "*"));
+            java.io.File file = fileChooser.showSaveDialog(Header.getScene().getWindow());
+            Document document = new Document();
+            PdfWriter.getInstance(document, new FileOutputStream(file));
+            writeDocument(document);
+        } catch (IOException | DocumentException e) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Saving failed");
+            alert.setHeaderText("PDF file could not be written or saved. (" + e.getMessage() + ")");
+            alert.showAndWait();
+        }
+    }
+
+    /**
+     * writes the text area contents to the given document
+     *
+     * @param document the document to write
+     * @throws DocumentException when writing fails
+     * @throws IOException       when writing fails
+     */
+    private void writeDocument(Document document) throws DocumentException, IOException {
+        document.open();
+        // headline
+        Paragraph headline = new Paragraph(Header.getText(), FONT_HEADLINE);
+        headline.setMultipliedLeading(1);
+        document.add(headline);
+        document.add(Chunk.NEWLINE);
+        document.add(new LineSeparator());
+        document.add(Chunk.NEWLINE);
+        // product image
+        com.itextpdf.text.Image image = com.itextpdf.text.Image.getInstance(Objects.requireNonNull(
+                getClass().getResource("/de/tichawa/cis/config/" + CIS_DATA.getTiViKey().toLowerCase().split("_")[1] + "/Product.jpg")));
+        image.setAbsolutePosition(PageSize.A4.getWidth() - image.getWidth() - document.rightMargin(), PageSize.A4.getHeight() - image.getHeight() - 61);
+        document.add(image);
+        // specs
+        Paragraph specs = new Paragraph(Specs.getText(), FONT_NORMAL);
+        specs.setMultipliedLeading(1.2f);
+        document.add(specs);
+        document.add(Chunk.NEWLINE);
+        // spec warning
+        Paragraph specsWarning = new Paragraph(SpecsWarning.getText(), FONT_RED);
+        specsWarning.setMultipliedLeading(1.2f);
+        document.add(specsWarning);
+        // cl config
+        Paragraph clConfig = new Paragraph(CLConfig.getText(), FONT_NORMAL);
+        clConfig.setMultipliedLeading(1.2f);
+        clConfig.setAlignment(Element.ALIGN_RIGHT);
+        document.add(clConfig);
+
+        document.close();
     }
 }

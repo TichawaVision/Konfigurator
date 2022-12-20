@@ -10,7 +10,8 @@
         <top>
             <MenuBar id="Menu" prefHeight="20.0" BorderPane.alignment="CENTER">
                 <Menu fx:id="File">
-                    <MenuItem fx:id="Print" onAction="#print"/>
+                    <!--<MenuItem fx:id="Print" onAction="#print"/>-->
+                    <MenuItem fx:id="Save" onAction="#save"/>
                 </Menu>
                 <Menu fx:id="Lang">
                     <MenuItem fx:id="SwitchLang" onAction="#handleSwitchLang"/>
