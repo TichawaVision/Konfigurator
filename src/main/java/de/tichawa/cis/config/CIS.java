@@ -526,7 +526,9 @@ public abstract class CIS {
         double lineRate = Math.round(getSelectedLineRate() / 100.0) / 10.0;
         printout.append(Util.getString("sellinerate")).append(lineRate).append("\u200akHz\n");
         // - transport speed
-        printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor())).append("\u200amm/s\n");
+        //TODO double check fix
+        //printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor())).append("\u200amm/s\n");
+        printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0))).append("\u200amm/s\n");
         // - geometry correction
         printout.append(getGeometryCorrectionString()).append("\n");
         // - scan distance
