@@ -611,7 +611,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
                 BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
             } //in either case:
             //enable/disable left dark field (no dark field + coax)
-            DarkFieldLeft.setDisable(hasCoax);
+            DarkFieldLeft.setDisable(hasCoax || CIS_DATA.isCloudyDay());
             //select current values
             selectLightChoiceBox(BrightFieldLeft, CIS_DATA.getBrightFieldLeft());
             ScanWidth.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");

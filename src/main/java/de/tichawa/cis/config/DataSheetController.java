@@ -266,6 +266,12 @@ public class DataSheetController implements Initializable {
         Paragraph specsWarning = new Paragraph(SpecsWarning.getText(), FONT_RED);
         specsWarning.setMultipliedLeading(1.2f);
         document.add(specsWarning);
+        // profile image
+        com.itextpdf.text.Image profileImage = com.itextpdf.text.Image.getInstance(Objects.requireNonNull(
+                getClass().getResource("/de/tichawa/cis/config/" + CIS_DATA.getTiViKey().toLowerCase().split("_")[1] + "/Profile.jpg")));
+        profileImage.scaleToFit((PageSize.A4.getWidth() - 2 * document.leftMargin()) / 2, (PageSize.A4.getHeight() - 2 * document.bottomMargin()) / 2);
+        profileImage.setAbsolutePosition(document.leftMargin(), document.bottomMargin());
+        document.add(profileImage);
         // cl config
         Paragraph clConfig = new Paragraph(CLConfig.getText(), FONT_NORMAL);
         clConfig.setMultipliedLeading(1.2f);

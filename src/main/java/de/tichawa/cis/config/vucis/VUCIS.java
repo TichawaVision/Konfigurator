@@ -1053,7 +1053,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected double getDepthOfField() {
-        return getSelectedResolution().getDepthOfField() * 2;
+        return lensType.isLongDOF() ? getSelectedResolution().getDepthOfField() * 2 : getSelectedResolution().getDepthOfField();
     }
 
     /**
@@ -1192,6 +1192,21 @@ public class VUCIS extends CIS {
         return Util.getString("mod for lval") + mod + "\n";
     }
 
+    @Override
+    protected boolean hasEarlyTriggerPrintout() {
+        return false;
+    }
+
+    @Override
+    protected String getTriggerPrintout() {
+        return Util.getString("trigger CC1 or extern") + "\n";
+    }
+
+    @Override
+    protected String getInterfacePrintout() {
+        return "Interface: CameraLink (max. " + (reducedPixelClock ? "10" : "5") + "\u200am)";
+    }
+
     /**
      * returns whether the VUCIS has LEDs or not
      */
@@ -1216,19 +1231,14 @@ public class VUCIS extends CIS {
     }
 
     public enum LensType {
-        TC48("TC48", "10"),
-        TC48L("TC48 with long DOF", "1L"),
-        TC54("TC54", "20"),
-        TC54L("TC54 with long DOF", "2L"),
-        TC80("TC80", "30"),
-        TC80L("TC80 with long DOF", "3L"),
-        TC99("TC99", "40"),
-        TC147("TC147", "50"),
-        OBJ("OL_OBJ_M12x0.5R_25mm_GLAS_0_ß=1:4", "64");
+        TC54("TC54", "20", false),
+        TC54L("TC54 with long DOF", "2L", true),
+        TC80("TC80", "30", false),
+        TC80L("TC80 with long DOF", "3L", true);
 
         private final String description;
         private final String code;
-
+        private final boolean longDOF;
 
         public String getDescription() {
             return description;
@@ -1238,9 +1248,10 @@ public class VUCIS extends CIS {
             return code;
         }
 
-        LensType(String description, String code) {
+        LensType(String description, String code, boolean longDOF) {
             this.description = description;
             this.code = code;
+            this.longDOF = longDOF;
         }
 
         public static Optional<LensType> findByDescription(String description) {
@@ -1254,6 +1265,10 @@ public class VUCIS extends CIS {
             return Arrays.stream(LensType.values())
                     .filter(c -> c.getCode().equals(code))
                     .findFirst();
+        }
+
+        public boolean isLongDOF() {
+            return longDOF;
         }
     }
 }

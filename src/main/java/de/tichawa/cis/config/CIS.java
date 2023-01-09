@@ -497,6 +497,30 @@ public abstract class CIS {
     }
 
     /**
+     * returns the trigger printout.
+     * Default is CC1 if not external unless overwritten by subclass (that has no options)
+     */
+    protected String getTriggerPrintout() {
+        return "Trigger: " + (isExternalTrigger() ? "extern (RS422)" : "CC1") + ", ";
+    }
+
+    /**
+     * returns whether the trigger printout should be in the beginning.
+     * Default is true (for subclasses with options) unless overwritten by subclass.
+     */
+    protected boolean hasEarlyTriggerPrintout() {
+        return true;
+    }
+
+    /**
+     * returns the interface printout.
+     * Default is GigE or CameraLink max 5m unless overwritten by subclass
+     */
+    protected String getInterfacePrintout() {
+        return "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5\u200am)");
+    }
+
+    /**
      * this method creates a print out for the datasheet
      */
     public String createPrntOut() {
@@ -507,9 +531,10 @@ public abstract class CIS {
         printout.append("\n\t\n");
 
         // specs section
-        // - scan width, trigger, max line rate
-        printout.append(getScanWidth()).append("\u200amm, Trigger: ").append(!isExternalTrigger() ? "CC1" : "extern (RS422)");
-        printout.append(", max. ").append((getMaxLineRate() / 1000) * getMaxLineRateFactor()).append("\u200akHz\n");
+        // - scan width, trigger, phase count, max line rate
+        printout.append(getScanWidth()).append("\u200amm, ").append(hasEarlyTriggerPrintout() ? getTriggerPrintout() : "");
+        printout.append(Util.getString("numPhases")).append(getPhaseCount()).append(", ");
+        printout.append("max. ").append((getMaxLineRate() / 1000) * getMaxLineRateFactor()).append("\u200akHz\n");
 
         // - resolution
         printout.append(Util.getString("Resolution: "));
@@ -526,15 +551,15 @@ public abstract class CIS {
         double lineRate = Math.round(getSelectedLineRate() / 100.0) / 10.0;
         printout.append(Util.getString("sellinerate")).append(lineRate).append("\u200akHz\n");
         // - transport speed
-        //TODO double check fix
-        //printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0) * getTransportSpeedFactor())).append("\u200amm/s\n");
         printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0))).append("\u200amm/s\n");
         // - geometry correction
         printout.append(getGeometryCorrectionString()).append("\n");
+        // - trigger (if late printout)
+        printout.append(hasEarlyTriggerPrintout() ? "" : getTriggerPrintout());
         // - scan distance
         printout.append(Util.getString("scan distance")).append(": ").append(getScanDistanceString()).append("\n");
-        // - depth of field
-        printout.append(Util.getString("DepthofField")).append(": ~ +/- ").append(getDepthOfField()).append("\u200amm\n");
+        // - depth of field (replaced +/- with *2)
+        printout.append(Util.getString("DepthofField")).append(": ~ ").append(getDepthOfField() * 2).append("\u200amm\n");
         // - line width
         printout.append(Util.getString("line width")).append(": > 1\u200amm\n");
         // - case printout (L x W x H, with glass pane)
@@ -558,7 +583,7 @@ public abstract class CIS {
                         + ((calculation.mechaSums[3] == null) ? 0.0 : calculation.mechaSums[3])) * 10) / 10.0 + "\u200akg")
                         .replace(" 0\u200akg", " ???")).append("\n");
         // - interface
-        printout.append("Interface: ").append(isGigeInterface() ? "GigE" : "CameraLink (max. 5\u200am)").append("\n");
+        printout.append(getInterfacePrintout()).append("\n");
         // - end of specs
         printout.append(getEndOfSpecs());
         // - add warning if necessary (if min freq is less than 2 * selected line rate)
