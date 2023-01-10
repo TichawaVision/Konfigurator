@@ -19,6 +19,8 @@ public class VUCIS extends CIS {
     public static final List<Resolution> resolutions;
     public static final List<Integer> VALID_MODS;
 
+    private static final double[] WEIGHTS = {3.8, 5.6, 8.2, 11.1, 13.2, 15.4, 17.6, 20};
+
     static {
         resolutions = Arrays.asList(
                 new CIS.Resolution(1200, 1200, true, 0.25, 0.02115),
@@ -1270,5 +1272,14 @@ public class VUCIS extends CIS {
         public boolean isLongDOF() {
             return longDOF;
         }
+    }
+
+    /**
+     * returns a fixed weight string depending on CIS size since calculation is not perfect due to many missing weight values
+     */
+    @Override
+    protected String getWeightString(CISCalculation calculation) {
+        // sfs has next size, otherwise index -1
+        return WEIGHTS[getScanWidth() / BASE_LENGTH - (isShapeFromShading() ? 0 : 1)] + "\u200akg";
     }
 }

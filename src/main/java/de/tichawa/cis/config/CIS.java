@@ -521,6 +521,15 @@ public abstract class CIS {
     }
 
     /**
+     * returns the weight printout
+     */
+    protected String getWeightString(CISCalculation calculation) {
+        return (" " + Math.round((((calculation.electSums[3] == null) ? 0.0 : calculation.electSums[3])
+                + ((calculation.mechaSums[3] == null) ? 0.0 : calculation.mechaSums[3])) * 10) / 10.0 + "\u200akg")
+                .replace(" 0\u200akg", " ???");
+    }
+
+    /**
      * this method creates a print out for the datasheet
      */
     public String createPrntOut() {
@@ -578,10 +587,8 @@ public abstract class CIS {
         // - cooling
         printout.append(Util.getString(getCooling().getShortHand())).append("\n");
         // - weight
-        printout.append(Util.getString("weight")).append(": ~ ")
-                .append((" " + Math.round((((calculation.electSums[3] == null) ? 0.0 : calculation.electSums[3])
-                        + ((calculation.mechaSums[3] == null) ? 0.0 : calculation.mechaSums[3])) * 10) / 10.0 + "\u200akg")
-                        .replace(" 0\u200akg", " ???")).append("\n");
+        printout.append(Util.getString("weight")).append(": ~ ").append(getWeightString(calculation)).append("\n");
+
         // - interface
         printout.append(getInterfacePrintout()).append("\n");
         // - end of specs
