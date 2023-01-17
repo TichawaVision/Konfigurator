@@ -736,4 +736,9 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         else
             WarningSelectedLineRate.setText("");
     }
+
+    @Override
+    protected boolean requiresNextSizeHousing() {
+        return CIS_DATA.isShapeFromShading();
+    }
 }

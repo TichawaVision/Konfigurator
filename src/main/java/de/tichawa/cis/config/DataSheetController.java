@@ -258,7 +258,7 @@ public class DataSheetController implements Initializable {
         image.setAbsolutePosition(PageSize.A4.getWidth() - image.getWidth() - document.rightMargin(), PageSize.A4.getHeight() - image.getHeight() - 61);
         document.add(image);
         // specs
-        Paragraph specs = new Paragraph(Specs.getText(), FONT_NORMAL);
+        Paragraph specs = new Paragraph(prepareForPdfPrint(Specs.getText()), FONT_NORMAL);
         specs.setMultipliedLeading(1.2f);
         document.add(specs);
         document.add(Chunk.NEWLINE);
@@ -267,17 +267,29 @@ public class DataSheetController implements Initializable {
         specsWarning.setMultipliedLeading(1.2f);
         document.add(specsWarning);
         // profile image
-        com.itextpdf.text.Image profileImage = com.itextpdf.text.Image.getInstance(Objects.requireNonNull(
-                getClass().getResource("/de/tichawa/cis/config/" + CIS_DATA.getTiViKey().toLowerCase().split("_")[1] + "/Profile.jpg")));
-        profileImage.scaleToFit((PageSize.A4.getWidth() - 2 * document.leftMargin()) / 2, (PageSize.A4.getHeight() - 2 * document.bottomMargin()) / 2);
-        profileImage.setAbsolutePosition(document.leftMargin(), document.bottomMargin());
-        document.add(profileImage);
+        URL profileImageUrl = getClass().getResource("/de/tichawa/cis/config/" + CIS_DATA.getTiViKey().toLowerCase().split("_")[1] + "/Profile.jpg");
+        if (profileImageUrl != null) {
+            com.itextpdf.text.Image profileImage = com.itextpdf.text.Image.getInstance(profileImageUrl);
+            profileImage.scaleToFit((PageSize.A4.getWidth() - 2 * document.leftMargin()) / 2, (PageSize.A4.getHeight() - 2 * document.bottomMargin()) / 2);
+            profileImage.setAbsolutePosition(document.leftMargin(), document.bottomMargin());
+            document.add(profileImage);
+        }
         // cl config
-        Paragraph clConfig = new Paragraph(CLConfig.getText(), FONT_NORMAL);
+        Paragraph clConfig = new Paragraph(prepareForPdfPrint(CLConfig.getText()), FONT_NORMAL);
         clConfig.setMultipliedLeading(1.2f);
         clConfig.setAlignment(Element.ALIGN_RIGHT);
         document.add(clConfig);
 
         document.close();
+    }
+
+    /**
+     * prepares the given text for pdf print. Replaces quarter spaces and tabs with normal spaces as these do not work within a {@link Paragraph}.
+     *
+     * @param text the text that contains space like characters
+     * @return the text where the space like characters are replaced with spaces
+     */
+    private static String prepareForPdfPrint(String text) {
+        return text.replace('\u200a', ' ').replace('\t', ' ');
     }
 }

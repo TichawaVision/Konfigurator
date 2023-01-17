@@ -12,6 +12,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.*;
 import lombok.Getter;
+import org.jooq.Record;
 
 import java.io.*;
 import java.net.URL;
@@ -308,15 +309,10 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         Scene printScene = new Scene(printPane);
 
         SimpleBooleanProperty pale = new SimpleBooleanProperty(false);
-        Util.getDatabase().ifPresent(context ->
-        {
+        Util.getDatabase().ifPresent(context -> {
             context.select(EQUIPMENT.asterisk(), PRICE.FERIX_KEY)
                     .from(EQUIPMENT.join(PRICE).on(EQUIPMENT.ART_NO.eq(PRICE.ART_NO))).stream()
-                    .filter(record -> record.get(EQUIPMENT.SELECT_CODE) == null
-                            || Arrays.stream(record.get(EQUIPMENT.SELECT_CODE).split("&"))
-                            .allMatch(pred -> pred.length() == 0
-                                    || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(pred.replace("!", "")))
-                                    || (!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0 && LDSTD_DATA.getTiViKey().contains(pred.replace("!", "")))))
+                    .filter(this::isValidEquipmentRecord)
                     .map(record ->
                     {
                         Label[] labels = new Label[2];
@@ -344,5 +340,40 @@ public abstract class MaskController<C extends CIS> implements Initializable {
             printStage.setScene(printScene);
             printStage.show();
         });
+    }
+
+    /**
+     * returns whether the CIS requires the next size housing.
+     * Default is false unless overwritten by subclass
+     */
+    protected boolean requiresNextSizeHousing() {
+        return false;
+    }
+
+    /**
+     * returns the given string as a previous size or unchanged if it's not an int string
+     */
+    protected String getPreviousSizeHousingString(String sizeString) {
+        try {
+            return String.valueOf(Integer.parseInt(sizeString) - CIS.BASE_LENGTH);
+        } catch (NumberFormatException e) { // not a number -> return given String
+            return sizeString;
+        }
+    }
+
+    /**
+     * returns whether the given equipment record is valid
+     *
+     * @param record the equipment record that contains the select_code of the equipment table
+     */
+    private boolean isValidEquipmentRecord(Record record) {
+        return record.get(EQUIPMENT.SELECT_CODE) == null // no select code -> it is valid
+                || Arrays.stream(record.get(EQUIPMENT.SELECT_CODE).split("&")).allMatch(pred -> // all predicates must match
+                pred.length() == 0  // predicate matches if it is empty
+                        || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(requiresNextSizeHousing() // check if we might need next size
+                        ? (getPreviousSizeHousingString(pred.replace("!", "")).equals("0") // previous size would be 0 -> don't take this (and replace with something not in tivi key like °
+                        ? "°" : getPreviousSizeHousingString(pred.replace("!", ""))) // check with prev size to get next size
+                        : pred.replace("!", ""))) // check if pred part of tivi key
+                        || (!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0 && LDSTD_DATA.getTiViKey().contains(pred.replace("!", ""))));
     }
 }

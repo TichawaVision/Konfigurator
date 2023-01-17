@@ -19,7 +19,9 @@ public class VUCIS extends CIS {
     public static final List<Resolution> resolutions;
     public static final List<Integer> VALID_MODS;
 
-    private static final double[] WEIGHTS = {3.8, 5.6, 8.2, 11.1, 13.2, 15.4, 17.6, 20};
+    private static final int DEFAULT_MOD = 8;
+
+    private static final double[] WEIGHTS = {3.8, 5.6, 8.2, 11.1, 13.2, 15.4, 17.6, 20}; // total (estimated) weights of the VUCIS by length
 
     static {
         resolutions = Arrays.asList(
@@ -72,12 +74,10 @@ public class VUCIS extends CIS {
      * returns whether the given light color is a valid option for coax lighting for VUCIS
      */
     public static boolean isVUCISCoaxLightColor(LightColor lightColor) {
-        switch (lightColor) {
-            case RGB8: // no rebz 8 for coax
-                return false;
-            default: // rest same as for other positions
-                return isVUCISLightColor(lightColor);
+        if (lightColor == LightColor.RGB8) { // no rebz 8 for coax
+            return false;
         }
+        return isVUCISLightColor(lightColor);// rest same as for other positions
     }
 
     /**
@@ -126,7 +126,7 @@ public class VUCIS extends CIS {
         this.setPhaseCount(1);
         this.setSelectedLineRate((int) getMaxLineRate());
         this.setCooling(Cooling.LICO);
-        this.setMod(16);
+        this.setMod(DEFAULT_MOD);
     }
 
     protected VUCIS(VUCIS cis) {
@@ -553,12 +553,13 @@ public class VUCIS extends CIS {
         long pixelClock = reducedPixelClock ? PIXEL_CLOCK_REDUCED : PIXEL_CLOCK_NORMAL;
         int numCPUCLink = getNumOfCPUCLink();
         double lineRateKHz = getSelectedLineRate() / 1000.0;
+        double firmwareDeadTimeFactor = 1.01;
 
         // calculate maximum possible number of pixels per CPUCLink and create an CLCalcCPUCLink object for further calculations
         List<Integer> pixelsCPU = roundPixel(numSensorBoards, numCPUCLink, numOfPixNominal);
         List<CLCalcCPUCLink> clcalcCPUCLinks = pixelsCPU.stream().map(CLCalcCPUCLink::new).collect(Collectors.toList());
         // calculate maximum possible datarate for each CPUCLink
-        clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClockMax = c.pixelsMax * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
+        clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClockMax = c.pixelsMax * lineRateKHz * getPhaseCount() * firmwareDeadTimeFactor / (pixelClock / 1000));
         // calculate maximum possible lval
         clcalcCPUCLinks.forEach(c -> c.lvalMax = (int) (c.pixelsMax / Math.ceil(c.datarateCPUPerPixelClockMax / getPhaseCount())));
         // calculate lval that is dividable by mod
@@ -569,7 +570,7 @@ public class VUCIS extends CIS {
         // calculate actual pixel number (with lval dividable by mod)
         clcalcCPUCLinks.forEach(c -> c.pixels = c.lval * c.taps);
         // calculate actual datarate
-        clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClock = c.pixels * lineRateKHz * getPhaseCount() / (pixelClock / 1000));
+        clcalcCPUCLinks.forEach(c -> c.datarateCPUPerPixelClock = c.pixels * lineRateKHz * getPhaseCount() * firmwareDeadTimeFactor / (pixelClock / 1000));
         // calculate ports
         clcalcCPUCLinks.forEach(c -> c.ports = (int) (Math.ceil(c.datarateCPUPerPixelClockMax / getPhaseCount()) * getPhaseCount()));
 
@@ -1046,7 +1047,7 @@ public class VUCIS extends CIS {
      * returns the geometry correction string for print out
      */
     @Override
-    protected String getGeometryCorrectionString() { //TODO adjust after discussion
+    protected String getGeometryCorrectionString() {
         return Util.getString("Geometry correction: x and y");
     }
 

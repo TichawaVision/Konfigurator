@@ -162,7 +162,7 @@ public class CPUCLink {
         /**
          * returns the number of ports in the ports list where the end pixel is not 0
          */
-        public int getPortNumber() { //TODO is this needed?
+        public int getPortNumber() { //is this needed?
             return (int) getPorts().stream().filter(p -> p.getEndPixel() != 0).count();
         }
 
