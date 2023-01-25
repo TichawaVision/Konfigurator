@@ -185,18 +185,7 @@ public class VUCIS extends CIS {
 
     @Override
     public String getLightSources() {
-        switch (getLensType()) {
-            case TC54:
-                return "20";
-            case TC54L:
-                return "2L";
-            case TC80:
-                return "30";
-            case TC80L:
-                return "3L";
-            default:
-                return "";
-        }
+        return lensType.code;
     }
 
     /**
@@ -600,6 +589,7 @@ public class VUCIS extends CIS {
                 return LensType.TC54;
             case TC54L:
             case TC80L:
+            case TC100L:
                 return LensType.TC54L;
             default:
                 throw new IllegalArgumentException("unsupported lens type");
@@ -999,6 +989,7 @@ public class VUCIS extends CIS {
                 return "10\u200amm +/- 2\u200amm";
             case TC80:
             case TC80L:
+            case TC100L:
                 return "23\u200amm +/- 3\u200amm";
             default:
                 throw new IllegalStateException("current lens not supported yet");
@@ -1234,14 +1225,16 @@ public class VUCIS extends CIS {
     }
 
     public enum LensType {
-        TC54("TC54", "20", false),
-        TC54L("TC54 with long DOF", "2L", true),
-        TC80("TC80", "30", false),
-        TC80L("TC80 with long DOF", "3L", true);
+        TC54("TC54", "20", false, true),
+        TC54L("TC54 with long DOF", "2L", true, true),
+        TC80("TC80", "30", false, true),
+        TC80L("TC80 with long DOF", "3L", true, true),
+        TC100L("TC100 with long DOF", "3L", true, false);
 
         private final String description;
         private final String code;
         private final boolean longDOF;
+        private final boolean hasShortDOFVersion;
 
         public String getDescription() {
             return description;
@@ -1251,10 +1244,19 @@ public class VUCIS extends CIS {
             return code;
         }
 
-        LensType(String description, String code, boolean longDOF) {
+        /**
+         * creates the lens type with the given parameters.
+         *
+         * @param description        the description String of the lens
+         * @param code               the code of the lens
+         * @param longDOF            whether the lens is the long DOF version
+         * @param hasShortDOFVersion whether there is a short DOF version for this lens
+         */
+        LensType(String description, String code, boolean longDOF, boolean hasShortDOFVersion) {
             this.description = description;
             this.code = code;
             this.longDOF = longDOF;
+            this.hasShortDOFVersion = hasShortDOFVersion;
         }
 
         public static Optional<LensType> findByDescription(String description) {
@@ -1263,15 +1265,17 @@ public class VUCIS extends CIS {
                     .findFirst();
         }
 
-        @SuppressWarnings("unused")
-        public static Optional<LensType> findByCode(String code) {
-            return Arrays.stream(LensType.values())
-                    .filter(c -> c.getCode().equals(code))
-                    .findFirst();
-        }
-
+        /**
+         * returns whether this lens is the long version
+         *
+         * @return true if this lens is the long version and false otherwise
+         */
         public boolean isLongDOF() {
             return longDOF;
+        }
+
+        public boolean hasShortDOFVersion() {
+            return hasShortDOFVersion;
         }
     }
 

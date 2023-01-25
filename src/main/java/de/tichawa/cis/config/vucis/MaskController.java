@@ -261,7 +261,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
             case "10mm":
                 return "TC54";
             case "23mm":
-                return "TC80";
+                return "TC100";
             default:
                 throw new IllegalArgumentException("selected lens type does not exist");
         }
@@ -283,7 +283,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         // listener for lens type choice box that sets the new lens in the model
         LensType.valueProperty().addListener((observable, oldValue, newValue) -> {
             String description = getLensStringFromDistanceValue(newValue);
-            description += getLensStringSuffixFromDOFValue(LensDOF.isSelected());
+            description += getLensStringSuffixFromDOFValue(description.contains("TC100") || LensDOF.isSelected());
             CIS_DATA.setLensType(VUCIS.LensType.findByDescription(description).orElseThrow(() -> new IllegalArgumentException("selected lens does not exist")));
         });
         // set initial value
@@ -291,7 +291,7 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         // listener for lens DOF checkbox that sets the new lens in the model
         LensDOF.selectedProperty().addListener((observable, oldValue, newValue) -> {
             String description = getLensStringFromDistanceValue(LensType.getValue());
-            description += getLensStringSuffixFromDOFValue(newValue);
+            description += getLensStringSuffixFromDOFValue(description.contains("TC100") || newValue);
             CIS_DATA.setLensType(VUCIS.LensType.findByDescription(description).orElseThrow(() -> new IllegalArgumentException("selected lens does not exist")));
         });
     }
@@ -539,19 +539,22 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
         switch (lens) {
             case TC54L: // 10mm with DOF
                 setLensBoxes("10mm", true);
-                return;
+                break;
             case TC54:
                 setLensBoxes("10mm", false);
-                return;
+                break;
             case TC80L:
+            case TC100L:
                 setLensBoxes("23mm", true);
-                return;
+                break;
             case TC80:
                 setLensBoxes("23mm", false);
-                return;
+                break;
             default:
                 throw new IllegalArgumentException("lens does not exist");
         }
+        // disable the checkbox if there is only one version
+        LensDOF.setDisable(!lens.hasShortDOFVersion());
     }
 
     /**
