@@ -4,9 +4,10 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <AnchorPane id="AnchorPane" minHeight="880.0" minWidth="800.0" stylesheets="@style.css"
-            xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="de.tichawa.cis.config.DataSheetController">
-    <BorderPane prefHeight="880.0" prefWidth="800.0">
+            xmlns="http://javafx.com/javafx/8"
+            xmlns:fx="http://javafx.com/fxml/1"><!-- fx:controller set programmatically due to different controllers (e.g. VUCIS) -->
+    <BorderPane prefHeight="880.0" prefWidth="800.0" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                AnchorPane.rightAnchor="0.0">
         <top>
             <MenuBar id="Menu" prefHeight="20.0" BorderPane.alignment="CENTER">
                 <Menu fx:id="File">

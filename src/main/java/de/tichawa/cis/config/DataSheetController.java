@@ -99,35 +99,9 @@ public class DataSheetController implements Initializable {
             if (product != null) {
                 ProductPic.setImage(new Image(product));
             }
-
-            if (key.contains("MXCIS")) {
-                String append = "";
-
-                if (key.split("_")[5].endsWith("C")) {
-                    append += "_coax";
-                }
-
-                if (key.split("_")[5].startsWith("2")) {
-                    append += "_L2";
-                } else {
-                    append += "_L1";
-                }
-
-                InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile" + append + ".jpg");
-                if (profile != null) {
-                    ProfilePic.setImage(new Image(profile));
-                }
-            } else if (key.split("_")[4].endsWith("C") && getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg") != null) {
-                InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile_coax.jpg");
-                if (profile != null) {
-                    ProfilePic.setImage(new Image(profile));
-                }
-            } else {
-                InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Profile.jpg");
-                if (profile != null) {
-                    ProfilePic.setImage(new Image(profile));
-                }
-            }
+            InputStream profile = getClass().getResourceAsStream(getProfileImageUrlString());
+            if (profile != null)
+                ProfilePic.setImage(new Image(profile));
         } catch (CISException e) {
             ((Stage) Header.getScene().getWindow()).close();
 
@@ -236,6 +210,11 @@ public class DataSheetController implements Initializable {
         }
     }
 
+    private void addHeader(PdfWriter writer) {
+        //writer.setPageEvent();//https://stackoverflow.com/questions/19856583/how-to-add-header-and-footer-to-my-pdf-using-itext-in-java
+        //TODO header for each page
+    }
+
     /**
      * writes the text area contents to the given document
      *
@@ -267,7 +246,7 @@ public class DataSheetController implements Initializable {
         specsWarning.setMultipliedLeading(1.2f);
         document.add(specsWarning);
         // profile image
-        URL profileImageUrl = getClass().getResource("/de/tichawa/cis/config/" + CIS_DATA.getTiViKey().toLowerCase().split("_")[1] + "/Profile.jpg");
+        URL profileImageUrl = getClass().getResource(getProfileImageUrlString());
         if (profileImageUrl != null) {
             com.itextpdf.text.Image profileImage = com.itextpdf.text.Image.getInstance(profileImageUrl);
             profileImage.scaleToFit((PageSize.A4.getWidth() - 2 * document.leftMargin()) / 2, (PageSize.A4.getHeight() - 2 * document.bottomMargin()) / 2);
@@ -284,6 +263,16 @@ public class DataSheetController implements Initializable {
     }
 
     /**
+     * returns the url to the profile image of the cis.
+     * tries to get the "Profile.jpg" file for the CIS type unless overwritten by subclass
+     *
+     * @return the Profile.jpg for this CIS
+     */
+    protected String getProfileImageUrlString() {
+        return "/de/tichawa/cis/config/" + CIS_DATA.getTiViKey().toLowerCase().split("_")[1] + "/Profile.jpg";
+    }
+
+    /**
      * prepares the given text for pdf print. Replaces quarter spaces and tabs with normal spaces as these do not work within a {@link Paragraph}.
      *
      * @param text the text that contains space like characters
@@ -293,3 +282,4 @@ public class DataSheetController implements Initializable {
         return text.replace('\u200a', ' ').replace('\t', ' ');
     }
 }
+//TODO pdf with multiple pages -> header to each page, page 1/2 in header

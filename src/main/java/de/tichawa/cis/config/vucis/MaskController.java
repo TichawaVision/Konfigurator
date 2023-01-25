@@ -1,8 +1,9 @@
 package de.tichawa.cis.config.vucis;
 
+import de.tichawa.cis.config.DataSheetController;
 import de.tichawa.cis.config.*;
 import javafx.beans.property.ObjectProperty;
-import javafx.fxml.FXML;
+import javafx.fxml.*;
 import javafx.scene.control.*;
 
 import java.beans.*;
@@ -740,5 +741,17 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     @Override
     protected boolean requiresNextSizeHousing() {
         return CIS_DATA.isShapeFromShading();
+    }
+
+    /**
+     * sets a new {@link de.tichawa.cis.config.vucis.DataSheetController} object as a controller and returns it
+     *
+     * @param loader the {@link FXMLLoader} for the datasheet
+     * @return the {@link de.tichawa.cis.config.vucis.DataSheetController} object (controller) for this VUCIS
+     */
+    @Override
+    protected DataSheetController setAndGetDatasheetController(FXMLLoader loader) {
+        loader.setController(new de.tichawa.cis.config.vucis.DataSheetController());
+        return loader.getController();
     }
 }

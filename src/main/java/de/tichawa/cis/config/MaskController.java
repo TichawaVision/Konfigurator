@@ -261,6 +261,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/DataSheet.fxml"));
+            DataSheetController controller = setAndGetDatasheetController(loader);
             Scene scene = new Scene(loader.load());
             Stage stage = new Stage();
             stage.setScene(scene);
@@ -272,7 +273,6 @@ public abstract class MaskController<C extends CIS> implements Initializable {
             stage.centerOnScreen();
             stage.show();
 
-            DataSheetController controller = loader.getController();
             controller.passData(CIS_DATA);
 
             if (a.getSource().equals(OEMMode)) {
@@ -282,8 +282,21 @@ public abstract class MaskController<C extends CIS> implements Initializable {
                     controller.getProfilePic().setImage(new Image(profile));
                 }
             }
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            System.err.println(e);
         }
+    }
+
+    /**
+     * sets the controller for the datasheet and returns it.
+     * Default will set the controller for all CIS. Subclasses may set a different controller.
+     *
+     * @param loader the {@link FXMLLoader} for the datasheet
+     * @return the controller for the datasheet
+     */
+    protected DataSheetController setAndGetDatasheetController(FXMLLoader loader) {
+        loader.setController(new DataSheetController());
+        return loader.getController();
     }
 
     @FXML
