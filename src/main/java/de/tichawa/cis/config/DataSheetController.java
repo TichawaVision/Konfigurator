@@ -1,8 +1,7 @@
 package de.tichawa.cis.config;
 
 import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.pdf.draw.LineSeparator;
+import com.itextpdf.text.pdf.*;
 import javafx.fxml.*;
 import javafx.print.*;
 import javafx.scene.control.*;
@@ -27,30 +26,43 @@ public class DataSheetController implements Initializable {
 
     protected CIS CIS_DATA;
 
+    @SuppressWarnings("unused")
     @FXML
     private ScrollPane Scroller;
+    @SuppressWarnings("unused")
     @FXML
     private GridPane Grid;
+    @SuppressWarnings("unused")
     @FXML
     private TextArea Header;
+    @SuppressWarnings("unused")
     @FXML
     private TextArea Specs;
+    @SuppressWarnings("unused")
     @FXML
     private TextArea SpecsWarning;
+    @SuppressWarnings("unused")
     @FXML
     private TextArea CLConfig;
+    @SuppressWarnings("unused")
     @FXML
     private ImageView ProductPic;
+    @SuppressWarnings("unused")
     @FXML
     private ImageView ProfilePic;
+    @SuppressWarnings("unused")
     @FXML
     private Menu File;
+    @SuppressWarnings("unused")
     @FXML
     private MenuItem Print;
+    @SuppressWarnings("unused")
     @FXML
     private MenuItem Save;
+    @SuppressWarnings("unused")
     @FXML
     private Menu Lang;
+    @SuppressWarnings("unused")
     @FXML
     private MenuItem SwitchLang;
 
@@ -144,6 +156,7 @@ public class DataSheetController implements Initializable {
      * handles the language switch menu item press:
      * shows an alert that progress will be lost in OEM mode and switches language only on confirmation
      */
+    @SuppressWarnings("unused")
     public void handleSwitchLang() {
         if (isOEMMode()) {
             Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -191,6 +204,7 @@ public class DataSheetController implements Initializable {
      * saves the current contents of the datasheet to a pdf file.
      * Shows a file chooser to determine the file location.
      */
+    @SuppressWarnings("unused")
     @FXML
     private void save() {
         try {
@@ -200,7 +214,8 @@ public class DataSheetController implements Initializable {
                     new FileChooser.ExtensionFilter("All files", "*"));
             java.io.File file = fileChooser.showSaveDialog(Header.getScene().getWindow());
             Document document = new Document();
-            PdfWriter.getInstance(document, new FileOutputStream(file));
+            PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
+            addHeader(pdfWriter);
             writeDocument(document);
         } catch (IOException | DocumentException e) {
             Alert alert = new Alert(AlertType.ERROR);
@@ -210,9 +225,82 @@ public class DataSheetController implements Initializable {
         }
     }
 
-    private void addHeader(PdfWriter writer) {
-        //writer.setPageEvent();//https://stackoverflow.com/questions/19856583/how-to-add-header-and-footer-to-my-pdf-using-itext-in-java
-        //TODO header for each page
+    /**
+     * adds the header line to all pages that are written by the given pdf writer.
+     * The header line consists of the tivi key, and the current page number out of total pages.
+     *
+     * @param pdfWriter the pdf writer that is used to write the pages that get the headline
+     */
+    private void addHeader(PdfWriter pdfWriter) {
+        pdfWriter.setPageEvent(new PdfPageEventHelper() {
+            private PdfTemplate totalNumberOfPages;
+
+            /**
+             * creates the template that is used to set the total number of pages
+             * @param writer the pdf writer
+             * @param document the pdf document
+             */
+            @Override
+            public void onOpenDocument(PdfWriter writer, Document document) {
+                totalNumberOfPages = writer.getDirectContent().createTemplate(30, 12);
+            }
+
+            /**
+             * creates the headline for each page. Creates a {@link PdfPTable} with 3 columns: the tivi key, the current page number and the total number of pages.
+             * The total number of pages is determined by the template {@link #totalNumberOfPages} and set by {@link #onCloseDocument(PdfWriter, Document)}
+             * @param writer the pdf writer
+             * @param document the pdf document
+             */
+            @Override
+            public void onStartPage(PdfWriter writer, Document document) {
+                try {
+                    // create header table
+                    PdfPTable headerTable = new PdfPTable(3);
+                    headerTable.setWidths(new int[]{24, 24, 2});
+                    headerTable.getDefaultCell().setFixedHeight(10);
+                    headerTable.getDefaultCell().setBorder(Rectangle.BOTTOM);
+
+                    // first cell: tivi key
+                    PdfPCell tiviKeyCell = new PdfPCell();
+                    tiviKeyCell.setBorder(0);
+                    tiviKeyCell.setBorderWidthBottom(1);
+                    tiviKeyCell.setPaddingBottom(5);
+                    tiviKeyCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                    tiviKeyCell.setPhrase(new Phrase(Header.getText(), FONT_HEADLINE));
+                    headerTable.addCell(tiviKeyCell);
+
+                    // second cell: current page number
+                    PdfPCell currentPageCell = new PdfPCell();
+                    currentPageCell.setBorder(0);
+                    currentPageCell.setBorderWidthBottom(1);
+                    currentPageCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    currentPageCell.setPhrase(new Phrase(Util.getString("pdfPageOf", writer.getPageNumber()), FONT_NORMAL));
+                    headerTable.addCell(currentPageCell);
+
+                    // third cell: total number of pages
+                    PdfPCell totalNumberOfPagesCell = new PdfPCell(com.itextpdf.text.Image.getInstance(totalNumberOfPages));
+                    totalNumberOfPagesCell.setBorder(0);
+                    totalNumberOfPagesCell.setBorderWidthBottom(1);
+                    headerTable.addCell(totalNumberOfPagesCell);
+
+                    // format and add table to page
+                    headerTable.setTotalWidth(document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin());
+                    headerTable.writeSelectedRows(0, -1, document.leftMargin(), document.top() + headerTable.getTotalHeight(), writer.getDirectContent());
+                } catch (DocumentException e) {
+                    System.err.println("unable to create pdf header: " + e);
+                }
+            }
+
+            /**
+             * sets the total number of pages to all pages by setting the template value of {@link #totalNumberOfPages}
+             * @param writer the pdf writer
+             * @param document the pdf document
+             */
+            @Override
+            public void onCloseDocument(PdfWriter writer, Document document) {
+                ColumnText.showTextAligned(totalNumberOfPages, Element.ALIGN_LEFT, new Phrase(String.valueOf(writer.getPageNumber()), FONT_NORMAL), 1, 0, 0);
+            }
+        });
     }
 
     /**
@@ -224,17 +312,10 @@ public class DataSheetController implements Initializable {
      */
     private void writeDocument(Document document) throws DocumentException, IOException {
         document.open();
-        // headline
-        Paragraph headline = new Paragraph(Header.getText(), FONT_HEADLINE);
-        headline.setMultipliedLeading(1);
-        document.add(headline);
-        document.add(Chunk.NEWLINE);
-        document.add(new LineSeparator());
-        document.add(Chunk.NEWLINE);
         // product image
         com.itextpdf.text.Image image = com.itextpdf.text.Image.getInstance(Objects.requireNonNull(
                 getClass().getResource("/de/tichawa/cis/config/" + CIS_DATA.getTiViKey().toLowerCase().split("_")[1] + "/Product.jpg")));
-        image.setAbsolutePosition(PageSize.A4.getWidth() - image.getWidth() - document.rightMargin(), PageSize.A4.getHeight() - image.getHeight() - 61);
+        image.setAbsolutePosition(document.right() - image.getWidth(), document.top() - image.getHeight());
         document.add(image);
         // specs
         Paragraph specs = new Paragraph(prepareForPdfPrint(Specs.getText()), FONT_NORMAL);
@@ -282,4 +363,3 @@ public class DataSheetController implements Initializable {
         return text.replace('\u200a', ' ').replace('\t', ' ');
     }
 }
-//TODO pdf with multiple pages -> header to each page, page 1/2 in header

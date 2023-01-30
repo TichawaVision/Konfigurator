@@ -7,6 +7,7 @@ import org.jooq.*;
 import org.jooq.impl.DSL;
 
 import java.io.*;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.*;
 
@@ -60,9 +61,12 @@ public class Util {
 
     /**
      * returns the value depending on the currently selected language for the given key.
+     *
+     * @param key       the key in the resource bundle
+     * @param arguments the arguments for {@link MessageFormat#format(String, Object...)} method that is used internally to format the value String for the given key
      */
-    public static String getString(String key) {
-        return ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString(key);
+    public static String getString(String key, Object... arguments) {
+        return MessageFormat.format(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString(key), arguments);
     }
 
     /**
