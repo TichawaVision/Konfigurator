@@ -220,7 +220,7 @@ public class CPUCLinkSerialCommands extends SerialCommands {
      * generates the set menu W-command
      */
     private void generateNumberOfChipsCommand() {
-        setMenuCommands.add("W" + chips);//TODO how many per CPUClink?
+        setMenuCommands.add("W" + chips);
     }
 
     /**

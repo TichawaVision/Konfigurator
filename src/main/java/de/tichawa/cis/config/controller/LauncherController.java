@@ -12,6 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import org.jooq.Result;
 
 import java.awt.*;
 import java.io.*;
@@ -107,18 +108,20 @@ public class LauncherController implements Initializable {
                     Set<Integer> components = database.selectFrom(Price.PRICE).fetchSet(Price.PRICE.ART_NO);
 
                     // determine inactive components
-                    List<String> inactiveComponents = sourcePrices.entrySet().stream()
+                    List<Integer> inactiveComponentsArtNos = sourcePrices.entrySet().stream()
                             .filter(e -> !e.getValue().getV())
                             .map(Map.Entry::getKey)
                             .filter(components::contains)
-                            .map(Object::toString)
                             .collect(Collectors.toList());
 
-                    // inform user of inactive components //TODO better readability
-                    if (!inactiveComponents.isEmpty()) {
+
+                    // inform user of inactive components
+                    if (!inactiveComponentsArtNos.isEmpty()) {
+                        Result<PriceRecord> result = database.selectFrom(Price.PRICE).where(Price.PRICE.ART_NO.in(inactiveComponentsArtNos)).fetch();
                         Alert inactiveAlert = new Alert(AlertType.WARNING);
                         inactiveAlert.setHeaderText("Some components are inactive now. Please consider replacing the components with these IDs:");
-                        inactiveAlert.setContentText(String.join("\n", inactiveComponents));
+                        inactiveAlert.setContentText(result.stream().map(priceRecord -> priceRecord.getArtNo() + ", " + priceRecord.getFerixKey())
+                                .collect(Collectors.joining("\n")));
                         inactiveAlert.showAndWait();
                     }
                 });

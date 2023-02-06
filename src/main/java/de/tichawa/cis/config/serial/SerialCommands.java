@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * general class for serial commands
  */
-public abstract class SerialCommands {//TODO rename
+public abstract class SerialCommands {
 
     protected final CIS cis;
 
