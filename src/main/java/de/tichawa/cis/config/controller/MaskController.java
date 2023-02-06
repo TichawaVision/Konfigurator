@@ -1,5 +1,6 @@
-package de.tichawa.cis.config;
+package de.tichawa.cis.config.controller;
 
+import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
 import de.tichawa.cis.config.model.tables.records.PriceRecord;
 import javafx.beans.property.SimpleBooleanProperty;

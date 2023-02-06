@@ -1,6 +1,6 @@
 package de.tichawa.cis.config.mxcis;
 
-import de.tichawa.cis.config.DataSheetController;
+import de.tichawa.cis.config.controller.DataSheetController;
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
 import de.tichawa.cis.config.model.tables.records.*;
@@ -14,7 +14,7 @@ import java.net.URL;
 import java.util.*;
 
 // Funktionen der Maske
-public class MaskController extends de.tichawa.cis.config.MaskController<MXCIS> {
+public class MaskController extends de.tichawa.cis.config.controller.MaskController<MXCIS> {
     public MaskController() {
         CIS_DATA = new MXCIS();
         LDSTD LDSTD_DATA = new LDSTD();

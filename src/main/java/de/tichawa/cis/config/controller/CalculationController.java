@@ -1,5 +1,6 @@
-package de.tichawa.cis.config;
+package de.tichawa.cis.config.controller;
 
+import de.tichawa.cis.config.*;
 import javafx.beans.property.*;
 import javafx.collections.*;
 import javafx.fxml.*;

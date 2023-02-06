@@ -1,17 +1,22 @@
 package de.tichawa.cis.config.vucis;
 
-import de.tichawa.cis.config.DataSheetController;
+import de.tichawa.cis.config.controller.DataSheetController;
 import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.serial.SerialController;
 import javafx.beans.property.ObjectProperty;
 import javafx.fxml.*;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
 
 import java.beans.*;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.*;
 
-public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> implements PropertyChangeListener {
+public class MaskController extends de.tichawa.cis.config.controller.MaskController<VUCIS> implements PropertyChangeListener {
 
     private static final List<String> LIGHT_COLOR_OPTIONS_WITH_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor)
             .map(CIS.LightColor::getDescription).collect(Collectors.toList());
@@ -61,6 +66,8 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     private CheckBox CloudyDay;
     @FXML
     private ChoiceBox<String> LightPreset;
+    @FXML
+    private Button Serial;
 
     public MaskController() {
         CIS_DATA = new VUCIS();
@@ -756,5 +763,26 @@ public class MaskController extends de.tichawa.cis.config.MaskController<VUCIS> 
     protected DataSheetController setAndGetDatasheetController(FXMLLoader loader) {
         loader.setController(new de.tichawa.cis.config.vucis.DataSheetController());
         return loader.getController();
+    }
+
+    @FXML
+    private void handleSerial() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/Serial.fxml"));
+            Scene scene = new Scene(loader.load());
+            ((SerialController) loader.getController()).initialize(CIS_DATA);
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Serial Interface parameters");
+            InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
+            if (icon != null) {
+                stage.getIcons().add(new Image(icon));
+            }
+            stage.centerOnScreen();
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("error opening serial fxml: " + e);
+            e.printStackTrace();
+        }
     }
 }

@@ -5,22 +5,22 @@
 
 <AnchorPane id="AnchorPane" prefHeight="880.0" prefWidth="1200.0" stylesheets="@style.css"
             xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="de.tichawa.cis.config.CalculationController">
-  <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-        AnchorPane.topAnchor="0.0">
-    <MenuBar id="Menu" prefHeight="20.0" GridPane.columnSpan="2">
-      <Menu fx:id="File">
-        <MenuItem fx:id="Print" onAction="#print"/>
-      </Menu>
-      <Menu fx:id="Lang">
-        <MenuItem fx:id="SwitchLang" onAction="#switchLang"/>
-      </Menu>
-    </MenuBar>
-    <Label id="Header" fx:id="Header" maxWidth="Infinity" text="Header"/>
-    <TableView id="Electronics" fx:id="Electronics" maxHeight="Infinity" VBox.vgrow="SOMETIMES"/>
-    <TableView id="ElectSubTotals" fx:id="ElectSubTotals" maxHeight="30.0" VBox.vgrow="NEVER"/>
-    <TableView id="Mechanics" fx:id="Mechanics" maxHeight="Infinity" VBox.vgrow="SOMETIMES"/>
-    <TableView id="MechaSubTotals" fx:id="MechaSubTotals" maxHeight="30.0" VBox.vgrow="NEVER"/>
-    <TableView id="Totals" fx:id="Totals" maxHeight="Infinity" minHeight="350.0" VBox.vgrow="ALWAYS"/>
-  </VBox>
+            fx:controller="de.tichawa.cis.config.controller.CalculationController">
+    <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+          AnchorPane.topAnchor="0.0">
+        <MenuBar id="Menu" prefHeight="20.0" GridPane.columnSpan="2">
+            <Menu fx:id="File">
+                <MenuItem fx:id="Print" onAction="#print"/>
+            </Menu>
+            <Menu fx:id="Lang">
+                <MenuItem fx:id="SwitchLang" onAction="#switchLang"/>
+            </Menu>
+        </MenuBar>
+        <Label id="Header" fx:id="Header" maxWidth="Infinity" text="Header"/>
+        <TableView id="Electronics" fx:id="Electronics" maxHeight="Infinity" VBox.vgrow="SOMETIMES"/>
+        <TableView id="ElectSubTotals" fx:id="ElectSubTotals" maxHeight="30.0" VBox.vgrow="NEVER"/>
+        <TableView id="Mechanics" fx:id="Mechanics" maxHeight="Infinity" VBox.vgrow="SOMETIMES"/>
+        <TableView id="MechaSubTotals" fx:id="MechaSubTotals" maxHeight="30.0" VBox.vgrow="NEVER"/>
+        <TableView id="Totals" fx:id="Totals" maxHeight="Infinity" minHeight="350.0" VBox.vgrow="ALWAYS"/>
+    </VBox>
 </AnchorPane>

@@ -3,7 +3,7 @@ package de.tichawa.cis.config.mxcis;
 /**
  * The datasheet controller for MXCIS. Needed subclass as a few portions do not follow all other CIS types.
  */
-public class DataSheetController extends de.tichawa.cis.config.DataSheetController {
+public class DataSheetController extends de.tichawa.cis.config.controller.DataSheetController {
 
     @Override
     protected String getProfileImageUrlString() {

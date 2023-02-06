@@ -1,6 +1,6 @@
 package de.tichawa.cis.config.vscis;
 
-import de.tichawa.cis.config.DataSheetController;
+import de.tichawa.cis.config.controller.DataSheetController;
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +9,7 @@ import javafx.scene.control.Alert;
 import java.net.URL;
 import java.util.*;
 
-public class MaskController extends de.tichawa.cis.config.MaskController<VSCIS> {
+public class MaskController extends de.tichawa.cis.config.controller.MaskController<VSCIS> {
     public MaskController() {
         CIS_DATA = new VSCIS();
         LDSTD_DATA = new LDSTD();

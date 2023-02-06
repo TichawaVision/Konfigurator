@@ -266,6 +266,7 @@
             <Button fx:id="DataSheet" mnemonicParsing="false" onAction="#handleDataSheet" text="Data Sheet"/>
             <Button fx:id="OEMMode" mnemonicParsing="false" onAction="#handleOEMMode" text="OEM Mode"/>
             <Button fx:id="Equip" mnemonicParsing="false" onAction="#handleEquipment" text="Additional equipment"/>
+            <Button fx:id="Serial" mnemonicParsing="false" onAction="#handleSerial" text="Generate Serial Commands"/><!-- TODO rename -->
         </HBox>
         <Label fx:id="Infotext" text="For special options, please contact sales@tichawa.de" GridPane.columnSpan="3"
                GridPane.rowIndex="6"/>

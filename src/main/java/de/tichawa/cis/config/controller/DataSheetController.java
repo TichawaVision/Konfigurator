@@ -1,7 +1,8 @@
-package de.tichawa.cis.config;
+package de.tichawa.cis.config.controller;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
+import de.tichawa.cis.config.*;
 import javafx.fxml.*;
 import javafx.print.*;
 import javafx.scene.control.*;

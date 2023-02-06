@@ -19,8 +19,6 @@ public class VUCIS extends CIS {
     public static final List<Resolution> resolutions;
     public static final List<Integer> VALID_MODS;
 
-    private static final int DEFAULT_MOD = 8;
-
     private static final double[] WEIGHTS = {3.8, 5.6, 8.2, 11.1, 13.2, 15.4, 17.6, 20}; // total (estimated) weights of the VUCIS by length
 
     static {

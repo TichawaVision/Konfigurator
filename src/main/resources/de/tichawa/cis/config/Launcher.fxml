@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.lang.*?>
 <AnchorPane id="AnchorPane" prefHeight="150.0" prefWidth="320.0" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="de.tichawa.cis.config.LauncherController">
+            fx:controller="de.tichawa.cis.config.controller.LauncherController">
     <VBox alignment="CENTER" prefHeight="150.0" prefWidth="320.0" spacing="15.0">
         <padding>
             <Insets/>

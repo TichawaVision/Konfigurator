@@ -23,6 +23,7 @@ public abstract class CIS {
     // global constants
     public static final int BASE_LENGTH = 260;
     public static final String PRINTOUT_WARNING = "!!WARNING: ";
+    protected static final int DEFAULT_MOD = 8;
     private static final Pattern LIGHT_PATTERN = Pattern.compile("(\\d+)D(\\d+)C");
     private static final Map<String, AdcBoardRecord> ADC_BOARDS;
     private static final Map<String, SensorChipRecord> SENSOR_CHIPS;
@@ -187,8 +188,7 @@ public abstract class CIS {
 
         Map<Integer, PriceRecord> priceRecords = new HashMap<>();
 
-        Util.getDatabase().ifPresent(context ->
-        {
+        Util.getDatabase().ifPresent(context -> {
             context.selectFrom(PRICE).stream()
                     .forEach(priceRecord -> priceRecords.put(priceRecord.getArtNo(), priceRecord));
 
@@ -1294,12 +1294,31 @@ public abstract class CIS {
     /**
      * class for a CIS calculation. Collects electronics and mechanics items and prices.
      */
-    protected static class CISCalculation {
+    public static class CISCalculation {
         public Double[] electSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
         public Double[] mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
         public int numFPGA;
-        Map<PriceRecord, Integer> electConfig = new HashMap<>();
-        Map<PriceRecord, Integer> mechaConfig = new HashMap<>();
+        public Map<PriceRecord, Integer> electConfig = new HashMap<>();
+        public Map<PriceRecord, Integer> mechaConfig = new HashMap<>();
         Double[] totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
+    }
+
+    /**
+     * returns whether this CIS uses a reduced pixel clock.
+     * Default is false unless overwritten by subclass.
+     *
+     * @return false for general CIS
+     */
+    public boolean isReducedPixelClock() {
+        return false;
+    }
+
+    /**
+     * returns the camera link modulo for this CIS. The default is 8.
+     *
+     * @return the camera link modulo
+     */
+    public int getMod() {
+        return DEFAULT_MOD;
     }
 }
