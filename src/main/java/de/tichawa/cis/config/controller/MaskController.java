@@ -12,6 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.*;
+import javafx.util.Pair;
 import lombok.Getter;
 import org.jooq.Record;
 
@@ -78,8 +79,8 @@ public abstract class MaskController<C extends CIS> implements Initializable {
     @FXML
     protected Button Equip;
 
-    protected C CIS_DATA;
-    protected LDSTD LDSTD_DATA;
+    protected C CIS_DATA; // the actual cis
+    protected LDSTD LDSTD_DATA; // the external lighting if there is one
 
     public MaskController() {
         this.resolutions = setupResolutions();
@@ -91,67 +92,105 @@ public abstract class MaskController<C extends CIS> implements Initializable {
 
     public abstract List<CIS.Resolution> setupResolutions();
 
+    /**
+     * handles the calculation button press by showing the calculation window for the cis and the LDSTD if there is external lighting
+     */
     @FXML
-    @SuppressWarnings("unused")
-    public void handleCalculation(ActionEvent a) {
+    public void handleCalculation() {
         //for external light sources
-        if (!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0) {
-            try {
-                LDSTD_DATA.calculate();
-            } catch (CISException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText(e.getMessage());
-                alert.show();
-                return;
-            }
-
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/Calculation.fxml"));
-                Scene scene = new Scene(loader.load());
-                Stage stage = new Stage();
-                stage.setScene(scene);
-                stage.setTitle("LDSTD Calculation" + "_" + ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version"));
-                InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
-                if (icon != null) {
-                    stage.getIcons().add(new Image(icon));
-                }
-                stage.centerOnScreen();
-                stage.show();
-                stage.setX(stage.getX() - 20);
-                stage.setY(stage.getY() - 20);
-
-                CalculationController controller = loader.getController();
-                controller.passData(LDSTD_DATA);
-            } catch (IOException ignored) {
-            }
-        }
-
+        if (hasExternalLighting())
+            handleSingleCalculation(LDSTD_DATA, "LDSTD Calculation" + "_" + ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version"), 20);
         // for internal light sources
+        handleSingleCalculation(CIS_DATA, CIS_DATA.cisName + " Calculation", 0);
+    }
+
+    /**
+     * handles a single calculation for a cis (there may be 2 if there is external lighting)
+     *
+     * @param cis        the cis to calculate
+     * @param stageTitle the title of the stage
+     * @param offset     the x- and y-offset of the stage (so that the user can see that there are multiple stages)
+     */
+    private static void handleSingleCalculation(CIS cis, String stageTitle, int offset) {
         try {
-            CIS_DATA.calculate();
+            cis.calculate();
         } catch (CISException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText(e.getMessage());
             alert.show();
             return;
         }
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/Calculation.fxml"));
-            Scene scene = new Scene(loader.load());
-            Stage stage = new Stage();
-            stage.setScene(scene);
-            stage.setTitle(CIS_DATA.cisName + " Calculation");
-            InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
-            if (icon != null) {
-                stage.getIcons().add(new Image(icon));
-            }
-            stage.centerOnScreen();
-            stage.show();
-            CalculationController controller = loader.getController();
-            controller.passData(CIS_DATA);
-        } catch (IOException ignored) {
+        // - create stage
+        Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("Calculation.fxml", stageTitle);
+        Stage stage = stageWithLoader.getKey();
+        stage.show();
+        if (offset != 0) {
+            stage.setX(stage.getX() - offset);
+            stage.setY(stage.getY() - offset);
         }
+        ((CalculationController) stageWithLoader.getValue().getController()).passData(cis);
+    }
+
+    /**
+     * determines whether this CIS has external lighting i.e. whether the {@link #LDSTD_DATA} has lights but the CIS is not a {@link LDSTD} object
+     *
+     * @return whether the CIS has external lighting
+     */
+    private boolean hasExternalLighting() {
+        return !(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0;
+    }
+
+    /**
+     * handles the datasheet stage creation for a single CIS.
+     *
+     * @param cis        the cis for the datasheet
+     * @param stageTitle the title of the datasheet stage
+     * @param offset     the x- and y-offset of the stage (so that the user can see that there are multiple stages)
+     * @param controller the datasheet controller for the given CIS
+     * @param isOEMMode  whether the datasheet should be editable
+     */
+    private static void handleSingleDatasheet(CIS cis, String stageTitle, int offset, DataSheetController controller, boolean isOEMMode) {
+        try {
+            cis.calculate();
+        } catch (CISException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText(e.getMessage());
+            alert.show();
+            return;
+        }
+        // show stage
+        Stage stage = Util.createNewStage("DataSheet.fxml", stageTitle, controller);
+        stage.show();
+        if (offset != 0) {
+            stage.setX(stage.getX() - offset);
+            stage.setY(stage.getY() - offset);
+        }
+        controller.passData(cis);
+
+        // possibly make stage editable
+        if (isOEMMode) {
+            controller.setEditable();
+            InputStream profile = MaskController.class.getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg");
+            if (profile != null) {
+                controller.getProfilePic().setImage(new Image(profile));
+            }
+        }
+    }
+
+    /**
+     * handles the datasheet button press by showing the datasheet window for the CIS and LDSTD if there is additional external lighting
+     *
+     * @param a the button press action event
+     */
+    @FXML
+    public void handleDataSheet(ActionEvent a) {
+        boolean isOemMode = a.getSource().equals(OEMMode);
+        // for external light sources
+        if (hasExternalLighting())
+            handleSingleDatasheet(LDSTD_DATA, "LDSTD Datasheet", 20, new DataSheetController(), isOemMode);
+
+        //internal light sources
+        handleSingleDatasheet(CIS_DATA, CIS_DATA.cisName + " Datasheet", 0, getNewDatasheetController(), isOemMode);
     }
 
     @FXML
@@ -208,96 +247,14 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         }
     }
 
-    @FXML
-    public void handleDataSheet(ActionEvent a) {
-        // for external light sources
-        if (!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0) {
-            try {
-                LDSTD_DATA.calculate();
-            } catch (CISException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText(e.getMessage());
-                alert.show();
-                return;
-            }
-
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/DataSheet.fxml"));
-                Scene scene = new Scene(loader.load());
-                Stage stage = new Stage();
-                stage.setScene(scene);
-                stage.setTitle("LDSTD Datasheet");
-                InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
-                if (icon != null) {
-                    stage.getIcons().add(new Image(icon));
-                }
-                stage.centerOnScreen();
-                stage.show();
-                stage.setX(stage.getX() - 20);
-                stage.setY(stage.getY() - 20);
-
-                DataSheetController controller = loader.getController();
-                controller.passData(LDSTD_DATA);
-
-                if (a.getSource().equals(OEMMode)) {
-                    controller.setEditable();
-                    InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg");
-                    if (profile != null) {
-                        controller.getProfilePic().setImage(new Image(profile));
-                    }
-                }
-            } catch (IOException ignored) {
-            }
-        }
-
-        //internal light sources
-        try {
-            CIS_DATA.calculate();
-        } catch (CISException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText(e.getMessage());
-            alert.show();
-            return;
-        }
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/DataSheet.fxml"));
-            DataSheetController controller = setAndGetDatasheetController(loader);
-            Scene scene = new Scene(loader.load());
-            Stage stage = new Stage();
-            stage.setScene(scene);
-            stage.setTitle(CIS_DATA.cisName + " Datasheet");
-            InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
-            if (icon != null) {
-                stage.getIcons().add(new Image(icon));
-            }
-            stage.centerOnScreen();
-            stage.show();
-
-            controller.passData(CIS_DATA);
-
-            if (a.getSource().equals(OEMMode)) {
-                controller.setEditable();
-                InputStream profile = getClass().getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg");
-                if (profile != null) {
-                    controller.getProfilePic().setImage(new Image(profile));
-                }
-            }
-        } catch (IOException e) {
-            System.err.println(e);
-        }
-    }
-
     /**
-     * sets the controller for the datasheet and returns it.
-     * Default will set the controller for all CIS. Subclasses may set a different controller.
+     * Returns a new controller object for the datasheet.
+     * Returns a {@link DataSheetController} unless overwritten by subclass.
      *
-     * @param loader the {@link FXMLLoader} for the datasheet
-     * @return the controller for the datasheet
+     * @return a new {@link DataSheetController} object to be used as controller for the datasheet
      */
-    protected DataSheetController setAndGetDatasheetController(FXMLLoader loader) {
-        loader.setController(new DataSheetController());
-        return loader.getController();
+    protected DataSheetController getNewDatasheetController() {
+        return new DataSheetController();
     }
 
     @FXML

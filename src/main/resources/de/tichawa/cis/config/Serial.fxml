@@ -5,13 +5,15 @@
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="de.tichawa.cis.config.serial.SerialController"
-            prefHeight="200.0" prefWidth="300.0">
+            prefHeight="300.0" prefWidth="800.0">
     <GridPane vgap="10" hgap="10" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
         <Label text="Serial Port:"/>
         <ChoiceBox fx:id="SerialPort" GridPane.columnIndex="1"/>
+        <Label text="Commands that are sent:" GridPane.columnIndex="2"/>
         <Label text="CPUCLink: " GridPane.rowIndex="1"/>
         <ChoiceBox fx:id="CPUCLink" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label fx:id="Commands" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="4"/>
         <Label text="x-/y-Shift:" GridPane.rowIndex="2"/>
         <ChoiceBox fx:id="XYShift" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
         <CheckBox fx:id="SaveParameters" text="Save parameters (send S-command)" GridPane.rowIndex="3" GridPane.columnSpan="2"/>

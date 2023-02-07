@@ -1,17 +1,15 @@
 package de.tichawa.cis.config.vucis;
 
-import de.tichawa.cis.config.controller.DataSheetController;
 import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.controller.DataSheetController;
 import de.tichawa.cis.config.serial.SerialController;
 import javafx.beans.property.ObjectProperty;
 import javafx.fxml.*;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 
 import java.beans.*;
-import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.*;
@@ -66,8 +64,6 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     private CheckBox CloudyDay;
     @FXML
     private ChoiceBox<String> LightPreset;
-    @FXML
-    private Button Serial;
 
     public MaskController() {
         CIS_DATA = new VUCIS();
@@ -748,41 +744,33 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             WarningSelectedLineRate.setText("");
     }
 
+    /**
+     * returns whether a bigger size for the housing is required (that is for shape from shading)
+     *
+     * @return true if a bigger size housing is required i.e. if there is shape from shading or false otherwise
+     */
     @Override
     protected boolean requiresNextSizeHousing() {
         return CIS_DATA.isShapeFromShading();
     }
 
     /**
-     * sets a new {@link de.tichawa.cis.config.vucis.DataSheetController} object as a controller and returns it
+     * returns the datasheet controller for VUCIS
      *
-     * @param loader the {@link FXMLLoader} for the datasheet
-     * @return the {@link de.tichawa.cis.config.vucis.DataSheetController} object (controller) for this VUCIS
+     * @return a new {@link de.tichawa.cis.config.vucis.DataSheetController} object
      */
     @Override
-    protected DataSheetController setAndGetDatasheetController(FXMLLoader loader) {
-        loader.setController(new de.tichawa.cis.config.vucis.DataSheetController());
-        return loader.getController();
+    protected DataSheetController getNewDatasheetController() {
+        return new de.tichawa.cis.config.vucis.DataSheetController();
     }
 
+    /**
+     * handles the serial button press by opening the serial settings window
+     */
     @FXML
     private void handleSerial() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/tichawa/cis/config/Serial.fxml"));
-            Scene scene = new Scene(loader.load());
-            ((SerialController) loader.getController()).initialize(CIS_DATA);
-            Stage stage = new Stage();
-            stage.setScene(scene);
-            stage.setTitle("Serial Interface parameters");
-            InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
-            if (icon != null) {
-                stage.getIcons().add(new Image(icon));
-            }
-            stage.centerOnScreen();
-            stage.show();
-        } catch (IOException e) {
-            System.err.println("error opening serial fxml: " + e);
-            e.printStackTrace();
-        }
+        Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("Serial.fxml", "Serial Interface parameters");
+        ((SerialController) stageWithLoader.getValue().getController()).initialize(CIS_DATA);
+        stageWithLoader.getKey().show();
     }
 }

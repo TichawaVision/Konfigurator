@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.util.StringConverter;
 
 import java.util.List;
+import java.util.function.BinaryOperator;
 
 /**
  * controller for Serial.fxml
@@ -21,6 +22,8 @@ public class SerialController {
     private ChoiceBox<SerialPort> SerialPort;
     @FXML
     private ChoiceBox<de.tichawa.cis.config.CPUCLink> CPUCLink;
+    @FXML
+    private Label Commands;
     private long totalNumberOfPix;
 
     /**
@@ -66,13 +69,52 @@ public class SerialController {
         });
         CPUCLink.getSelectionModel().select(0);
         CPUCLink.setDisable(cpucLinks.size() <= 1);
-
+        CPUCLink.valueProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
         // - xy shift
         XYShift.getItems().clear();
         XYShift.getItems().addAll(SerialCommands.ShiftOptions.values());
         XYShift.getSelectionModel().select(SerialCommands.ShiftOptions.DEFAULT);
+        XYShift.valueProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
         // setup checkbox
-        SaveParameters.setSelected(true);
+        SaveParameters.setSelected(false);
+        SaveParameters.selectedProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
+        // show commands
+        updateCommandsText();
+    }
+
+    /**
+     * updates the commands text label by generating the commands for the current selection
+     */
+    private void updateCommandsText() {
+        Commands.setText(getCurrentCommands().generateCommands().stream().reduce("", new BinaryOperator<String>() {
+            // show 6 entries side by side to save some space
+            int counter = -1;
+
+            @Override
+            public String apply(String s, String s2) {
+                if (++counter == 6) { // 6 since there are some commands for 6 phases
+                    // newline and start the count again from zero
+                    counter = 0;
+                    return s + "\n" + s2;
+                }
+                // no newline -> add tab if not first element
+                return s.isEmpty() ? s2 : s + "\t\t" + s2;
+            }
+        }));
+    }
+
+    /**
+     * generates a serial commands object for cpuclinks with the current selection
+     *
+     * @return a {@link CPUCLinkSerialCommands} object for the current selection
+     */
+    private SerialCommands getCurrentCommands() {
+        return new CPUCLinkSerialCommands(
+                cis,
+                XYShift.getValue(),
+                SaveParameters.isSelected(),
+                CPUCLink.getValue(),
+                totalNumberOfPix);
     }
 
     /**
@@ -80,12 +122,7 @@ public class SerialController {
      */
     @FXML
     private void handleCreateCommands() {
-        SerialCommands commands = new CPUCLinkSerialCommands(
-                cis,
-                XYShift.getValue(),
-                SaveParameters.isSelected(),
-                CPUCLink.getValue(),
-                totalNumberOfPix);
+        SerialCommands commands = getCurrentCommands();
         SerialConnection connection = new SerialConnection(SerialPort.getValue());
         connection.sendToSerialPort(commands.generateCommands());
     }

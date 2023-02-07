@@ -1,9 +1,8 @@
 package de.tichawa.cis.config.vscis;
 
+import de.tichawa.cis.config.CIS;
 import de.tichawa.cis.config.controller.DataSheetController;
-import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 
 import java.net.URL;
@@ -190,15 +189,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         Trigger.setSelected(false);
     }
 
-    /**
-     * sets a new {@link de.tichawa.cis.config.vscis.DataSheetController} object as a controller and returns it
-     *
-     * @param loader the {@link FXMLLoader} for the datasheet
-     * @return the {@link de.tichawa.cis.config.vscis.DataSheetController} object (controller) for this VSCIS
-     */
     @Override
-    protected DataSheetController setAndGetDatasheetController(FXMLLoader loader) {
-        loader.setController(new de.tichawa.cis.config.vscis.DataSheetController());
-        return loader.getController();
+    protected DataSheetController getNewDatasheetController() {
+        return new de.tichawa.cis.config.vscis.DataSheetController();
     }
 }

@@ -1,5 +1,9 @@
 package de.tichawa.cis.config;
 
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 import lombok.Getter;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -7,6 +11,7 @@ import org.jooq.*;
 import org.jooq.impl.DSL;
 
 import java.io.*;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.*;
@@ -41,7 +46,8 @@ public class Util {
                 default:
                     break;
             }
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            System.err.println("exception while reading database connection: " + e);
         }
     }
 
@@ -79,6 +85,11 @@ public class Util {
             locale = Locale.GERMANY;
     }
 
+    /**
+     * returns the database connection
+     *
+     * @return an optional of a {@link DSLContext} database connection object
+     */
     public static Optional<DSLContext> getDatabase() {
         try {
             SQLDialect dialect;
@@ -99,5 +110,70 @@ public class Util {
             ex.printStackTrace();
             return Optional.empty();
         }
+    }
+
+    /**
+     * Creates a new stage with the given title by loading the given fxml file
+     *
+     * @param fxmlRelativeUrl the relative url (to de.tichawa.cis.config) to the fxml file
+     * @param title           the title of the created stage
+     * @param controller      the controller object to be set for the {@link FXMLLoader}. Will not be set if null is given.
+     * @return a pair of the {@link Stage} object that was created and the loader
+     */
+    public static Pair<Stage, FXMLLoader> createNewStageWithLoader(String fxmlRelativeUrl, String title, Object controller) { // TODO refactor everywhere to use this
+        URL fxml = Util.class.getResource("/de/tichawa/cis/config/" + fxmlRelativeUrl);
+        if (fxml == null)
+            throw new IllegalStateException("fxml file not found: " + fxmlRelativeUrl);
+        try {
+            Stage stage = new Stage();
+            FXMLLoader loader = new FXMLLoader(fxml);
+            if (controller != null)
+                loader.setController(controller);
+            stage.setScene(new Scene(loader.load()));
+            stage.setTitle(title);
+            stage.centerOnScreen();
+            // load image
+            InputStream icon = Util.class.getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
+            if (icon != null) {
+                stage.getIcons().add(new Image(icon));
+            }
+            return new Pair<>(stage, loader);
+        } catch (IOException e) {
+            throw new IllegalStateException("fxml file could not be loaded: " + fxmlRelativeUrl);
+        }
+    }
+
+    /**
+     * Creates a new stage with the given title by loading the given fxml file
+     *
+     * @param fxmlRelativeUrl the relative url (to de.tichawa.cis.config) to the fxml file
+     * @param title           the title of the created stage
+     * @return a pair of the {@link Stage} object that was created and the loader
+     */
+    public static Pair<Stage, FXMLLoader> createNewStageWithLoader(String fxmlRelativeUrl, String title) {
+        return createNewStageWithLoader(fxmlRelativeUrl, title, null);
+    }
+
+    /**
+     * Creates a new stage with the given title by loading the given fxml file
+     *
+     * @param fxmlRelativeUrl the relative url (to de.tichawa.cis.config) to the fxml file
+     * @param title           the title of the created stage
+     * @return the {@link Stage} object that was created
+     */
+    public static Stage createNewStage(String fxmlRelativeUrl, String title) {
+        return createNewStageWithLoader(fxmlRelativeUrl, title).getKey();
+    }
+
+    /**
+     * Creates a new stage with the given title by loading the given fxml file while setting the given controller
+     *
+     * @param fxmlRelativeUrl the relative url (to de.tichawa.cis.config) to the fxml file
+     * @param title           the title of the created stage
+     * @param controller      the controller object to be set for the {@link FXMLLoader}. Will not be set if null is given.
+     * @return the {@link Stage} object that was created
+     */
+    public static Stage createNewStage(String fxmlRelativeUrl, String title, Object controller) {
+        return createNewStageWithLoader(fxmlRelativeUrl, title, controller).getKey();
     }
 }

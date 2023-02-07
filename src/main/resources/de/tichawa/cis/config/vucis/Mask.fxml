@@ -268,7 +268,7 @@
             <Button fx:id="Equip" mnemonicParsing="false" onAction="#handleEquipment" text="Additional equipment"/>
             <Button fx:id="Serial" mnemonicParsing="false" onAction="#handleSerial" text="Generate Serial Commands"/><!-- TODO rename -->
         </HBox>
-        <Label fx:id="Infotext" text="For special options, please contact sales@tichawa.de" GridPane.columnSpan="3"
+        <Label fx:id="Infotext" text="${'For special options,\nplease contact sales@tichawa.de'}" GridPane.columnSpan="3"
                GridPane.rowIndex="6"/>
     </GridPane>
 </AnchorPane>

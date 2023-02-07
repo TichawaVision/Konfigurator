@@ -6,53 +6,43 @@ import de.tichawa.cis.config.model.tables.Price;
 import de.tichawa.cis.config.model.tables.records.PriceRecord;
 import de.tichawa.util.Tuple;
 import javafx.event.ActionEvent;
-import javafx.fxml.*;
-import javafx.scene.*;
+import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
 import org.jooq.Result;
 
 import java.awt.*;
-import java.io.*;
-import java.net.URL;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class LauncherController implements Initializable {
+public class LauncherController {
     protected CIS CIS_DATA;
     @FXML
     private ComboBox<String> selectCIS;
 
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-
-    }
-
+    /**
+     * handles the continue button press by opening the mask for the selected CIS
+     *
+     * @param a the button press action event
+     */
     @FXML
     private void handleContinue(ActionEvent a) {
-        try {
-            URL mask = getClass().getResource("/de/tichawa/cis/config/" + selectCIS.getSelectionModel().getSelectedItem().toLowerCase() + "/Mask.fxml");
-            if (mask != null) {
-                Parent root = FXMLLoader.load(mask);
-                Scene scene = new Scene(root);
-                Stage stage = new Stage();
-                stage.setScene(scene);
-                stage.setTitle(selectCIS.getSelectionModel().getSelectedItem() + "_" + ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version"));
-                InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
-                if (icon != null) {
-                    stage.getIcons().add(new Image(icon));
-                }
-                stage.centerOnScreen();
-                stage.show();
-            }
-        } catch (IOException ignored) {
-        }
+        Util.createNewStage(
+                        selectCIS.getSelectionModel().getSelectedItem().toLowerCase() + "/Mask.fxml",
+                        selectCIS.getSelectionModel().getSelectedItem() + "_" + ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version"))
+                .show();
     }
 
+    /**
+     * handles the update prices button press.
+     * Starts the price export from ferix and reads the generated csv file. Updates the database entries accordingly.
+     * Counts the updated entries and shows the result to the user. Also shows a list of inactive items to the user.
+     *
+     * @param a the button press event
+     */
     @FXML
     private void handleUpdate(ActionEvent a) {
         try {
@@ -113,7 +103,6 @@ public class LauncherController implements Initializable {
                             .map(Map.Entry::getKey)
                             .filter(components::contains)
                             .collect(Collectors.toList());
-
 
                     // inform user of inactive components
                     if (!inactiveComponentsArtNos.isEmpty()) {

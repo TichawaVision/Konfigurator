@@ -1,11 +1,10 @@
 package de.tichawa.cis.config.mxcis;
 
-import de.tichawa.cis.config.controller.DataSheetController;
 import de.tichawa.cis.config.*;
+import de.tichawa.cis.config.controller.DataSheetController;
 import de.tichawa.cis.config.ldstd.LDSTD;
 import de.tichawa.cis.config.model.tables.records.*;
 import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.util.StringConverter;
@@ -301,15 +300,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         Trigger.setSelected(false);
     }
 
-    /**
-     * sets a new {@link de.tichawa.cis.config.mxcis.DataSheetController} object as a controller and returns it
-     *
-     * @param loader the {@link FXMLLoader} for the datasheet
-     * @return the {@link de.tichawa.cis.config.mxcis.DataSheetController} object (controller) for this MXCIS
-     */
     @Override
-    protected DataSheetController setAndGetDatasheetController(FXMLLoader loader) {
-        loader.setController(new de.tichawa.cis.config.mxcis.DataSheetController());
-        return loader.getController();
+    protected DataSheetController getNewDatasheetController() {
+        return new de.tichawa.cis.config.mxcis.DataSheetController();
     }
 }
