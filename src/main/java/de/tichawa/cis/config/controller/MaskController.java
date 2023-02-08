@@ -29,55 +29,47 @@ public abstract class MaskController<C extends CIS> implements Initializable {
     @Getter
     private final List<CIS.Resolution> resolutions;
     @FXML
-    protected ComboBox<String> Color;
+    protected ComboBox<String> colorComboBox;
     @FXML
-    protected ComboBox<String> Resolution;
+    protected ComboBox<String> resolutionComboBox;
     @FXML
-    protected ComboBox<String> ScanWidth;
+    protected ComboBox<String> scanWidthComboBox;
     @FXML
-    protected Label PixelSize;
+    protected Label pixelSizeLabel;
     @FXML
-    protected Label DefectSize;
+    protected Label defectSizeLabel;
     @FXML
-    protected Label MaxLineRate;
+    protected Label maxLineRateLabel;
     @FXML
-    protected Label CurrLineRate;
+    protected Label currentLineRateLabel;
     @FXML
-    protected Slider SelLineRate;
+    protected Slider selectedLineRateSlider;
     @FXML
-    protected Label Speedmms;
+    protected Label speedmmsLabel;
     @FXML
-    protected Label Speedms;
+    protected Label speedmsLabel;
     @FXML
-    protected Label Speedmmin;
+    protected Label speedmminLabel;
     @FXML
-    protected Label Speedips;
+    protected Label speedipsLabel;
     @FXML
-    protected ComboBox<String> InternalLightSource;
+    protected ComboBox<String> internalLightSourceComboBox;
     @FXML
-    protected ComboBox<String> InternalLightColor;
+    protected ComboBox<String> internalLightColorComboBox;
     @FXML
-    protected ComboBox<String> ExternalLightSource;
+    protected ComboBox<String> externalLightSourceComboBox;
     @FXML
-    protected ComboBox<String> ExternalLightColor;
+    protected ComboBox<String> externalLightColorComboBox;
     @FXML
-    protected ComboBox<String> Interface;
+    protected ComboBox<String> interfaceComboBox;
     @FXML
-    protected ComboBox<String> Cooling;
+    protected ComboBox<String> coolingComboBox;
     @FXML
-    protected CheckBox Trigger;
+    protected CheckBox externalTriggerCheckbox;
     @FXML
-    protected Label Infotext;
+    protected Label infotextLabel;
     @FXML
-    protected Button Calculation;
-    @FXML
-    protected Button PartList;
-    @FXML
-    protected Button DataSheet;
-    @FXML
-    protected Button OEMMode;
-    @FXML
-    protected Button Equip;
+    protected Button oemModeButton;
 
     protected C CIS_DATA; // the actual cis
     protected LDSTD LDSTD_DATA; // the external lighting if there is one
@@ -105,6 +97,23 @@ public abstract class MaskController<C extends CIS> implements Initializable {
     }
 
     /**
+     * calls {@link CIS#calculate()} and shows an alert if it produces an error
+     *
+     * @param cis the cis where calculate gets called
+     * @return the result of {@link CIS#calculate()} or null if it produced an error
+     */
+    private static CIS.CISCalculation calculateOrShowAlert(CIS cis) {
+        try {
+            return cis.calculate();
+        } catch (CISException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText(e.getMessage());
+            alert.show();
+            return null;
+        }
+    }
+
+    /**
      * handles a single calculation for a cis (there may be 2 if there is external lighting)
      *
      * @param cis        the cis to calculate
@@ -112,14 +121,9 @@ public abstract class MaskController<C extends CIS> implements Initializable {
      * @param offset     the x- and y-offset of the stage (so that the user can see that there are multiple stages)
      */
     private static void handleSingleCalculation(CIS cis, String stageTitle, int offset) {
-        try {
-            cis.calculate();
-        } catch (CISException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText(e.getMessage());
-            alert.show();
+        if (calculateOrShowAlert(cis) == null)
             return;
-        }
+
         // - create stage
         Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("Calculation.fxml", stageTitle);
         Stage stage = stageWithLoader.getKey();
@@ -150,14 +154,9 @@ public abstract class MaskController<C extends CIS> implements Initializable {
      * @param isOEMMode  whether the datasheet should be editable
      */
     private static void handleSingleDatasheet(CIS cis, String stageTitle, int offset, DataSheetController controller, boolean isOEMMode) {
-        try {
-            cis.calculate();
-        } catch (CISException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText(e.getMessage());
-            alert.show();
+        if (calculateOrShowAlert(cis) == null)
             return;
-        }
+
         // show stage
         Stage stage = Util.createNewStage("DataSheet.fxml", stageTitle, controller);
         stage.show();
@@ -172,7 +171,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
             controller.setEditable();
             InputStream profile = MaskController.class.getResourceAsStream("/de/tichawa/cis/config/OEM_Profile.jpg");
             if (profile != null) {
-                controller.getProfilePic().setImage(new Image(profile));
+                controller.getProfileImageView().setImage(new Image(profile));
             }
         }
     }
@@ -184,7 +183,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
      */
     @FXML
     public void handleDataSheet(ActionEvent a) {
-        boolean isOemMode = a.getSource().equals(OEMMode);
+        boolean isOemMode = a.getSource().equals(oemModeButton);
         // for external light sources
         if (hasExternalLighting())
             handleSingleDatasheet(LDSTD_DATA, "LDSTD Datasheet", 20, new DataSheetController(), isOemMode);
@@ -196,15 +195,9 @@ public abstract class MaskController<C extends CIS> implements Initializable {
     @FXML
     @SuppressWarnings("unused")
     public void handlePartList(ActionEvent a) {
-        CIS.CISCalculation calculation;
-        try {
-            calculation = CIS_DATA.calculate();
-        } catch (CISException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText(e.getMessage());
-            alert.show();
+        CIS.CISCalculation calculation = calculateOrShowAlert(CIS_DATA);
+        if (calculation == null)
             return;
-        }
 
         FileChooser f = new FileChooser();
         f.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (*.csv)", "*.csv"));
@@ -237,11 +230,11 @@ public abstract class MaskController<C extends CIS> implements Initializable {
 
                 writer.flush();
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("File saved."));
+                alert.setHeaderText(Util.getString("File saved."));
                 alert.show();
             } catch (IOException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("A fatal error occurred during the save attempt.Please close the target file and try again."));
+                alert.setHeaderText(Util.getString("A fatal error occurred during the save attempt.Please close the target file and try again."));
                 alert.show();
             }
         }
@@ -284,8 +277,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
             context.select(EQUIPMENT.asterisk(), PRICE.FERIX_KEY)
                     .from(EQUIPMENT.join(PRICE).on(EQUIPMENT.ART_NO.eq(PRICE.ART_NO))).stream()
                     .filter(this::isValidEquipmentRecord)
-                    .map(record ->
-                    {
+                    .map(record -> {
                         Label[] labels = new Label[2];
 
                         for (int i = 0; i < labels.length; i++) {
@@ -307,7 +299,6 @@ public abstract class MaskController<C extends CIS> implements Initializable {
                         pale.set(!pale.get());
                         return labels;
                     }).forEach(labels -> printPane.addRow(printPane.getChildren().size() / 2, labels));
-
             printStage.setScene(printScene);
             printStage.show();
         });

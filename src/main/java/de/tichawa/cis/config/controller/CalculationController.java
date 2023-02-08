@@ -21,25 +21,25 @@ public class CalculationController implements Initializable {
     protected CIS CIS_DATA;
 
     @FXML
-    private Label Header;
+    private Label headerLabel;
     @FXML
-    private TableView<CalcLine> Electronics;
+    private TableView<CalcLine> electronicsTableView;
     @FXML
-    private TableView<CalcLine> ElectSubTotals;
+    private TableView<CalcLine> electronicsSubTotalsTableView;
     @FXML
-    private TableView<CalcLine> Mechanics;
+    private TableView<CalcLine> mechanicsTableView;
     @FXML
-    private TableView<CalcLine> MechaSubTotals;
+    private TableView<CalcLine> mechanicsSubTotalsTableView;
     @FXML
-    private TableView<PriceLine> Totals;
+    private TableView<PriceLine> totalsTableView;
     @FXML
-    private Menu File;
+    private Menu fileMenu;
     @FXML
-    private MenuItem Print;
+    private MenuItem printMenuItem;
     @FXML
-    private Menu Lang;
+    private Menu languageMenu;
     @FXML
-    private MenuItem SwitchLang;
+    private MenuItem switchLanguageMenuItem;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -53,16 +53,16 @@ public class CalculationController implements Initializable {
     @SuppressWarnings("unchecked")
     private void load() {
         try {
-            Lang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("lang"));
-            SwitchLang.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("switchlang"));
+            languageMenu.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("lang"));
+            switchLanguageMenuItem.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("switchlang"));
 
-            File.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("File"));
-            Print.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("Print"));
+            fileMenu.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("File"));
+            printMenuItem.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("Print"));
 
             NumberFormat f = NumberFormat.getInstance(Util.getLocale());
             String[] calcText = CIS_DATA.createCalculation().split("\n\t\n");
 
-            Header.setText(calcText[0]);
+            headerLabel.setText(calcText[0]);
 
             String electData = calcText[1].substring(calcText[1].indexOf("\n\n") + 2);
             String[] headers = electData.split("\n")[0].split("\t");
@@ -108,10 +108,10 @@ public class CalculationController implements Initializable {
                 electDataList.add(new CalcLine(data[0], data[1], f.parse(data[2]).intValue(), f.parse(data[3]).doubleValue(), f.parse(data[4]).doubleValue(), f.parse(data[5]).doubleValue(), f.parse(data[6]).doubleValue()));
             }
 
-            Electronics.setItems(electDataList);
-            Electronics.getColumns().clear();
-            Electronics.getColumns().addAll(electNameCol, electIdCol, electAmountCol, electPriceCol, electWeightCol, electTimeCol, electPowerCol);
-            Electronics.getSortOrder().add(electNameCol);
+            electronicsTableView.setItems(electDataList);
+            electronicsTableView.getColumns().clear();
+            electronicsTableView.getColumns().addAll(electNameCol, electIdCol, electAmountCol, electPriceCol, electWeightCol, electTimeCol, electPowerCol);
+            electronicsTableView.getSortOrder().add(electNameCol);
 
             String eTotalData = calcText[2];
             TableColumn<CalcLine, String> eTotalNameCol = new TableColumn<>(headers[0]);
@@ -148,10 +148,10 @@ public class CalculationController implements Initializable {
             eTotalPowerCol.setMaxWidth(150.0);
 
             String[] eData = eTotalData.split("\t");
-            ElectSubTotals.getItems().clear();
-            ElectSubTotals.getItems().add(new CalcLine(eData[0], eData[1], f.parse(eData[2]).intValue(), f.parse(eData[3]).doubleValue(), f.parse(eData[4]).doubleValue(), f.parse(eData[5]).doubleValue(), f.parse(eData[6]).doubleValue()));
-            ElectSubTotals.getColumns().clear();
-            ElectSubTotals.getColumns().addAll(eTotalNameCol, eTotalIdCol, eTotalAmountCol, eTotalPriceCol, eTotalWeightCol, eTotalTimeCol, eTotalPowerCol);
+            electronicsSubTotalsTableView.getItems().clear();
+            electronicsSubTotalsTableView.getItems().add(new CalcLine(eData[0], eData[1], f.parse(eData[2]).intValue(), f.parse(eData[3]).doubleValue(), f.parse(eData[4]).doubleValue(), f.parse(eData[5]).doubleValue(), f.parse(eData[6]).doubleValue()));
+            electronicsSubTotalsTableView.getColumns().clear();
+            electronicsSubTotalsTableView.getColumns().addAll(eTotalNameCol, eTotalIdCol, eTotalAmountCol, eTotalPriceCol, eTotalWeightCol, eTotalTimeCol, eTotalPowerCol);
 
             String mechaData = calcText[3].substring(calcText[3].indexOf("\n\n") + 2);
             TableColumn<CalcLine, String> mechaNameCol = new TableColumn<>(headers[0]);
@@ -186,10 +186,10 @@ public class CalculationController implements Initializable {
                 mechaDataList.add(new CalcLine(data[0], data[1], f.parse(data[2]).intValue(), f.parse(data[3]).doubleValue(), f.parse(data[4]).doubleValue(), 0.0, 0.0));
             }
 
-            Mechanics.setItems(mechaDataList);
-            Mechanics.getColumns().clear();
-            Mechanics.getColumns().addAll(mechaNameCol, mechaIdCol, mechaAmountCol, mechaPriceCol, mechaWeightCol);
-            Mechanics.getSortOrder().add(mechaNameCol);
+            mechanicsTableView.setItems(mechaDataList);
+            mechanicsTableView.getColumns().clear();
+            mechanicsTableView.getColumns().addAll(mechaNameCol, mechaIdCol, mechaAmountCol, mechaPriceCol, mechaWeightCol);
+            mechanicsTableView.getSortOrder().add(mechaNameCol);
 
             String mTotalData = calcText[4];
             TableColumn<CalcLine, String> mTotalNameCol = new TableColumn<>(headers[0]);
@@ -216,10 +216,10 @@ public class CalculationController implements Initializable {
             mTotalWeightCol.setMaxWidth(200.0);
 
             String[] mData = mTotalData.split("\t");
-            MechaSubTotals.getItems().clear();
-            MechaSubTotals.getItems().add(new CalcLine(mData[0], mData[1], f.parse(mData[2]).intValue(), f.parse(mData[3]).doubleValue(), f.parse(mData[4]).doubleValue(), 0.0, 0.0));
-            MechaSubTotals.getColumns().clear();
-            MechaSubTotals.getColumns().addAll(mTotalNameCol, mTotalIdCol, mTotalAmountCol, mTotalPriceCol, mTotalWeightCol);
+            mechanicsSubTotalsTableView.getItems().clear();
+            mechanicsSubTotalsTableView.getItems().add(new CalcLine(mData[0], mData[1], f.parse(mData[2]).intValue(), f.parse(mData[3]).doubleValue(), f.parse(mData[4]).doubleValue(), 0.0, 0.0));
+            mechanicsSubTotalsTableView.getColumns().clear();
+            mechanicsSubTotalsTableView.getColumns().addAll(mTotalNameCol, mTotalIdCol, mTotalAmountCol, mTotalPriceCol, mTotalWeightCol);
 
             String totalData = calcText[5].substring(calcText[5].indexOf("\n\n") + 2);
             TableColumn<PriceLine, String> totalNameCol = new TableColumn<>(headers[0]);
@@ -251,45 +251,45 @@ public class CalculationController implements Initializable {
                 totalDataList.add(new PriceLine(data[0], data[1], data[2], data[3], data[4]));
             }
 
-            Totals.setRowFactory(row -> new TableRow<PriceLine>() {
+            totalsTableView.setRowFactory(row -> new TableRow<PriceLine>() {
                 @Override
                 public void updateIndex(int index) {
                     super.updateIndex(index);
-                    if (index == Totals.getItems().size() - 1) {
+                    if (index == totalsTableView.getItems().size() - 1) {
                         getStyleClass().add("table-bold");
                     } else {
                         getStyleClass().remove("table-bold");
                     }
                 }
             });
-            Totals.setItems(totalDataList);
-            Totals.getColumns().clear();
-            Totals.getColumns().addAll(totalNameCol, totalIdCol, totalAmountCol, totalPriceCol, totalWeightCol);
+            totalsTableView.setItems(totalDataList);
+            totalsTableView.getColumns().clear();
+            totalsTableView.getColumns().addAll(totalNameCol, totalIdCol, totalAmountCol, totalPriceCol, totalWeightCol);
 
-            ElectSubTotals.getStyleClass().add("table-view-hidden");
-            ElectSubTotals.getStyleClass().add("table-bold");
-            ElectSubTotals.fixedCellSizeProperty().set(20.0);
-            MechaSubTotals.getStyleClass().add("table-view-hidden");
-            MechaSubTotals.getStyleClass().add("table-bold");
-            MechaSubTotals.fixedCellSizeProperty().set(20.0);
-            Totals.getStyleClass().add("table-view-hidden");
+            electronicsSubTotalsTableView.getStyleClass().add("table-view-hidden");
+            electronicsSubTotalsTableView.getStyleClass().add("table-bold");
+            electronicsSubTotalsTableView.fixedCellSizeProperty().set(20.0);
+            mechanicsSubTotalsTableView.getStyleClass().add("table-view-hidden");
+            mechanicsSubTotalsTableView.getStyleClass().add("table-bold");
+            mechanicsSubTotalsTableView.fixedCellSizeProperty().set(20.0);
+            totalsTableView.getStyleClass().add("table-view-hidden");
 
-            Pane eHeader = (Pane) ElectSubTotals.lookup("TableHeaderRow");
+            Pane eHeader = (Pane) electronicsSubTotalsTableView.lookup("TableHeaderRow");
             eHeader.setVisible(false);
-            ElectSubTotals.setLayoutY(-eHeader.getHeight());
-            ElectSubTotals.autosize();
-            ElectSubTotals.scrollTo(0);
+            electronicsSubTotalsTableView.setLayoutY(-eHeader.getHeight());
+            electronicsSubTotalsTableView.autosize();
+            electronicsSubTotalsTableView.scrollTo(0);
 
-            Pane mHeader = (Pane) MechaSubTotals.lookup("TableHeaderRow");
+            Pane mHeader = (Pane) mechanicsSubTotalsTableView.lookup("TableHeaderRow");
             mHeader.setVisible(false);
-            MechaSubTotals.setLayoutY(-mHeader.getHeight());
-            MechaSubTotals.autosize();
-            MechaSubTotals.scrollTo(0);
+            mechanicsSubTotalsTableView.setLayoutY(-mHeader.getHeight());
+            mechanicsSubTotalsTableView.autosize();
+            mechanicsSubTotalsTableView.scrollTo(0);
 
-            Pane tHeader = (Pane) Totals.lookup("TableHeaderRow");
+            Pane tHeader = (Pane) totalsTableView.lookup("TableHeaderRow");
             tHeader.setVisible(false);
-            Totals.setLayoutY(-tHeader.getHeight());
-            Totals.autosize();
+            totalsTableView.setLayoutY(-tHeader.getHeight());
+            totalsTableView.autosize();
         } catch (CISException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText(e.getMessage());

@@ -8,7 +8,7 @@ import javafx.concurrent.Task;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
+import javafx.stage.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -17,6 +17,8 @@ import java.util.List;
  * Class for connection to a serial port
  */
 public class SerialConnection {
+    public static final int DEFAULT_DELAY = 100; // determined by testing, faster creates a connection error
+
     private final SerialPort port;
     private final StringProperty displayStringIn = new SimpleStringProperty(""); // for the input label (what we are reading)
     private final StringProperty displayStringOut = new SimpleStringProperty(""); // for the output label (what we are writing)
@@ -27,9 +29,10 @@ public class SerialConnection {
      *
      * @param port the serial port to write to
      */
-    public SerialConnection(SerialPort port, int delay) {
+    public SerialConnection(SerialPort port, int delay, Stage serialStage) {
         this.port = port;
         this.delay = delay;
+        // create stage for port log
         Stage stage = Util.createNewStage("SerialOutput.fxml", "Serial output");
         // bind text property to automatically update it later
         List<Node> labels = ((HBox) ((ScrollPane) stage.getScene().getRoot()).getContent()).getChildrenUnmodifiable();
@@ -37,6 +40,11 @@ public class SerialConnection {
         ((Label) labels.get(1)).textProperty().bind(displayStringIn);
         updateLabelIn("read messages:\n");
         updateLabelOut("written messages:");
+
+        stage.getScene().getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, event -> {
+            serialStage.close();
+            stage.close();
+        });
         stage.show();
     }
 
@@ -92,7 +100,7 @@ public class SerialConnection {
                         e.printStackTrace();
                     }
                 });
-                Thread.sleep(5000); // give some time for answers
+                Thread.sleep(2000); // give some time for answers
                 port.closePort();
                 return null;
             }

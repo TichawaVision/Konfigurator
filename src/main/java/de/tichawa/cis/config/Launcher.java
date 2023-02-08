@@ -11,11 +11,20 @@ import java.net.URL;
 import java.nio.file.*;
 import java.util.*;
 
+/**
+ * Class that launches the application. This class contains the main method.
+ */
 public class Launcher extends Application {
 
     public static final Properties PROP = new Properties();
     public static Path ferixHome;
 
+    /**
+     * Starts this application. Reads the property file and creates the first stage (Launcher.fxml)
+     *
+     * @param stage the first stage object that is automatically passed by this application
+     * @throws Exception any exception that might occur
+     */
     @Override
     public void start(Stage stage) throws Exception {
         PROP.loadFromXML(Launcher.class.getResourceAsStream("properties.xml"));
@@ -35,6 +44,11 @@ public class Launcher extends Application {
         }
     }
 
+    /**
+     * Launches the application
+     *
+     * @param args the arguments for the main method that are passed to the launch method of this application
+     */
     public static void main(String[] args) {
         launch(args);
     }

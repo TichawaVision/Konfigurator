@@ -29,43 +29,40 @@ public class DataSheetController implements Initializable {
 
     @SuppressWarnings("unused")
     @FXML
-    private ScrollPane Scroller;
+    private GridPane gridPane;
     @SuppressWarnings("unused")
     @FXML
-    private GridPane Grid;
+    private TextArea headerTextArea;
     @SuppressWarnings("unused")
     @FXML
-    private TextArea Header;
+    private TextArea specsTextArea;
     @SuppressWarnings("unused")
     @FXML
-    private TextArea Specs;
+    private TextArea specsWarningTextArea;
     @SuppressWarnings("unused")
     @FXML
-    private TextArea SpecsWarning;
+    private TextArea clConfigTextArea;
     @SuppressWarnings("unused")
     @FXML
-    private TextArea CLConfig;
+    private ImageView productImageView;
     @SuppressWarnings("unused")
     @FXML
-    private ImageView ProductPic;
+    private ImageView profileImageView;
     @SuppressWarnings("unused")
     @FXML
-    private ImageView ProfilePic;
+    private Menu fileMenu;
     @SuppressWarnings("unused")
     @FXML
-    private Menu File;
+    private MenuItem printMenuItem;
     @SuppressWarnings("unused")
     @FXML
-    private MenuItem Print;
+    private MenuItem saveMenuItem;
     @SuppressWarnings("unused")
     @FXML
-    private MenuItem Save;
+    private Menu languageMenu;
     @SuppressWarnings("unused")
     @FXML
-    private Menu Lang;
-    @SuppressWarnings("unused")
-    @FXML
-    private MenuItem SwitchLang;
+    private MenuItem switchLanguageMenuItem;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -78,45 +75,43 @@ public class DataSheetController implements Initializable {
 
     private void load() {
         try {
-            Lang.setText(Util.getString("lang"));
-            SwitchLang.setText(Util.getString("switchlang"));
+            languageMenu.setText(Util.getString("lang"));
+            switchLanguageMenuItem.setText(Util.getString("switchlang"));
 
-            File.setText(Util.getString("File"));
+            fileMenu.setText(Util.getString("File"));
             //Print.setText(Util.getString("Print"));
-            Save.setText(Util.getString("Save"));
+            saveMenuItem.setText(Util.getString("Save"));
 
             String[] dataSheetText = CIS_DATA.createPrntOut().split("\n\t\n");
             String key = CIS_DATA.getTiViKey();
 
-            Header.setText(dataSheetText[0]);
-            Header.setEditable(false);
+            headerTextArea.setText(dataSheetText[0]);
+            headerTextArea.setEditable(false);
             //specs part
             if (dataSheetText[1].contains(CIS.PRINTOUT_WARNING)) { // if the specs have a warning -> extract it and put it in the SpecsWarning TextArea
                 String[] split = dataSheetText[1].split(CIS.PRINTOUT_WARNING);
                 dataSheetText[1] = split[0]; //take the part before the warning as the spec output
-                SpecsWarning.setText(split[1].trim()); //take the part after the warning as warning text
-                SpecsWarning.setMinHeight(split[1].trim().split("\n").length * LINE_HEIGHT);
+                specsWarningTextArea.setText(split[1].trim()); //take the part after the warning as warning text
+                specsWarningTextArea.setMinHeight(split[1].trim().split("\n").length * LINE_HEIGHT);
             }
-            Specs.setText(dataSheetText[1].trim());
-            Specs.setEditable(false);
-            Specs.setMinHeight(dataSheetText[1].trim().split("\n").length * LINE_HEIGHT);
-            SpecsWarning.setEditable(false);
-            SpecsWarning.lookup(".scroll-bar:vertical").setDisable(true);
-            CLConfig.setText(dataSheetText[2].trim());
-            CLConfig.setEditable(false);
-            CLConfig.setMinHeight(dataSheetText[2].trim().split("\n").length * LINE_HEIGHT);
-            Scroller.setStyle("-fx-background-color: #FFFFFF;");
-            Grid.setStyle("-fx-background-color: #FFFFFF;");
+            specsTextArea.setText(dataSheetText[1].trim());
+            specsTextArea.setEditable(false);
+            specsTextArea.setMinHeight(dataSheetText[1].trim().split("\n").length * LINE_HEIGHT);
+            specsWarningTextArea.setEditable(false);
+            specsWarningTextArea.lookup(".scroll-bar:vertical").setDisable(true);
+            clConfigTextArea.setText(dataSheetText[2].trim());
+            clConfigTextArea.setEditable(false);
+            clConfigTextArea.setMinHeight(dataSheetText[2].trim().split("\n").length * LINE_HEIGHT);
 
             InputStream product = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Product.jpg");
             if (product != null) {
-                ProductPic.setImage(new Image(product));
+                productImageView.setImage(new Image(product));
             }
             InputStream profile = getClass().getResourceAsStream(getProfileImageUrlString());
             if (profile != null)
-                ProfilePic.setImage(new Image(profile));
+                profileImageView.setImage(new Image(profile));
         } catch (CISException e) {
-            ((Stage) Header.getScene().getWindow()).close();
+            ((Stage) headerTextArea.getScene().getWindow()).close();
 
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText(e.getMessage());
@@ -129,7 +124,7 @@ public class DataSheetController implements Initializable {
     @FXML
     private void print() { // old print
         PrinterJob p = PrinterJob.createPrinterJob();
-        Pane printable = Grid;
+        Pane printable = gridPane;
 
         if (p.showPrintDialog(null)) {
             p.getJobSettings().setPageLayout(p.getPrinter().createPageLayout(p.getJobSettings().getPageLayout().getPaper(), PageOrientation.PORTRAIT, 0.0, 0.0, 0.0, 0.0));
@@ -183,10 +178,10 @@ public class DataSheetController implements Initializable {
      * makes the datasheet editable by setting header, specs and camera link config areas to editable
      */
     public void setEditable() {
-        Header.setEditable(true);
-        Specs.setEditable(true);
-        SpecsWarning.setEditable(true);
-        CLConfig.setEditable(true);
+        headerTextArea.setEditable(true);
+        specsTextArea.setEditable(true);
+        specsWarningTextArea.setEditable(true);
+        clConfigTextArea.setEditable(true);
 
     }
 
@@ -194,11 +189,11 @@ public class DataSheetController implements Initializable {
      * returns whether the datasheet is in OEM mode by checking whether the header field is editable
      */
     private boolean isOEMMode() {
-        return Header.isEditable();
+        return headerTextArea.isEditable();
     }
 
-    public ImageView getProfilePic() {
-        return ProfilePic;
+    public ImageView getProfileImageView() {
+        return profileImageView;
     }
 
     /**
@@ -213,7 +208,7 @@ public class DataSheetController implements Initializable {
             fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
             fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("PDF files", "*.pdf"),
                     new FileChooser.ExtensionFilter("All files", "*"));
-            java.io.File file = fileChooser.showSaveDialog(Header.getScene().getWindow());
+            java.io.File file = fileChooser.showSaveDialog(headerTextArea.getScene().getWindow());
             Document document = new Document();
             PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
             addHeader(pdfWriter);
@@ -267,7 +262,7 @@ public class DataSheetController implements Initializable {
                     tiviKeyCell.setBorderWidthBottom(1);
                     tiviKeyCell.setPaddingBottom(5);
                     tiviKeyCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-                    tiviKeyCell.setPhrase(new Phrase(Header.getText(), FONT_HEADLINE));
+                    tiviKeyCell.setPhrase(new Phrase(headerTextArea.getText(), FONT_HEADLINE));
                     headerTable.addCell(tiviKeyCell);
 
                     // second cell: current page number
@@ -319,12 +314,12 @@ public class DataSheetController implements Initializable {
         image.setAbsolutePosition(document.right() - image.getWidth(), document.top() - image.getHeight());
         document.add(image);
         // specs
-        Paragraph specs = new Paragraph(prepareForPdfPrint(Specs.getText()), FONT_NORMAL);
+        Paragraph specs = new Paragraph(prepareForPdfPrint(specsTextArea.getText()), FONT_NORMAL);
         specs.setMultipliedLeading(1.2f);
         document.add(specs);
         document.add(Chunk.NEWLINE);
         // spec warning
-        Paragraph specsWarning = new Paragraph(SpecsWarning.getText(), FONT_RED);
+        Paragraph specsWarning = new Paragraph(specsWarningTextArea.getText(), FONT_RED);
         specsWarning.setMultipliedLeading(1.2f);
         document.add(specsWarning);
         // profile image
@@ -336,7 +331,7 @@ public class DataSheetController implements Initializable {
             document.add(profileImage);
         }
         // cl config
-        Paragraph clConfig = new Paragraph(prepareForPdfPrint(CLConfig.getText()), FONT_NORMAL);
+        Paragraph clConfig = new Paragraph(prepareForPdfPrint(clConfigTextArea.getText()), FONT_NORMAL);
         clConfig.setMultipliedLeading(1.2f);
         clConfig.setAlignment(Element.ALIGN_RIGHT);
         document.add(clConfig);

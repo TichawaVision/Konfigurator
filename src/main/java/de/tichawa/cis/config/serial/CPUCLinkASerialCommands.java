@@ -5,7 +5,9 @@ import de.tichawa.cis.config.CIS;
 import java.util.List;
 
 /**
- * class that generates commands for the serial interface for the CPUCLinkA
+ * Class that generates commands for the serial interface for the CPUCLinkA.
+ * <p>
+ * To be completed once the A method is in place.
  */
 public class CPUCLinkASerialCommands extends SerialCommands {
     public CPUCLinkASerialCommands(CIS cis) {

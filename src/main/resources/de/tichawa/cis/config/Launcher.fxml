@@ -11,7 +11,7 @@
         <padding>
             <Insets/>
         </padding>
-        <ComboBox fx:id="selectCIS" value="VUCIS">
+        <ComboBox fx:id="cisComboBox" value="VUCIS">
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="VSCIS"/>

@@ -25,7 +25,7 @@
         </rowConstraints>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3">
             <Label text="Color:"/>
-            <ComboBox promptText="One phase (Monochrome)" fx:id="Color">
+            <ComboBox promptText="One phase (Monochrome)" fx:id="colorComboBox">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="One phase (Monochrome)"/>
@@ -52,7 +52,7 @@
                 </rowConstraints>
                 <Label text="Resolution:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                 <ComboBox promptText="Switchable 1200/600/300 dpi" GridPane.columnIndex="1" GridPane.rowIndex="0"
-                          fx:id="Resolution">
+                          fx:id="resolutionComboBox"><!-- TODO why is this a combo box not a choice box -->
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="Switchable 1200/600/300 dpi"/>
@@ -70,7 +70,8 @@
                     </items>
                 </ComboBox>
                 <Label text="Scan Width:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <ComboBox promptText="260 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="ScanWidth">
+                <ComboBox promptText="260 mm" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                          fx:id="scanWidthComboBox"><!-- TODO why is this a combo box not a choice box -->
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="1560 mm"/>
@@ -97,9 +98,9 @@
                     <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0"/>
                 </rowConstraints>
                 <Label text="Pixel Size:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <Label text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="0" fx:id="PixelSize"/>
+                <Label text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="0" fx:id="pixelSizeLabel"/>
                 <Label text="Defect Size:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <Label text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="DefectSize"/>
+                <Label text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="defectSizeLabel"/>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
@@ -119,15 +120,15 @@
                     <RowConstraints maxHeight="15.0" minHeight="15.0" prefHeight="15.0" vgrow="SOMETIMES"/>
                 </rowConstraints>
                 <Label text="Max Line Rate:"/>
-                <Label text="0 kHz" GridPane.columnIndex="1" fx:id="MaxLineRate"/>
+                <Label text="0 kHz" GridPane.columnIndex="1" fx:id="maxLineRateLabel"/>
                 <Label text="Curr. Line Rate:" GridPane.rowIndex="1"/>
-                <Label text="0 kHz" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="CurrLineRate"/>
-                <Slider GridPane.columnSpan="2" GridPane.rowIndex="2" min="100" fx:id="SelLineRate"/>
+                <Label text="0 kHz" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="currentLineRateLabel"/>
+                <Slider GridPane.columnSpan="2" GridPane.rowIndex="2" min="100" fx:id="selectedLineRateSlider"/>
                 <Label text="Transport Speed:" GridPane.columnIndex="2"/>
-                <Label text="0 mm/s" GridPane.columnIndex="3" fx:id="Speedmms"/>
-                <Label text="0 m/s" GridPane.columnIndex="3" GridPane.rowIndex="1" fx:id="Speedms"/>
-                <Label text="0 m/min" GridPane.columnIndex="3" GridPane.rowIndex="2" fx:id="Speedmmin"/>
-                <Label text="0 ips" GridPane.columnIndex="3" GridPane.rowIndex="3" fx:id="Speedips"/>
+                <Label text="0 mm/s" GridPane.columnIndex="3" fx:id="speedmmsLabel"/>
+                <Label text="0 m/s" GridPane.columnIndex="3" GridPane.rowIndex="1" fx:id="speedmsLabel"/>
+                <Label text="0 m/min" GridPane.columnIndex="3" GridPane.rowIndex="2" fx:id="speedmminLabel"/>
+                <Label text="0 ips" GridPane.columnIndex="3" GridPane.rowIndex="3" fx:id="speedipsLabel"/>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Light"
@@ -145,7 +146,7 @@
                 </rowConstraints>
                 <Label text="Internal Light Source:"/>
                 <ComboBox maxWidth="160.0" minWidth="160.0" prefHeight="25.0" prefWidth="160.0" promptText="One sided"
-                          GridPane.columnIndex="1" fx:id="InternalLightSource">
+                          GridPane.columnIndex="1" fx:id="internalLightSourceComboBox"><!-- TODO why is this a combo box not a choice box -->
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="None"/>
@@ -158,7 +159,7 @@
                 </ComboBox>
                 <Label text="Internal Light Color:" GridPane.rowIndex="1"/>
                 <ComboBox maxWidth="160.0" minWidth="160.0" prefWidth="160.0" promptText="Red" GridPane.columnIndex="1"
-                          GridPane.rowIndex="1" fx:id="InternalLightColor">
+                          GridPane.rowIndex="1" fx:id="internalLightColorComboBox"><!-- TODO why is this a combo box not a choice box -->
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="None"/>
@@ -173,7 +174,7 @@
                 </ComboBox>
                 <Label text="External Light Source:" GridPane.columnIndex="2"/>
                 <ComboBox maxWidth="160.0" minWidth="160.0" prefWidth="160.0" promptText="One sided"
-                          GridPane.columnIndex="3" fx:id="ExternalLightSource">
+                          GridPane.columnIndex="3" fx:id="externalLightSourceComboBox"><!-- TODO why is this a combo box not a choice box -->
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="None"/>
@@ -183,7 +184,7 @@
                 </ComboBox>
                 <Label text="External Light Color:" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
                 <ComboBox maxWidth="160.0" minWidth="160.0" prefWidth="160.0" promptText="Red" GridPane.columnIndex="3"
-                          GridPane.rowIndex="1" fx:id="ExternalLightColor">
+                          GridPane.rowIndex="1" fx:id="externalLightColorComboBox"><!-- TODO why is this a combo box not a choice box -->
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="None"/>
@@ -200,7 +201,7 @@
         </TitledPane>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="3">
             <Label text="Interface:"/>
-            <ComboBox promptText="CameraLink" fx:id="Interface" disable="true">
+            <ComboBox promptText="CameraLink" fx:id="interfaceComboBox" disable="true">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="CameraLink"/>
@@ -209,7 +210,7 @@
                 </items>
             </ComboBox>
             <Label text="CameraLink Mode:"/>
-            <ComboBox promptText="Base/Medium/Full" fx:id="CameraLinkMode">
+            <ComboBox promptText="Base/Medium/Full" fx:id="cameraLinkModeComboBox"><!-- TODO why is this a combo box not a choice box -->
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="Full80"/>
@@ -220,7 +221,7 @@
         </HBox>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="4">
             <Label text="Cooling:"/>
-            <ComboBox promptText="Liquid Cooling (Default)" fx:id="Cooling" disable="true">
+            <ComboBox promptText="Liquid Cooling (Default)" fx:id="coolingComboBox" disable="true">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="None"/>
@@ -234,16 +235,16 @@
         </HBox>
         <CheckBox mnemonicParsing="false"
                   text="External Trigger over RS422 / Free running with programmable line rate (Default: CC1)"
-                  GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" fx:id="Trigger"/>
+                  GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" fx:id="externalTriggerCheckbox"/>
         <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="7" GridPane.columnIndex="1">
-            <Button mnemonicParsing="false" text="Calculation" fx:id="Calculation" onAction="#handleCalculation"/>
-            <Button mnemonicParsing="false" text="Part list" fx:id="PartList" onAction="#handlePartList"/>
-            <Button mnemonicParsing="false" text="Data Sheet" fx:id="DataSheet" onAction="#handleDataSheet"/>
-            <Button mnemonicParsing="false" text="OEM Mode" fx:id="OEMMode" onAction="#handleOEMMode"/>
-            <Button mnemonicParsing="false" text="Additional equipment" fx:id="Equip" onAction="#handleEquipment"/>
+            <Button mnemonicParsing="false" text="Calculation" onAction="#handleCalculation"/>
+            <Button mnemonicParsing="false" text="Part list" onAction="#handlePartList"/>
+            <Button mnemonicParsing="false" text="Data Sheet" onAction="#handleDataSheet"/>
+            <Button mnemonicParsing="false" text="OEM Mode" fx:id="oemModeButton" onAction="#handleOEMMode"/>
+            <Button mnemonicParsing="false" text="Additional equipment" onAction="#handleEquipment"/>
             <Button mnemonicParsing="false" onAction="#handleSerial" text="Generate Serial Commands"/>
         </HBox>
         <Label text="For special options, please contact sales@tichawa.de" GridPane.columnSpan="1" GridPane.rowIndex="7"
-               fx:id="Infotext"/>
+               fx:id="infotextLabel"/>
     </GridPane>
 </AnchorPane>

@@ -3,9 +3,7 @@ package de.tichawa.cis.config.ldstd;
 import de.tichawa.cis.config.CIS;
 
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class MaskController extends de.tichawa.cis.config.controller.MaskController<LDSTD> {
     public MaskController() {
@@ -21,10 +19,10 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         CIS_DATA.setScanWidth(1040);
         CIS_DATA.setExternalTrigger(false);
 
-        Color.valueProperty().addListener((observable, oldValue, newValue) ->
+        colorComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
         {
             if (newValue.equals("RGB") && CIS_DATA.getLedLines() == 0) {
-                Color.getSelectionModel().select(oldValue);
+                colorComboBox.getSelectionModel().select(oldValue);
                 return;
             }
 
@@ -39,22 +37,22 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 }
             }
 
-            InternalLightColor.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
+            internalLightColorComboBox.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
             if (newValue.equals("RGB")) {
-                InternalLightColor.getSelectionModel().selectFirst();
+                internalLightColorComboBox.getSelectionModel().selectFirst();
             }
-            ExternalLightColor.setDisable(newValue.equals("RGB") || ExternalLightSource.getSelectionModel().getSelectedIndex() == 0);
+            externalLightColorComboBox.setDisable(newValue.equals("RGB") || externalLightSourceComboBox.getSelectionModel().getSelectedIndex() == 0);
         });
-        ScanWidth.valueProperty().addListener((observable, oldValue, newValue) ->
+        scanWidthComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
                 CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim())));
-        InternalLightSource.valueProperty().addListener((observable, oldValue, newValue) ->
+        internalLightSourceComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
         {
             if (CIS_DATA.getPhaseCount() == 3 && newValue.equals("None") && LDSTD_DATA.getLedLines() == 0) {
-                InternalLightSource.getSelectionModel().select(oldValue);
+                internalLightSourceComboBox.getSelectionModel().select(oldValue);
                 return;
             }
 
-            switch (InternalLightSource.getSelectionModel().getSelectedIndex()) {
+            switch (internalLightSourceComboBox.getSelectionModel().getSelectedIndex()) {
                 case 0:
                     CIS_DATA.setDiffuseLightSources(0);
                     CIS_DATA.setCoaxLightSources(0);
@@ -76,15 +74,15 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                     CIS_DATA.setCoaxLightSources(1);
                     break;
             }
-            InternalLightColor.setDisable(CIS_DATA.getPhaseCount() == 3 || CIS_DATA.getLedLines() == 0);
+            internalLightColorComboBox.setDisable(CIS_DATA.getPhaseCount() == 3 || CIS_DATA.getLedLines() == 0);
         });
-        InternalLightColor.valueProperty().addListener((observable, oldValue, newValue) ->
+        internalLightColorComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
                 CIS.LightColor.findByDescription(newValue).ifPresent(CIS_DATA::setLightColor));
 
-        Color.getSelectionModel().selectFirst();
-        ScanWidth.getSelectionModel().selectFirst();
-        InternalLightSource.getSelectionModel().select(1);
-        InternalLightColor.getSelectionModel().select(1);
+        colorComboBox.getSelectionModel().selectFirst();
+        scanWidthComboBox.getSelectionModel().selectFirst();
+        internalLightSourceComboBox.getSelectionModel().select(1);
+        internalLightColorComboBox.getSelectionModel().select(1);
     }
 
     @Override

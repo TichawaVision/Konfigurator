@@ -4,6 +4,7 @@ import com.fazecast.jSerialComm.SerialPort;
 import de.tichawa.cis.config.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
@@ -15,17 +16,17 @@ import java.util.List;
 public class SerialController {
     private CIS cis;
     @FXML
-    private CheckBox SaveParameters;
+    private CheckBox saveParametersCheckBox;
     @FXML
-    private ChoiceBox<SerialCommands.ShiftOptions> XYShift;
+    private ChoiceBox<SerialCommands.ShiftOptions> xyShiftChoiceBox;
     @FXML
-    private ChoiceBox<SerialPort> SerialPort;
+    private ChoiceBox<SerialPort> serialPortChoiceBox;
     @FXML
-    private ChoiceBox<de.tichawa.cis.config.CPUCLink> CPUCLink;
+    private ChoiceBox<de.tichawa.cis.config.CPUCLink> cpucLinkChoiceBox;
     @FXML
-    private TextArea Commands;
+    private TextArea commandsTextArea;
     @FXML
-    private TextField Delay;
+    private TextField delayTextField;
 
     private long totalNumberOfPix;
 
@@ -41,11 +42,11 @@ public class SerialController {
 
         // setup choice boxes
         // - serial port
-        SerialPort.getItems().clear();
-        SerialPort.getItems().addAll(com.fazecast.jSerialComm.SerialPort.getCommPorts());
-        SerialPort.getSelectionModel().select(0);
-        SerialPort.getItems().stream().filter(port -> port.getSystemPortName().equals("COM10")).findFirst().ifPresent(port -> SerialPort.getSelectionModel().select(port));
-        SerialPort.setConverter(new StringConverter<com.fazecast.jSerialComm.SerialPort>() {
+        serialPortChoiceBox.getItems().clear();
+        serialPortChoiceBox.getItems().addAll(com.fazecast.jSerialComm.SerialPort.getCommPorts());
+        serialPortChoiceBox.getSelectionModel().select(0);
+        serialPortChoiceBox.getItems().stream().filter(port -> port.getSystemPortName().equals("COM10")).findFirst().ifPresent(port -> serialPortChoiceBox.getSelectionModel().select(port));
+        serialPortChoiceBox.setConverter(new StringConverter<com.fazecast.jSerialComm.SerialPort>() {
             @Override
             public String toString(com.fazecast.jSerialComm.SerialPort port) {
                 return port.getSystemPortName();
@@ -57,9 +58,9 @@ public class SerialController {
             }
         });
         // - cpuc link
-        CPUCLink.getItems().clear();
-        CPUCLink.getItems().addAll(cpucLinks);
-        CPUCLink.setConverter(new StringConverter<de.tichawa.cis.config.CPUCLink>() {
+        cpucLinkChoiceBox.getItems().clear();
+        cpucLinkChoiceBox.getItems().addAll(cpucLinks);
+        cpucLinkChoiceBox.setConverter(new StringConverter<de.tichawa.cis.config.CPUCLink>() {
             @Override
             public String toString(de.tichawa.cis.config.CPUCLink object) {
                 return "Board " + (1 + cpucLinks.indexOf(object));
@@ -70,12 +71,12 @@ public class SerialController {
                 return cpucLinks.get(Integer.parseInt(string.split(" ")[1]) - 1);
             }
         });
-        CPUCLink.getSelectionModel().select(0);
-        CPUCLink.setDisable(cpucLinks.size() <= 1);
-        CPUCLink.valueProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
+        cpucLinkChoiceBox.getSelectionModel().select(0);
+        cpucLinkChoiceBox.setDisable(cpucLinks.size() <= 1);
+        cpucLinkChoiceBox.valueProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
         // - xy shift
-        XYShift.getItems().clear();
-        XYShift.setConverter(new StringConverter<SerialCommands.ShiftOptions>() {
+        xyShiftChoiceBox.getItems().clear();
+        xyShiftChoiceBox.setConverter(new StringConverter<SerialCommands.ShiftOptions>() {
             @Override
             public String toString(SerialCommands.ShiftOptions shiftOption) {
                 return shiftOption.displayString;
@@ -86,29 +87,29 @@ public class SerialController {
                 return SerialCommands.ShiftOptions.fromString(string);
             }
         });
-        XYShift.getItems().addAll(SerialCommands.ShiftOptions.values());
-        XYShift.getSelectionModel().select(SerialCommands.ShiftOptions.DEFAULT);
-        XYShift.valueProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
+        xyShiftChoiceBox.getItems().addAll(SerialCommands.ShiftOptions.values());
+        xyShiftChoiceBox.getSelectionModel().select(SerialCommands.ShiftOptions.DEFAULT);
+        xyShiftChoiceBox.valueProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
         // setup checkbox
-        SaveParameters.setSelected(false);
-        SaveParameters.selectedProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
+        saveParametersCheckBox.setSelected(false);
+        saveParametersCheckBox.selectedProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
         // show commands
         updateCommandsText();
         // delay
-        Delay.setTextFormatter(new TextFormatter<>(new IntegerStringConverter(), 0, change -> {
+        delayTextField.setTextFormatter(new TextFormatter<>(new IntegerStringConverter(), 0, change -> {
             String newText = change.getControlNewText();
             if (newText.matches("0|[1-9][0-9]*"))
                 return change;
             return null;
         }));
-        Delay.setText("250");
+        delayTextField.setText(String.valueOf(SerialConnection.DEFAULT_DELAY));
     }
 
     /**
      * updates the commands text label by generating the commands for the current selection
      */
     private void updateCommandsText() {
-        Commands.setText(String.join("\n", getCurrentCommands().generateCommands()));
+        commandsTextArea.setText(String.join("\n", getCurrentCommands().generateCommands()));
     }
 
     /**
@@ -119,9 +120,9 @@ public class SerialController {
     private SerialCommands getCurrentCommands() {
         return new CPUCLinkSerialCommands(
                 cis,
-                XYShift.getValue(),
-                SaveParameters.isSelected(),
-                CPUCLink.getValue(),
+                xyShiftChoiceBox.getValue(),
+                saveParametersCheckBox.isSelected(),
+                cpucLinkChoiceBox.getValue(),
                 totalNumberOfPix);
     }
 
@@ -131,7 +132,7 @@ public class SerialController {
     @FXML
     private void handleCreateCommands() {
         SerialCommands commands = getCurrentCommands();
-        SerialConnection connection = new SerialConnection(SerialPort.getValue(), Integer.parseInt(Delay.getText()));
+        SerialConnection connection = new SerialConnection(serialPortChoiceBox.getValue(), Integer.parseInt(delayTextField.getText()), (Stage) xyShiftChoiceBox.getScene().getWindow());
         connection.sendToSerialPort(commands.generateCommands());
     }
 }

@@ -10,18 +10,18 @@
                 AnchorPane.rightAnchor="0.0">
         <top>
             <MenuBar id="Menu" prefHeight="20.0" BorderPane.alignment="CENTER">
-                <Menu fx:id="File">
-                    <!--<MenuItem fx:id="Print" onAction="#print"/>-->
-                    <MenuItem fx:id="Save" onAction="#save"/>
+                <Menu fx:id="fileMenu">
+                    <!--<MenuItem fx:id="printMenuItem" onAction="#print"/>-->
+                    <MenuItem fx:id="saveMenuItem" onAction="#save"/>
                 </Menu>
-                <Menu fx:id="Lang">
-                    <MenuItem fx:id="SwitchLang" onAction="#handleSwitchLang"/>
+                <Menu fx:id="languageMenu">
+                    <MenuItem fx:id="switchLanguageMenuItem" onAction="#handleSwitchLang"/>
                 </Menu>
             </MenuBar>
         </top>
         <center>
-            <ScrollPane fx:id="Scroller" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                <GridPane fx:id="Grid" prefHeight="850.0" prefWidth="800.0">
+            <ScrollPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" style="-fx-background-color: #FFFFFF;">
+                <GridPane fx:id="gridPane" prefHeight="850.0" prefWidth="800.0" style="-fx-background-color: #FFFFFF;">
                     <columnConstraints>
                         <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="400.0" maxWidth="400"/>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="400.0"/>
@@ -32,15 +32,15 @@
                         <RowConstraints vgrow="ALWAYS"/>
                         <RowConstraints vgrow="ALWAYS"/>
                     </rowConstraints>
-                    <TextArea id="Header" fx:id="Header" maxHeight="50.0" maxWidth="Infinity" text="Header"
+                    <TextArea id="Header" fx:id="headerTextArea" maxHeight="50.0" maxWidth="Infinity" text="Header"
                               GridPane.columnSpan="2"/>
-                    <TextArea id="Specs" fx:id="Specs" text="Specs" GridPane.rowIndex="1"/>
-                    <TextArea id="SpecsWarning" fx:id="SpecsWarning" GridPane.rowIndex="2" wrapText="true"/>
-                    <ImageView id="ProductPic" fx:id="ProductPic" GridPane.columnIndex="1"
+                    <TextArea id="Specs" fx:id="specsTextArea" text="Specs" GridPane.rowIndex="1"/>
+                    <TextArea id="SpecsWarning" fx:id="specsWarningTextArea" GridPane.rowIndex="2" wrapText="true"/>
+                    <ImageView id="ProductPic" fx:id="productImageView" GridPane.columnIndex="1"
                                GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="TOP"/>
-                    <ImageView id="ProfilePic" fx:id="ProfilePic" GridPane.halignment="LEFT"
+                    <ImageView id="ProfilePic" fx:id="profileImageView" GridPane.halignment="LEFT"
                                GridPane.rowIndex="3" GridPane.valignment="BOTTOM"/>
-                    <TextArea id="CLConfig" fx:id="CLConfig" maxHeight="Infinity" text="CLConfig"
+                    <TextArea id="CLConfig" fx:id="clConfigTextArea" maxHeight="Infinity" text="CLConfig"
                               GridPane.columnIndex="1" GridPane.rowIndex="3"/>
                 </GridPane>
             </ScrollPane>

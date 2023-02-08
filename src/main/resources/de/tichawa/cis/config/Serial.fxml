@@ -9,17 +9,17 @@
     <GridPane vgap="10" hgap="10" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
         <Label text="Serial Port:"/>
-        <ChoiceBox fx:id="SerialPort" GridPane.columnIndex="1"/>
+        <ChoiceBox fx:id="serialPortChoiceBox" GridPane.columnIndex="1"/>
         <Label text="Commands that are sent:" GridPane.columnIndex="2"/>
         <Label text="CPUCLink: " GridPane.rowIndex="1"/>
-        <ChoiceBox fx:id="CPUCLink" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <TextArea fx:id="Commands" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="5"
+        <ChoiceBox fx:id="cpucLinkChoiceBox" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <TextArea fx:id="commandsTextArea" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="5"
                   editable="false" prefWidth="120" prefHeight="520"/>
         <Label text="x-/y-Shift:" GridPane.rowIndex="2"/>
-        <ChoiceBox fx:id="XYShift" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="SaveParameters" text="Save parameters (send S-command in the end)" GridPane.rowIndex="3" GridPane.columnSpan="2"/>
+        <ChoiceBox fx:id="xyShiftChoiceBox" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <CheckBox fx:id="saveParametersCheckBox" text="Save parameters (send S-command in the end)" GridPane.rowIndex="3" GridPane.columnSpan="2"/>
         <Label text="Command delay (ms)" GridPane.rowIndex="4"/>
-        <TextField fx:id="Delay" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <TextField fx:id="delayTextField" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
         <HBox GridPane.rowIndex="5" GridPane.columnSpan="2" alignment="CENTER">
             <Button onAction="#handleCreateCommands" text="Create and send Commands"/>
         </HBox>

@@ -38,75 +38,74 @@
                 </rowConstraints>
                 <HBox alignment="CENTER" GridPane.rowIndex="0" GridPane.columnIndex="0">
                     <Label text="Light Preset:"/>
-                    <ChoiceBox fx:id="LightPreset"/>
+                    <ChoiceBox fx:id="lightPresetChoiceBox"/>
                 </HBox>
                 <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1" GridPane.columnSpan="2">
                     <Label text="Color:"/>
-                    <ComboBox fx:id="Color"/>
+                    <ComboBox fx:id="colorComboBox"/><!-- TODO why is this a combo box not a choice box ? -->
                 </HBox>
                 <HBox GridPane.columnIndex="3" GridPane.columnSpan="2" alignment="CENTER">
-                    <CheckBox text="Cloudy Day" fx:id="CloudyDay"/>
+                    <CheckBox text="Cloudy Day" fx:id="cloudyDayCheckBox"/>
                 </HBox>
                 <!-- Lights -->
                 <HBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="1">
                     <Label text="Darkfield Left:"/>
                 </HBox>
                 <HBox GridPane.columnIndex="0" GridPane.rowIndex="2">
-                    <ChoiceBox minWidth="210" fx:id="DarkFieldLeft"/>
+                    <ChoiceBox minWidth="210" fx:id="darkFieldLeftChoiceBox"/>
                 </HBox>
                 <HBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <Label text="Brightfield Left:"/>
                 </HBox>
                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
-                    <ChoiceBox minWidth="210" fx:id="BrightFieldLeft"/>
+                    <ChoiceBox minWidth="210" fx:id="brightFieldLeftChoiceBox"/>
                 </HBox>
                 <HBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="1">
                     <Label text="Coax:"/>
                 </HBox>
                 <HBox GridPane.columnIndex="2" GridPane.rowIndex="2">
-                    <ChoiceBox minWidth="210" fx:id="Coax"/>
+                    <ChoiceBox minWidth="210" fx:id="coaxChoiceBox"/>
                 </HBox>
                 <HBox alignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="1">
                     <Label text="Brightfield Right:"/>
                 </HBox>
                 <HBox GridPane.columnIndex="3" GridPane.rowIndex="2">
-                    <ChoiceBox minWidth="210" fx:id="BrightFieldRight"/>
+                    <ChoiceBox minWidth="210" fx:id="brightFieldRightChoiceBox"/>
                 </HBox>
                 <HBox alignment="CENTER" GridPane.columnIndex="4" GridPane.rowIndex="1">
                     <Label text="Darkfield Right:"/>
                 </HBox>
                 <HBox GridPane.columnIndex="4" GridPane.rowIndex="2">
-                    <ChoiceBox minWidth="210" fx:id="DarkFieldRight"/>
+                    <ChoiceBox minWidth="210" fx:id="darkFieldRightChoiceBox"/>
                 </HBox>
                 <!-- Cooling -->
                 <HBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2">
-                    <CheckBox text="Liquid Cooling (left)" fx:id="CoolingLeft"/>
+                    <CheckBox text="Liquid Cooling (left)" fx:id="coolingLeftCheckBox"/>
                 </HBox>
                 <HBox alignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="3" GridPane.columnSpan="2">
-                    <CheckBox text="Liquid Cooling (right)" fx:id="CoolingRight"/>
+                    <CheckBox text="Liquid Cooling (right)" fx:id="coolingRightCheckBox"/>
                 </HBox>
                 <!-- info message -->
                 <HBox alignment="CENTER" GridPane.rowIndex="4" GridPane.columnSpan="5">
-                    <Label fx:id="LightInfo"/>
+                    <Label fx:id="lightInfoLabel"/>
                 </HBox>
                 <!-- light frequency limit -->
                 <HBox alignment="CENTER_LEFT" GridPane.rowIndex="5" GridPane.columnSpan="3">
                     <Label text="Light Frequency Limit: "/>
-                    <Label fx:id="LightFrequencyLimit"/>
+                    <Label fx:id="lightFrequencyLimitLabel"/>
                 </HBox>
                 <!-- warning if freq < 2 * selected line rate, overlapping with above label intented as the above will only span when the following is not shown-->
                 <HBox alignment="CENTER_LEFT" GridPane.rowIndex="5" GridPane.columnIndex="1" GridPane.columnSpan="4">
-                    <Label fx:id="WarningSelectedLineRate" textFill="red"/>
+                    <Label fx:id="warningSelectedLineRateLabel" textFill="red"/>
                 </HBox>
             </GridPane>
         </TitledPane>
-        <TitledPane collapsible="false" GridPane.columnSpan="3" GridPane.fillHeight="true" GridPane.fillWidth="true"
-                    GridPane.rowIndex="1"
+        <TitledPane collapsible="false" GridPane.columnSpan="3" GridPane.fillHeight="true" GridPane.fillWidth="true" GridPane.rowIndex="1"
                     text="Optics">
             <GridPane alignment="CENTER" hgap="50.0" vgap="5.0" GridPane.rowIndex="1">
                 <Label text="Lens working distance:" alignment="BASELINE_LEFT" GridPane.columnIndex="0"
                        GridPane.rowIndex="0"/>
-                <ChoiceBox fx:id="LensType" GridPane.columnIndex="1" maxWidth="100">
+                <ChoiceBox fx:id="lensTypeChoiceBox" GridPane.columnIndex="1" maxWidth="100">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="10mm"/>
@@ -114,9 +113,7 @@
                         </FXCollections>
                     </items>
                 </ChoiceBox>
-                <CheckBox mnemonicParsing="false" GridPane.columnIndex="2"
-                          text="Long/High DOF"
-                          fx:id="LensDOF"/>
+                <CheckBox mnemonicParsing="false" GridPane.columnIndex="2" text="Long/High DOF" fx:id="lensDofCheckBox"/>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" minHeight="120" GridPane.fillWidth="true" GridPane.rowIndex="2"
@@ -131,7 +128,7 @@
                     <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0"/>
                 </rowConstraints>
                 <Label text="Resolution:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <ComboBox fx:id="Resolution" promptText="Switchable 1000/500/250 dpi" GridPane.columnIndex="1"
+                <ComboBox fx:id="resolutionComboBox" promptText="Switchable 1000/500/250 dpi" GridPane.columnIndex="1"
                           GridPane.rowIndex="0">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
@@ -150,7 +147,7 @@
                     </items>
                 </ComboBox>
                 <Label text="Scan Width:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <ComboBox fx:id="ScanWidth" promptText="300 mm" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <ComboBox fx:id="scanWidthComboBox" promptText="300 mm" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <!--String fx:value="1820 mm"/-->
@@ -180,11 +177,11 @@
                     <RowConstraints minHeight="20.0"/>
                 </rowConstraints>
                 <Label text="Pixel Size:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <Label fx:id="PixelSize" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label fx:id="pixelSizeLabel" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
                 <Label text="Defect Size:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <Label fx:id="DefectSize" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label fx:id="defectSizeLabel" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                 <Label text="Number of pixels:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                <Label fx:id="PixelCount" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <Label fx:id="pixelCountLabel" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" GridPane.columnIndex="2" GridPane.fillHeight="true"
@@ -204,15 +201,15 @@
                     <RowConstraints maxHeight="15.0" minHeight="15.0" prefHeight="15.0" vgrow="SOMETIMES"/>
                 </rowConstraints>
                 <Label text="Max Line Rate:"/>
-                <Label fx:id="MaxLineRate" text="0 kHz" GridPane.columnIndex="1"/>
+                <Label fx:id="maxLineRateLabel" text="0 kHz" GridPane.columnIndex="1"/>
                 <Label text="Curr. Line Rate:" GridPane.rowIndex="1"/>
-                <Label fx:id="CurrLineRate" text="0 kHz" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                <Slider fx:id="SelLineRate" min="100" GridPane.columnSpan="2" GridPane.rowIndex="2" snapToTicks="true"/>
+                <Label fx:id="currentLineRateLabel" text="0 kHz" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Slider fx:id="selectedLineRateSlider" min="100" GridPane.columnSpan="2" GridPane.rowIndex="2" snapToTicks="true"/>
                 <Label text="Transport Speed:" GridPane.columnIndex="2"/>
-                <Label fx:id="Speedmms" text="0 mm/s" GridPane.columnIndex="3"/>
-                <Label fx:id="Speedms" text="0 m/s" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-                <Label fx:id="Speedmmin" text="0 m/min" GridPane.columnIndex="3" GridPane.rowIndex="2"/>
-                <Label fx:id="Speedips" text="0 ips" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
+                <Label fx:id="speedmmsLabel" text="0 mm/s" GridPane.columnIndex="3"/>
+                <Label fx:id="speedmsLabel" text="0 m/s" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                <Label fx:id="speedmminLabel" text="0 m/min" GridPane.columnIndex="3" GridPane.rowIndex="2"/>
+                <Label fx:id="speedipsLabel" text="0 ips" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" minHeight="130" GridPane.columnSpan="3"
@@ -227,7 +224,7 @@
                 </columnConstraints>
                 <HBox alignment="CENTER" spacing="5.0">
                     <Label text="Interface:"/>
-                    <ComboBox fx:id="Interface" disable="true" promptText="CameraLink">
+                    <ComboBox fx:id="interfaceComboBox" disable="true" promptText="CameraLink"> <!-- TODO why is this a combo box not a choice box -->
                         <items>
                             <FXCollections fx:factory="observableArrayList">
                                 <String fx:value="CameraLink"/>
@@ -237,18 +234,18 @@
                 </HBox>
                 <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1">
                     <Label text="Mod for lval:"/>
-                    <ChoiceBox fx:id="Mod"/>
+                    <ChoiceBox fx:id="moduloChoiceBox"/>
                 </HBox>
-                <CheckBox fx:id="ReducedPixelClock" text="Reduced camera link frequency"
-                          GridPane.columnIndex="2"/>
+                <CheckBox fx:id="reducedPixelClockCheckBox" text="Reduced camera link frequency" GridPane.columnIndex="2"/>
                 <HBox alignment="CENTER_RIGHT" GridPane.columnIndex="3">
-                    <Label fx:id="CameraLinkInfo" text="Placeholder Camera Link Info" minHeight="75"/>
+                    <Label fx:id="cameraLinkInfoLabel" text="Placeholder Camera Link Info" minHeight="75"/>
                 </HBox>
             </GridPane>
         </TitledPane>
         <!-- not needed for VUCIS but part of the main class -->
         <HBox alignment="CENTER" spacing="5.0" GridPane.rowIndex="3" GridPane.columnIndex="0">
-            <ComboBox fx:id="Cooling" disable="true" promptText="Liquid Cooling (Default)">
+            <ComboBox fx:id="coolingComboBox" disable="true"
+                      promptText="Liquid Cooling (Default)"><!-- TODO why is this a combo box not a choice box -->
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="None"/>
@@ -261,14 +258,14 @@
             </ComboBox>
         </HBox>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="6">
-            <Button fx:id="Calculation" mnemonicParsing="false" onAction="#handleCalculation" text="Calculation"/>
-            <Button fx:id="PartList" mnemonicParsing="false" onAction="#handlePartList" text="Part list"/>
-            <Button fx:id="DataSheet" mnemonicParsing="false" onAction="#handleDataSheet" text="Data Sheet"/>
-            <Button fx:id="OEMMode" mnemonicParsing="false" onAction="#handleOEMMode" text="OEM Mode"/>
-            <Button fx:id="Equip" mnemonicParsing="false" onAction="#handleEquipment" text="Additional equipment"/>
+            <Button mnemonicParsing="false" onAction="#handleCalculation" text="Calculation"/>
+            <Button mnemonicParsing="false" onAction="#handlePartList" text="Part list"/>
+            <Button mnemonicParsing="false" onAction="#handleDataSheet" text="Data Sheet"/>
+            <Button fx:id="oemModeButton" mnemonicParsing="false" onAction="#handleOEMMode" text="OEM Mode"/>
+            <Button mnemonicParsing="false" onAction="#handleEquipment" text="Additional equipment"/>
             <Button mnemonicParsing="false" onAction="#handleSerial" text="Generate Serial Commands"/>
         </HBox>
-        <Label fx:id="Infotext" text="${'For special options,\nplease contact sales@tichawa.de'}" GridPane.columnSpan="3"
+        <Label fx:id="infotextLabel" text="${'For special options,\nplease contact sales@tichawa.de'}" GridPane.columnSpan="3"
                GridPane.rowIndex="6"/>
     </GridPane>
 </AnchorPane>

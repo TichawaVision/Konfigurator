@@ -29,41 +29,41 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     private static long lastMinFreq = 0;
 
     @FXML
-    private Label WarningSelectedLineRate;
+    private Label warningSelectedLineRateLabel;
     @FXML
-    private ChoiceBox<String> LensType;
+    private ChoiceBox<String> lensTypeChoiceBox;
     @FXML
-    private CheckBox LensDOF;
+    private CheckBox lensDofCheckBox;
     @FXML
-    private CheckBox ReducedPixelClock;
+    private CheckBox reducedPixelClockCheckBox;
     @FXML
-    private Label CameraLinkInfo;
+    private Label cameraLinkInfoLabel;
     @FXML
-    private Label LightInfo;
+    private Label lightInfoLabel;
     @FXML
-    private ChoiceBox<String> Mod;
+    private ChoiceBox<String> moduloChoiceBox;
     @FXML
-    private Label PixelCount;
+    private Label pixelCountLabel;
     @FXML
-    private Label LightFrequencyLimit;
+    private Label lightFrequencyLimitLabel;
     @FXML
-    private ChoiceBox<String> BrightFieldLeft;
+    private ChoiceBox<String> brightFieldLeftChoiceBox;
     @FXML
-    private ChoiceBox<String> Coax;
+    private ChoiceBox<String> coaxChoiceBox;
     @FXML
-    private ChoiceBox<String> BrightFieldRight;
+    private ChoiceBox<String> brightFieldRightChoiceBox;
     @FXML
-    private ChoiceBox<String> DarkFieldLeft;
+    private ChoiceBox<String> darkFieldLeftChoiceBox;
     @FXML
-    private ChoiceBox<String> DarkFieldRight;
+    private ChoiceBox<String> darkFieldRightChoiceBox;
     @FXML
-    private CheckBox CoolingLeft;
+    private CheckBox coolingLeftCheckBox;
     @FXML
-    private CheckBox CoolingRight;
+    private CheckBox coolingRightCheckBox;
     @FXML
-    private CheckBox CloudyDay;
+    private CheckBox cloudyDayCheckBox;
     @FXML
-    private ChoiceBox<String> LightPreset;
+    private ChoiceBox<String> lightPresetChoiceBox;
 
     public MaskController() {
         CIS_DATA = new VUCIS();
@@ -163,16 +163,16 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void initLightPresets() {
         //set items of choice box
-        LightPreset.getItems().clear();
-        LightPreset.getItems().addAll(Arrays.stream(LightPresets.values()).map(LightPresets::getDisplayText).collect(Collectors.toList()));
+        lightPresetChoiceBox.getItems().clear();
+        lightPresetChoiceBox.getItems().addAll(Arrays.stream(LightPresets.values()).map(LightPresets::getDisplayText).collect(Collectors.toList()));
         //select initial value
-        LightPreset.getSelectionModel().select(LightPresets.MANUAL.getDisplayText());
+        lightPresetChoiceBox.getSelectionModel().select(LightPresets.MANUAL.getDisplayText());
         //add listener to change lights on change
-        LightPreset.valueProperty().addListener((observable, oldValue, newValue) -> {
+        lightPresetChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             LightPresets selected = LightPresets.findByDisplayText(newValue).orElseThrow(() -> new IllegalArgumentException("selected light preset does not exist"));
             applyLightPreset(selected);
             //set to selected again because a change will set it to manual
-            LightPreset.getSelectionModel().select(newValue);
+            lightPresetChoiceBox.getSelectionModel().select(newValue);
         });
     }
 
@@ -181,13 +181,13 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void initPhases() {
         //set items to choice box
-        Color.getItems().clear();
-        Color.getItems().addAll(Arrays.stream(Phases.values()).map(Phases::getDisplayText).collect(Collectors.toList()));
+        colorComboBox.getItems().clear();
+        colorComboBox.getItems().addAll(Arrays.stream(Phases.values()).map(Phases::getDisplayText).collect(Collectors.toList()));
         //select initial value
         Phases initialPhase = Phases.findByPhaseCount(CIS_DATA.getPhaseCount()).orElseThrow(() -> new IllegalArgumentException("selected phases do not exist"));
-        Color.getSelectionModel().select(initialPhase.getDisplayText());
+        colorComboBox.getSelectionModel().select(initialPhase.getDisplayText());
         //add listener to set phase count on changes
-        Color.valueProperty().addListener((property, oldValue, newValue) -> {
+        colorComboBox.valueProperty().addListener((property, oldValue, newValue) -> {
             Phases selectedPhase = Phases.findByDisplayText(newValue).orElseThrow(() -> new IllegalArgumentException("selected phases do not exist"));
             //set phase count in model when choice box value changed
             CIS_DATA.setPhaseCount(selectedPhase.phaseCount);
@@ -218,30 +218,30 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      * initializes the lights: left/right dark/bright field and coax
      */
     private void initLights() {
-        initLight(BrightFieldLeft, CIS_DATA.getBrightFieldLeft().getDescription(), false);
-        initLight(BrightFieldRight, CIS_DATA.getBrightFieldRight().getDescription(), false);
-        initLight(DarkFieldLeft, CIS_DATA.getDarkFieldLeft().getDescription(), false);
-        initLight(DarkFieldRight, CIS_DATA.getDarkFieldRight().getDescription(), false);
-        initLight(Coax, CIS_DATA.getCoaxLight().getDescription(), true);
+        initLight(brightFieldLeftChoiceBox, CIS_DATA.getBrightFieldLeft().getDescription(), false);
+        initLight(brightFieldRightChoiceBox, CIS_DATA.getBrightFieldRight().getDescription(), false);
+        initLight(darkFieldLeftChoiceBox, CIS_DATA.getDarkFieldLeft().getDescription(), false);
+        initLight(darkFieldRightChoiceBox, CIS_DATA.getDarkFieldRight().getDescription(), false);
+        initLight(coaxChoiceBox, CIS_DATA.getCoaxLight().getDescription(), true);
     }
 
     /**
      * initializes the cloudy day checkbox
      */
     private void initCloudyDay() {
-        CloudyDay.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCloudyDay(newValue));
+        cloudyDayCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCloudyDay(newValue));
     }
 
     /**
      * initializes the cooling checkboxes
      */
     private void initCooling() {
-        CoolingLeft.setSelected(CIS_DATA.hasCoolingLeft());
-        CoolingRight.setSelected(CIS_DATA.hasCoolingRight());
-        CoolingLeft.setDisable(true);
-        CoolingRight.setDisable(true);
-        CoolingLeft.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingLeft(newValue));
-        CoolingRight.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingRight(newValue));
+        coolingLeftCheckBox.setSelected(CIS_DATA.hasCoolingLeft());
+        coolingRightCheckBox.setSelected(CIS_DATA.hasCoolingRight());
+        coolingLeftCheckBox.setDisable(true);
+        coolingRightCheckBox.setDisable(true);
+        coolingLeftCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingLeft(newValue));
+        coolingRightCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingRight(newValue));
     }
 
     /**
@@ -282,18 +282,18 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void initOptics() {
         // set initial value
-        LensType.getSelectionModel().select("10mm"); //not pretty to have this fixed value here... could rework LensType enum to have 10mm as display text and make lens type handling easier
+        lensTypeChoiceBox.getSelectionModel().select("10mm"); //not pretty to have this fixed value here... could rework LensType enum to have 10mm as display text and make lens type handling easier
         // listener for lens type choice box that sets the new lens in the model
-        LensType.valueProperty().addListener((observable, oldValue, newValue) -> {
+        lensTypeChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             String description = getLensStringFromDistanceValue(newValue);
-            description += getLensStringSuffixFromDOFValue(description.contains("TC100") || LensDOF.isSelected());
+            description += getLensStringSuffixFromDOFValue(description.contains("TC100") || lensDofCheckBox.isSelected());
             CIS_DATA.setLensType(VUCIS.LensType.findByDescription(description).orElseThrow(() -> new IllegalArgumentException("selected lens does not exist")));
         });
         // set initial value
-        LensDOF.setSelected(false); //not pretty to have this fixed value here... (see comment above)
+        lensDofCheckBox.setSelected(false); //not pretty to have this fixed value here... (see comment above)
         // listener for lens DOF checkbox that sets the new lens in the model
-        LensDOF.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            String description = getLensStringFromDistanceValue(LensType.getValue());
+        lensDofCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            String description = getLensStringFromDistanceValue(lensTypeChoiceBox.getValue());
             description += getLensStringSuffixFromDOFValue(description.contains("TC100") || newValue);
             CIS_DATA.setLensType(VUCIS.LensType.findByDescription(description).orElseThrow(() -> new IllegalArgumentException("selected lens does not exist")));
         });
@@ -304,16 +304,16 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void initResolutionAndScanWidth() {
         // select initial resolution
-        Resolution.getSelectionModel().selectFirst();
+        resolutionComboBox.getSelectionModel().selectFirst();
         // listener for resolution choice box that sets the new resolution in the model
-        Resolution.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedResolution(getResolutions().get(Resolution.getSelectionModel().getSelectedIndex())));
+        resolutionComboBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedResolution(getResolutions().get(resolutionComboBox.getSelectionModel().getSelectedIndex())));
         // set items to scan width choice box
-        ScanWidth.getItems().clear();
-        ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+        scanWidthComboBox.getItems().clear();
+        scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
         // set initial value
-        ScanWidth.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+        scanWidthComboBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
         // listener for scan width choice box that sets the new scan width in the model
-        ScanWidth.valueProperty().addListener((observable, oldValue, newValue) -> {
+        scanWidthComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue != null && newValue != null)
                 CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim()));
         });
@@ -326,7 +326,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         handleTransportSpeedChange(CIS_DATA.getTransportSpeed());
         updateMaxLineRateChange();
         handleLineRateChange(CIS_DATA.getSelectedLineRate());
-        SelLineRate.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedLineRate(newValue.intValue()));
+        selectedLineRateSlider.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedLineRate(newValue.intValue()));
     }
 
     /**
@@ -341,16 +341,16 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void initInterface() {
         // disable interface choice
-        Interface.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
+        interfaceComboBox.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
         // listener and text output for reduced pixel clock
-        ReducedPixelClock.setText(ReducedPixelClock.getText() + " (" + (VUCIS.PIXEL_CLOCK_REDUCED / 1000000) + "\u200akHz)");
-        ReducedPixelClock.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
-        ReducedPixelClock.setSelected(CIS_DATA.isReducedPixelClock());
+        reducedPixelClockCheckBox.setText(reducedPixelClockCheckBox.getText() + " (" + (VUCIS.PIXEL_CLOCK_REDUCED / 1000000) + "\u200akHz)");
+        reducedPixelClockCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
+        reducedPixelClockCheckBox.setSelected(CIS_DATA.isReducedPixelClock());
         // setup choice box for valid mod options
-        Mod.getItems().clear();
-        Mod.getItems().addAll(VUCIS.VALID_MODS.stream().map(Object::toString).collect(Collectors.toList()));
-        Mod.getSelectionModel().select(String.valueOf(CIS_DATA.getMod()));
-        Mod.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setMod(Integer.parseInt(newValue)));
+        moduloChoiceBox.getItems().clear();
+        moduloChoiceBox.getItems().addAll(VUCIS.VALID_MODS.stream().map(Object::toString).collect(Collectors.toList()));
+        moduloChoiceBox.getSelectionModel().select(String.valueOf(CIS_DATA.getMod()));
+        moduloChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setMod(Integer.parseInt(newValue)));
     }
 
     /**
@@ -370,7 +370,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         initLineRateAndTransportSpeed();
 
         // initialize other stuff
-        Cooling.setVisible(false); //make invisible as this is not used for VUCIS for now (but comes from config/MaskController)
+        coolingComboBox.setVisible(false); //make invisible as this is not used for VUCIS for now (but comes from config/MaskController)
         initInterface();
         updateCameraLinkInfo();
     }
@@ -379,8 +379,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      * disables/enables the cooling checkboxes
      */
     private void updateCoolingCheckboxes() {
-        CoolingLeft.setDisable(CIS_DATA.hasCoolingLeft());
-        CoolingRight.setDisable(CIS_DATA.hasCoolingRight());
+        coolingLeftCheckBox.setDisable(CIS_DATA.hasCoolingLeft());
+        coolingRightCheckBox.setDisable(CIS_DATA.hasCoolingRight());
     }
 
     /**
@@ -392,14 +392,14 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         switch (evt.getPropertyName()) {
             // lights
             case "leftDarkField":
-                selectLightChoiceBox(DarkFieldLeft, (CIS.LightColor) evt.getNewValue());
+                selectLightChoiceBox(darkFieldLeftChoiceBox, (CIS.LightColor) evt.getNewValue());
                 updateScanWidthOptions();
                 setLightPresetToManual();
                 updateLightInfo();
                 updateLightFrequencyLimit();
                 return;
             case "leftBrightField":
-                selectLightChoiceBox(BrightFieldLeft, (CIS.LightColor) evt.getNewValue());
+                selectLightChoiceBox(brightFieldLeftChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
@@ -407,20 +407,20 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 return;
             case "coaxLight":
                 handleCoaxChange((CIS.LightColor) evt.getOldValue(), (CIS.LightColor) evt.getNewValue());
-                selectLightChoiceBox(Coax, (CIS.LightColor) evt.getNewValue());
+                selectLightChoiceBox(coaxChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateLightInfo();
                 updateLightFrequencyLimit();
                 return;
             case "rightBrightField":
-                selectLightChoiceBox(BrightFieldRight, (CIS.LightColor) evt.getNewValue());
+                selectLightChoiceBox(brightFieldRightChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
                 updateLightFrequencyLimit();
                 return;
             case "rightDarkField":
-                selectLightChoiceBox(DarkFieldRight, (CIS.LightColor) evt.getNewValue());
+                selectLightChoiceBox(darkFieldRightChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
@@ -434,17 +434,17 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 updateLightFrequencyLimit();
                 return;
             case "cloudyDay":
-                CloudyDay.setSelected((boolean) evt.getNewValue());
+                cloudyDayCheckBox.setSelected((boolean) evt.getNewValue());
                 updateDarkFieldChoiceBoxes((boolean) evt.getNewValue());
                 setLightPresetToManual();
                 updateLightFrequencyLimit();
                 return;
             case "coolingLeft":
-                CoolingLeft.setSelected((boolean) evt.getNewValue());
+                coolingLeftCheckBox.setSelected((boolean) evt.getNewValue());
                 setLightPresetToManual();
                 return;
             case "coolingRight":
-                CoolingRight.setSelected((boolean) evt.getNewValue());
+                coolingRightCheckBox.setSelected((boolean) evt.getNewValue());
                 setLightPresetToManual();
                 return;
             // optics
@@ -458,7 +458,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 updateCameraLinkInfo();
                 return;
             case "scanWidth":
-                ScanWidth.getSelectionModel().select(evt.getNewValue() + " mm");
+                scanWidthComboBox.getSelectionModel().select(evt.getNewValue() + " mm");
                 updateCameraLinkInfo();
                 return;
             // line rate and transport speed
@@ -472,12 +472,12 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 return;
             // interface
             case "reducedPixelClock":
-                ReducedPixelClock.setSelected((boolean) evt.getNewValue());
+                reducedPixelClockCheckBox.setSelected((boolean) evt.getNewValue());
                 updateCameraLinkInfo();
                 return;
             // mod
             case "mod":
-                Mod.setValue(String.valueOf((int) evt.getNewValue()));
+                moduloChoiceBox.setValue(String.valueOf((int) evt.getNewValue()));
                 updateCameraLinkInfo();
                 return;
         }
@@ -487,22 +487,22 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      * sets the light preset to manual (for changes from a light preset)
      */
     private void setLightPresetToManual() {
-        LightPreset.getSelectionModel().select(LightPresets.MANUAL.getDisplayText());
+        lightPresetChoiceBox.getSelectionModel().select(LightPresets.MANUAL.getDisplayText());
     }
 
     private void handleTransportSpeedChange(int transportSpeed) {
         double transportSpeedByThousands = transportSpeed / 1000.0;
-        Speedmms.setText(CIS.round(transportSpeedByThousands, 3) + " mm/s");
-        Speedms.setText(CIS.round(transportSpeedByThousands / 1000, 3) + " m/s");
-        Speedmmin.setText(CIS.round(transportSpeedByThousands * 0.06, 3) + " m/min");
-        Speedips.setText(CIS.round(transportSpeedByThousands * 0.03937, 3) + " ips");
+        speedmmsLabel.setText(CIS.round(transportSpeedByThousands, 3) + " mm/s");
+        speedmsLabel.setText(CIS.round(transportSpeedByThousands / 1000, 3) + " m/s");
+        speedmminLabel.setText(CIS.round(transportSpeedByThousands * 0.06, 3) + " m/min");
+        speedipsLabel.setText(CIS.round(transportSpeedByThousands * 0.03937, 3) + " ips");
     }
 
     /**
      * calculates speeds depending on the given line rate and sets labels accordingly
      */
     private void handleLineRateChange(int lineRate) {
-        CurrLineRate.setText(lineRate / 1000.0 + " kHz");
+        currentLineRateLabel.setText(lineRate / 1000.0 + " kHz");
     }
 
     /**
@@ -521,18 +521,18 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      * updates the pixel and defect size text labels
      */
     private void updatePixelAndDefectSize() {
-        PixelSize.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
-        DefectSize.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
+        pixelSizeLabel.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
+        defectSizeLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
     }
 
     /**
      * handles a change to the max line rate: sets the new max value of the slider and updates the text label
      */
     private void updateMaxLineRateChange() {
-        MaxLineRate.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
-        SelLineRate.setMax(CIS_DATA.getMaxLineRate());
-        SelLineRate.setValue(CIS_DATA.getMaxLineRate());
-        SelLineRate.setBlockIncrement(CIS_DATA.getMaxLineRate() / 100); // we can choose increments of 1%
+        maxLineRateLabel.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
+        selectedLineRateSlider.setMax(CIS_DATA.getMaxLineRate());
+        selectedLineRateSlider.setValue(CIS_DATA.getMaxLineRate());
+        selectedLineRateSlider.setBlockIncrement(CIS_DATA.getMaxLineRate() / 100); // we can choose increments of 1%
     }
 
     /**
@@ -557,15 +557,15 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 throw new IllegalArgumentException("lens does not exist");
         }
         // disable the checkbox if there is only one version
-        LensDOF.setDisable(!lens.hasShortDOFVersion());
+        lensDofCheckBox.setDisable(!lens.hasShortDOFVersion());
     }
 
     /**
      * sets the lens boxes to the given values
      */
     private void setLensBoxes(String distance, boolean DOF) {
-        LensType.getSelectionModel().select(distance);
-        LensDOF.setSelected(DOF);
+        lensTypeChoiceBox.getSelectionModel().select(distance);
+        lensDofCheckBox.setSelected(DOF);
     }
 
     /**
@@ -573,9 +573,9 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void updateDarkFieldChoiceBoxes(boolean cloudyDay) {
         // right dark field disabled <=> there is cloudy day
-        DarkFieldRight.setDisable(cloudyDay);
+        darkFieldRightChoiceBox.setDisable(cloudyDay);
         // left dark field disabled when cloudy day or coax
-        DarkFieldLeft.setDisable(cloudyDay || CIS_DATA.hasCoax());
+        darkFieldLeftChoiceBox.setDisable(cloudyDay || CIS_DATA.hasCoax());
     }
 
     /**
@@ -583,7 +583,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void handlePhasesChange(Phases selectedPhase) {
         // set choice box selection
-        Color.getSelectionModel().select(selectedPhase.getDisplayText());
+        colorComboBox.getSelectionModel().select(selectedPhase.getDisplayText());
         // adjust line rate outputs
         updateMaxLineRateChange();
     }
@@ -600,28 +600,28 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         boolean hadCoax = oldValue != CIS.LightColor.NONE;
         if (hasCoax != hadCoax) {//only do something if we switch from coax to non-coax or other way around
             //clear scan width and left bright field because these options will be changed
-            ScanWidth.getItems().clear();
-            BrightFieldLeft.getItems().clear();
+            scanWidthComboBox.getItems().clear();
+            brightFieldLeftChoiceBox.getItems().clear();
             if (hasCoax) { //coax selected
                 //set items of scan width choice box to ones without coax
-                ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
                 //set items of left bf to ones without sfs (no coax and left sided sfs)
-                BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
+                brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
             } else { // coax deselected
                 //set items of scan width choice box to ones with coax
                 if (CIS_DATA.isShapeFromShading()) {
-                    ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                    scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
                 } else {
-                    ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                    scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
                 }
                 //set items of left bf to ones with sfs
-                BrightFieldLeft.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
+                brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
             } //in either case:
             //enable/disable left dark field (no dark field + coax)
-            DarkFieldLeft.setDisable(hasCoax || CIS_DATA.isCloudyDay());
+            darkFieldLeftChoiceBox.setDisable(hasCoax || CIS_DATA.isCloudyDay());
             //select current values
-            selectLightChoiceBox(BrightFieldLeft, CIS_DATA.getBrightFieldLeft());
-            ScanWidth.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+            selectLightChoiceBox(brightFieldLeftChoiceBox, CIS_DATA.getBrightFieldLeft());
+            scanWidthComboBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
         }
     }
 
@@ -642,14 +642,14 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     private void updateScanWidthOptions() {
         if (!CIS_DATA.hasCoax()) { // with coax already handled
             //sfs ->
-            ScanWidth.getItems().clear();
+            scanWidthComboBox.getItems().clear();
             if (CIS_DATA.isShapeFromShading()) {
-                ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
             } else {
-                ScanWidth.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
             }
             // set initial value
-            ScanWidth.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+            scanWidthComboBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
         }
     }
 
@@ -657,7 +657,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      * enables/disables lens type choice box depending on whether there is shape from shading (only 10mm distance allowed)
      */
     private void updateLensTypeChoiceBox() {
-        LensType.setDisable(CIS_DATA.isShapeFromShading());
+        lensTypeChoiceBox.setDisable(CIS_DATA.isShapeFromShading());
     }
 
     /**
@@ -678,15 +678,15 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                         + ": " + c.getCableCount() + " cable, " + c.getPortCount() + " ports";
                 displayText.add(boardText);
             }
-            CameraLinkInfo.setText(displayText + "\n"
+            cameraLinkInfoLabel.setText(displayText + "\n"
                     + "Actual scan width: "
                     + String.format(Locale.US, "%.2f", CIS_DATA.getActualSupportedScanWidth(clcalc))
                     + "\u200amm");
             //pixel count
             long pixelCount = clcalc.stream().mapToLong(CPUCLink::getPixelCount).sum();
-            PixelCount.setText(pixelCount + "");
+            pixelCountLabel.setText(pixelCount + "");
         } catch (CISException e) {
-            CameraLinkInfo.setText(e.getMessage());
+            cameraLinkInfoLabel.setText(e.getMessage());
         }
     }
 
@@ -696,14 +696,14 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void updateLightInfo() {
         if (CIS_DATA.getLedLines() < 10) { // smaller than 10 is fine, 10 might not be fine if it's actually more
-            LightInfo.setText("");
+            lightInfoLabel.setText("");
             return;
         } //else 10 or more
         int ledLines = CIS_DATA.getLights().chars().mapToObj(c -> CIS.LightColor.findByCode((char) c))
                 .filter(Optional::isPresent).map(Optional::get)
                 .mapToInt(VUCIS::getLValue).sum();
         if (ledLines == 10) { // might be actually 10 and 10 is fine
-            LightInfo.setText("");
+            lightInfoLabel.setText("");
             return;
         } //else more than 10
         StringBuilder displayText = new StringBuilder("Too many LED channels. ");
@@ -717,7 +717,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             displayText.append("\tDark Field channels from both sides might be combined.");
         //might be able to combine all
         //TODO check condition on when we can combine all 88XXX ? 88X88 ? 88XAA ? ...
-        LightInfo.setText(displayText.toString());
+        lightInfoLabel.setText(displayText.toString());
     }
 
     /**
@@ -726,7 +726,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     private void updateLightFrequencyLimit() {
         long minFreq = Math.round(1000 * CIS_DATA.getMinFreq(CIS_DATA.calculate())) / 1000;
         lastMinFreq = minFreq;
-        LightFrequencyLimit.setText(minFreq < 0 // if < 0 there are values missing in database -> give error msg
+        lightFrequencyLimitLabel.setText(minFreq < 0 // if < 0 there are values missing in database -> give error msg
                 ? Util.getString("missing photo values") + "\n"
                 : "~" + minFreq + "\u200akHz\n"
         );
@@ -739,9 +739,9 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     private void updateSelectedLineRateWarning() {
         double lineRate = Math.round(CIS_DATA.getSelectedLineRate() / 100.0) / 10.0;
         if (lastMinFreq >= 0 && lastMinFreq < 2 * lineRate) // if missing values in database lastMinFreq is <0 -> don't show warning as this would overlap with other warning
-            WarningSelectedLineRate.setText(Util.getString("warning minfreq linerate").replace('\n', ' '));
+            warningSelectedLineRateLabel.setText(Util.getString("warning minfreq linerate").replace('\n', ' '));
         else
-            WarningSelectedLineRate.setText("");
+            warningSelectedLineRateLabel.setText("");
     }
 
     /**

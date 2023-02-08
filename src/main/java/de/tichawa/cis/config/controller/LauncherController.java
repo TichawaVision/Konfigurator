@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class LauncherController {
     protected CIS CIS_DATA;
     @FXML
-    private ComboBox<String> selectCIS;
+    private ComboBox<String> cisComboBox;
 
     /**
      * handles the continue button press by opening the mask for the selected CIS
@@ -31,8 +31,8 @@ public class LauncherController {
     @FXML
     private void handleContinue(ActionEvent a) {
         Util.createNewStage(
-                        selectCIS.getSelectionModel().getSelectedItem().toLowerCase() + "/Mask.fxml",
-                        selectCIS.getSelectionModel().getSelectedItem() + "_" + ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version"))
+                        cisComboBox.getSelectionModel().getSelectedItem().toLowerCase() + "/Mask.fxml",
+                        cisComboBox.getSelectionModel().getSelectedItem() + "_" + ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version"))
                 .show();
     }
 
