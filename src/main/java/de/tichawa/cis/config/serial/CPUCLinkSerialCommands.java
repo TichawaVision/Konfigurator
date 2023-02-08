@@ -44,11 +44,27 @@ public class CPUCLinkSerialCommands extends SerialCommands {
         //TODO maybe we need password
 
         // generate all commands
-        // - set menu
+        generateSetMenuCommands();
+        generateMainMenuCommands();
+
+        // main menu commands first, then go to set menu and add corresponding commands
+        List<String> commands = new LinkedList<>(mainMenuCommands);
+        commands.add(">");
+        commands.addAll(setMenuCommands);
+        commands.add("<"); // back to main menu
+        if (storeParameters) // save if we want to
+            commands.add("S"); // needs to be last
+        return commands;
+    }
+
+    /**
+     * generates all commands for the set menu
+     */
+    private void generateSetMenuCommands() {
+        generateADCBoardCommand();
         generateSetDPICommand(); // needs to be before sensor
         generateSensorChipCommands();
         generateSequenceCommands();
-        generateDigIOOptionCommand();
         generateCLOutFrequencyCommand();
         generateCLModeCommand();
         generateMaxTempCommand();
@@ -63,7 +79,12 @@ public class CPUCLinkSerialCommands extends SerialCommands {
         generateShiftCommands();
         generateKinkCommand();
         generateLaserExpoCommands();
-        // - main menu
+    }
+
+    /**
+     * generates all commands for the main menu
+     */
+    private void generateMainMenuCommands() {
         generateBLDigitalCommand();
         generateDLDigitalCommand();
         generateFifoDirectionCommand();
@@ -73,19 +94,16 @@ public class CPUCLinkSerialCommands extends SerialCommands {
         generateFTrigCommand();
         generateAnalogOffsetCommand();
         generateCyclesCommand();
-        generateDigitalIOCommand();
         generateTriggerPulsesCommand();
         generateVideoModeCommands();
         generateSheetLenDelayCommand();
+    }
 
-        // main menu commands first, then go to set menu and add corresponding commands
-        List<String> commands = new LinkedList<>(mainMenuCommands);
-        commands.add(">");
-        commands.addAll(setMenuCommands);
-        commands.add("<"); // back to main menu
-        if (storeParameters) // save if we want to
-            commands.add("S"); // needs to be last
-        return commands;
+    /**
+     * Generates the command for the adc board.
+     */
+    private void generateADCBoardCommand() {
+        setMenuCommands.add("A0");
     }
 
     /**
@@ -128,13 +146,6 @@ public class CPUCLinkSerialCommands extends SerialCommands {
             setMenuCommands.add("D" + i + ",1," + i + ",0,0," + i);
         }
         setMenuCommands.add("D" + (phases - 1) + ",1," + (phases - 1) + ",1,1," + (phases - 1));
-    }
-
-    /**
-     * generates the set menu E-command
-     */
-    private void generateDigIOOptionCommand() {
-        setMenuCommands.add("E0");
     }
 
     /**
@@ -192,7 +203,7 @@ public class CPUCLinkSerialCommands extends SerialCommands {
      * generates the set menu S-command
      */
     private void generateSensorBoardCommand() {
-        setMenuCommands.add("S");
+        setMenuCommands.add("S0");
     }
 
     /**
@@ -321,14 +332,7 @@ public class CPUCLinkSerialCommands extends SerialCommands {
      * generates the main menu Q-command
      */
     private void generateCyclesCommand() {
-        mainMenuCommands.add("Q1000");
-    }
-
-    /**
-     * generates the main menu R-command
-     */
-    private void generateDigitalIOCommand() {
-        mainMenuCommands.add("R0");
+        mainMenuCommands.add("Q1024");
     }
 
     /**

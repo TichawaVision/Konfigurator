@@ -5,9 +5,9 @@ import de.tichawa.cis.config.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.util.StringConverter;
+import javafx.util.converter.IntegerStringConverter;
 
 import java.util.List;
-import java.util.function.BinaryOperator;
 
 /**
  * controller for Serial.fxml
@@ -23,7 +23,10 @@ public class SerialController {
     @FXML
     private ChoiceBox<de.tichawa.cis.config.CPUCLink> CPUCLink;
     @FXML
-    private Label Commands;
+    private TextArea Commands;
+    @FXML
+    private TextField Delay;
+
     private long totalNumberOfPix;
 
     /**
@@ -72,6 +75,17 @@ public class SerialController {
         CPUCLink.valueProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
         // - xy shift
         XYShift.getItems().clear();
+        XYShift.setConverter(new StringConverter<SerialCommands.ShiftOptions>() {
+            @Override
+            public String toString(SerialCommands.ShiftOptions shiftOption) {
+                return shiftOption.displayString;
+            }
+
+            @Override
+            public SerialCommands.ShiftOptions fromString(String string) {
+                return SerialCommands.ShiftOptions.fromString(string);
+            }
+        });
         XYShift.getItems().addAll(SerialCommands.ShiftOptions.values());
         XYShift.getSelectionModel().select(SerialCommands.ShiftOptions.DEFAULT);
         XYShift.valueProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
@@ -80,27 +94,21 @@ public class SerialController {
         SaveParameters.selectedProperty().addListener(((observable, oldValue, newValue) -> updateCommandsText()));
         // show commands
         updateCommandsText();
+        // delay
+        Delay.setTextFormatter(new TextFormatter<>(new IntegerStringConverter(), 0, change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("0|[1-9][0-9]*"))
+                return change;
+            return null;
+        }));
+        Delay.setText("250");
     }
 
     /**
      * updates the commands text label by generating the commands for the current selection
      */
     private void updateCommandsText() {
-        Commands.setText(getCurrentCommands().generateCommands().stream().reduce("", new BinaryOperator<String>() {
-            // show 6 entries side by side to save some space
-            int counter = -1;
-
-            @Override
-            public String apply(String s, String s2) {
-                if (++counter == 6) { // 6 since there are some commands for 6 phases
-                    // newline and start the count again from zero
-                    counter = 0;
-                    return s + "\n" + s2;
-                }
-                // no newline -> add tab if not first element
-                return s.isEmpty() ? s2 : s + "\t\t" + s2;
-            }
-        }));
+        Commands.setText(String.join("\n", getCurrentCommands().generateCommands()));
     }
 
     /**
@@ -123,7 +131,7 @@ public class SerialController {
     @FXML
     private void handleCreateCommands() {
         SerialCommands commands = getCurrentCommands();
-        SerialConnection connection = new SerialConnection(SerialPort.getValue());
+        SerialConnection connection = new SerialConnection(SerialPort.getValue(), Integer.parseInt(Delay.getText()));
         connection.sendToSerialPort(commands.generateCommands());
     }
 }

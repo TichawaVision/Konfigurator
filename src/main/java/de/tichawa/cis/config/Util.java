@@ -120,7 +120,7 @@ public class Util {
      * @param controller      the controller object to be set for the {@link FXMLLoader}. Will not be set if null is given.
      * @return a pair of the {@link Stage} object that was created and the loader
      */
-    public static Pair<Stage, FXMLLoader> createNewStageWithLoader(String fxmlRelativeUrl, String title, Object controller) { // TODO refactor everywhere to use this
+    public static Pair<Stage, FXMLLoader> createNewStageWithLoader(String fxmlRelativeUrl, String title, Object controller) {
         URL fxml = Util.class.getResource("/de/tichawa/cis/config/" + fxmlRelativeUrl);
         if (fxml == null)
             throw new IllegalStateException("fxml file not found: " + fxmlRelativeUrl);

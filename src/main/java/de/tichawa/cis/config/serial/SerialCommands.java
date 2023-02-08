@@ -2,7 +2,7 @@ package de.tichawa.cis.config.serial;
 
 import de.tichawa.cis.config.CIS;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * general class for serial commands
@@ -30,6 +30,22 @@ public abstract class SerialCommands {
      * NO_SHIFT is used if there should not be sent an x- or y-shift command (e.g. because it was set beforehand)
      */
     public enum ShiftOptions {
-        RAW, DEFAULT, NO_SHIFT
+        RAW("Raw"), DEFAULT("Default"), NO_SHIFT("Don't send shift commands");
+        final String displayString;
+
+        ShiftOptions(String displayString) {
+            this.displayString = displayString;
+        }
+
+        /**
+         * returns the {@link ShiftOptions} value corresponding to the given display string
+         *
+         * @param displayString the display string of the shift option
+         * @return the shift option with the given display string
+         */
+        public static ShiftOptions fromString(String displayString) {
+            return Arrays.stream(ShiftOptions.values()).filter(shiftOption -> shiftOption.displayString.equalsIgnoreCase(displayString)).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("shift option does not exist"));
+        }
     }
 }

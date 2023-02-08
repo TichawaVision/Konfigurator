@@ -1,9 +1,12 @@
 package de.tichawa.cis.config.vtcis;
 
-import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
-import javafx.fxml.FXML;
+import de.tichawa.cis.config.serial.SerialController;
+import javafx.fxml.*;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
+import javafx.util.Pair;
 
 import java.net.URL;
 import java.util.*;
@@ -232,5 +235,15 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         Cooling.getSelectionModel().select(1);
         Trigger.setSelected(false);
         CameraLinkMode.getSelectionModel().selectLast();
+    }
+
+    /**
+     * handles the serial button press by opening the serial settings window
+     */
+    @FXML
+    private void handleSerial() {
+        Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("Serial.fxml", "Serial Interface parameters");
+        ((SerialController) stageWithLoader.getValue().getController()).initialize(CIS_DATA);
+        stageWithLoader.getKey().show();
     }
 }

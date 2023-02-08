@@ -5,7 +5,7 @@
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="de.tichawa.cis.config.serial.SerialController"
-            prefHeight="300.0" prefWidth="800.0">
+            prefHeight="600.0" prefWidth="500.0">
     <GridPane vgap="10" hgap="10" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
         <Label text="Serial Port:"/>
@@ -13,10 +13,15 @@
         <Label text="Commands that are sent:" GridPane.columnIndex="2"/>
         <Label text="CPUCLink: " GridPane.rowIndex="1"/>
         <ChoiceBox fx:id="CPUCLink" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Label fx:id="Commands" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="4"/>
+        <TextArea fx:id="Commands" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="5"
+                  editable="false" prefWidth="120" prefHeight="520"/>
         <Label text="x-/y-Shift:" GridPane.rowIndex="2"/>
         <ChoiceBox fx:id="XYShift" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="SaveParameters" text="Save parameters (send S-command)" GridPane.rowIndex="3" GridPane.columnSpan="2"/>
-        <Button onAction="#handleCreateCommands" text="Create and send Commands" GridPane.rowIndex="4" GridPane.columnSpan="2"/>
+        <CheckBox fx:id="SaveParameters" text="Save parameters (send S-command in the end)" GridPane.rowIndex="3" GridPane.columnSpan="2"/>
+        <Label text="Command delay (ms)" GridPane.rowIndex="4"/>
+        <TextField fx:id="Delay" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <HBox GridPane.rowIndex="5" GridPane.columnSpan="2" alignment="CENTER">
+            <Button onAction="#handleCreateCommands" text="Create and send Commands"/>
+        </HBox>
     </GridPane>
 </AnchorPane>

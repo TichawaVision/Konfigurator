@@ -2,7 +2,11 @@
 
 <!--  -->
 <?import javafx.scene.control.*?>
+<?import javafx.scene.layout.HBox?>
 <ScrollPane xmlns="http://javafx.com/javafx"
             prefHeight="400.0" prefWidth="600.0">
-    <Label/>
+    <HBox spacing="10">
+        <Label/>
+        <Label/>
+    </HBox>
 </ScrollPane>
