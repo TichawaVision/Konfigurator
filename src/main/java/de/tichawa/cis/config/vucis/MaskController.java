@@ -207,11 +207,34 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         lightBox.valueProperty().addListener((property, oldValue, newValue) -> {
             if (newValue != null) { // when clearing and resetting choice boxes this may be null
                 //set light color in model on light change
-                String lightName = ((ChoiceBox<?>) ((ObjectProperty<?>) property).getBean()).getId();
-                CIS_DATA.setLightColor(lightName,
-                        CIS.LightColor.findByDescription(newValue).orElseThrow(() -> new IllegalArgumentException("selected light color for light " + lightName + " does not exist: " + newValue)));
+                String choiceBoxId = ((ChoiceBox<?>) ((ObjectProperty<?>) property).getBean()).getId();
+                CIS_DATA.setLightColor(getLightNameFromChoiceBoxId(choiceBoxId),
+                        CIS.LightColor.findByDescription(newValue).orElseThrow(() -> new IllegalArgumentException("selected light color for light " + choiceBoxId + " does not exist: " + newValue)));
             }
         });
+    }
+
+    /**
+     * returns the light name corresponding to the given choice box id. The light name will be used as changed property
+     *
+     * @param choiceBoxId the id of the choice box of the light
+     * @return the light (property) name
+     */
+    private String getLightNameFromChoiceBoxId(String choiceBoxId) {
+        switch (choiceBoxId) {
+            case "brightFieldLeftChoiceBox":
+                return VUCIS.PROPERTY_BRIGHT_FIELD_LEFT;
+            case "brightFieldRightChoiceBox":
+                return VUCIS.PROPERTY_BRIGHT_FIELD_RIGHT;
+            case "darkFieldLeftChoiceBox":
+                return VUCIS.PROPERTY_DARK_FIELD_LEFT;
+            case "darkFieldRightChoiceBox":
+                return VUCIS.PROPERTY_DARK_FIELD_RIGHT;
+            case "coaxChoiceBox":
+                return VUCIS.PROPERTY_COAX;
+            default:
+                throw new IllegalArgumentException("unknown choiceBoxId: " + choiceBoxId);
+        }
     }
 
     /**

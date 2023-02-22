@@ -12,6 +12,12 @@ import static org.jooq.impl.DSL.min;
 
 public class VUCIS extends CIS {
 
+    public static final String PROPERTY_BRIGHT_FIELD_LEFT = "BrightFieldLeft";
+    public static final String PROPERTY_BRIGHT_FIELD_RIGHT = "BrightFieldRight";
+    public static final String PROPERTY_DARK_FIELD_LEFT = "DarkFieldLeft";
+    public static final String PROPERTY_DARK_FIELD_RIGHT = "DarkFieldRight";
+    public static final String PROPERTY_COAX = "Coax";
+
     public static final int MAX_SCAN_WIDTH_WITH_COAX = 1040;
     public static final int MAX_SCAN_WIDTH_WITH_SFS = 1820;
     public static final long PIXEL_CLOCK_NORMAL = 85000000;
@@ -891,22 +897,22 @@ public class VUCIS extends CIS {
      */
     public void setLightColor(String light, LightColor value) {
         switch (light) {
-            case "DarkFieldLeft":
+            case PROPERTY_DARK_FIELD_LEFT:
                 setDarkFieldLeft(value);
                 updateScanWidth();
                 return;
-            case "BrightFieldLeft":
+            case PROPERTY_BRIGHT_FIELD_LEFT:
                 setBrightFieldLeft(value);
                 updateScanWidth();
                 return;
-            case "Coax":
+            case PROPERTY_COAX:
                 setCoaxLight(value);
                 return;
-            case "BrightFieldRight":
+            case PROPERTY_BRIGHT_FIELD_RIGHT:
                 setBrightFieldRight(value);
                 updateScanWidth();
                 return;
-            case "DarkFieldRight":
+            case PROPERTY_DARK_FIELD_RIGHT:
                 setDarkFieldRight(value);
                 updateScanWidth();
                 return;
