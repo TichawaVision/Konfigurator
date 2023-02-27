@@ -18,7 +18,7 @@ import org.jooq.Record;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.Map.Entry;
@@ -205,7 +205,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         File file = f.showSaveDialog(null);
 
         if (file != null) {
-            try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
+            try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), Charset.forName("Cp1252"))) {// ASCII for import in Ferix since it does not support UTF-8
                 writer.write("Quantity,TiViKey");
                 writer.newLine();
                 writer.write("");
