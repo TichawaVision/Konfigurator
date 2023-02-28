@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.*;
 
 import static de.tichawa.cis.config.model.Tables.*;
 
@@ -192,12 +193,26 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         handleSingleDatasheet(CIS_DATA, CIS_DATA.cisName + " Datasheet", 0, getNewDatasheetController(), isOemMode);
     }
 
+    /**
+     * Handles the part list button press.
+     * Asks the user for an output CSV file and creates a part list there that can be used to import into Ferix via the device part list import.
+     *
+     * @param a the action event of the button press
+     */
     @FXML
     @SuppressWarnings("unused")
     public void handlePartList(ActionEvent a) {
+        // determine items to write
         CIS.CISCalculation calculation = calculateOrShowAlert(CIS_DATA);
         if (calculation == null)
             return;
+        // sort lists by ferix key (could also add both configs to one list if desired)
+        List<Entry<PriceRecord, Integer>> electronicList = new ArrayList<>(calculation.electConfig.entrySet());
+        List<Entry<PriceRecord, Integer>> mechanicList = new ArrayList<>(calculation.mechaConfig.entrySet());
+        electronicList.sort(Comparator.comparing(e -> e.getKey().getFerixKey()));
+        mechanicList.sort(Comparator.comparing(m -> m.getKey().getFerixKey()));
+
+        electronicList.addAll(mechanicList); // electronicList now contains all items
 
         FileChooser f = new FileChooser();
         f.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (*.csv)", "*.csv"));
@@ -205,39 +220,76 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         File file = f.showSaveDialog(null);
 
         if (file != null) {
-            try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), Charset.forName("Cp1252"))) {// ASCII for import in Ferix since it does not support UTF-8
-                writer.write("Quantity,TiViKey");
-                writer.newLine();
-                writer.write("");
-                writer.newLine();
-                writer.flush();
+            try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), Charset.forName("Cp1252"))) {// ANSI for import in Ferix since it does not support UTF-8
+                // write file
+                //createPartlistForAltiumFerixImport(writer, electronicList); // old version
+                createPartListForDevicePartlistFerixImport(writer, electronicList);
 
-                // sort lists by ferix key (could also add both configs to one list if desired)
-                List<Entry<PriceRecord, Integer>> electList = new ArrayList<>(calculation.electConfig.entrySet());
-                List<Entry<PriceRecord, Integer>> mechaList = new ArrayList<>(calculation.mechaConfig.entrySet());
-                electList.sort(Comparator.comparing(e -> e.getKey().getFerixKey()));
-                mechaList.sort(Comparator.comparing(m -> m.getKey().getFerixKey()));
-
-                for (Entry<PriceRecord, Integer> entry : electList) {
-                    writer.write("\"" + entry.getValue() + "\",\"" + entry.getKey().getFerixKey() + "\",\" \"");
-                    writer.newLine();
-                }
-
-                for (Entry<PriceRecord, Integer> entry : mechaList) {
-                    writer.write("\"" + entry.getValue() + "\",\"" + entry.getKey().getFerixKey() + "\",\" \"");
-                    writer.newLine();
-                }
-
-                writer.flush();
+                // show success alert
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setHeaderText(Util.getString("File saved."));
                 alert.show();
             } catch (IOException e) {
+                // show error alert
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setHeaderText(Util.getString("A fatal error occurred during the save attempt.Please close the target file and try again."));
                 alert.show();
             }
         }
+    }
+
+    /**
+     * Creates the part list that can be used for Ferix device part list import.
+     * <p>
+     * The resulting csv file consists of 10 columns where most are ignored during the import (the Ferix import function was implemented for something else before).
+     * The first column will set the position number inside the part list in Ferix. This method just counts it up.
+     * The fifth value is used for the quantity.
+     * The 9th, 10th and 2nd values can be used to set the article descriptions 1, 2 and 3 respectively. This method only sets description 1.
+     *
+     * @param writer   the bufferd writer already initialized with the output file
+     * @param itemList a list of items to write as a part list
+     * @throws IOException if an error occurs while writing the csv file
+     */
+    private static void createPartListForDevicePartlistFerixImport(BufferedWriter writer,
+                                                                   List<Entry<PriceRecord, Integer>> itemList) throws IOException {
+        String csvSeparator = ";";
+        // no headline -> this import does not expect one
+
+        // write content
+        int position = 0;
+        for (Entry<PriceRecord, Integer> entry : itemList) {
+            Stream<String> cells = Stream.of(String.valueOf(++position), "", "", "", String.valueOf(entry.getValue()), "", "", "", entry.getKey().getFerixKey(), "");
+            String line = cells.collect(Collectors.joining(csvSeparator));
+            writer.write(line);
+            writer.newLine();
+        }
+        // make sure it is written
+        writer.flush();
+    }
+
+    /**
+     * Creates the part list that can be used for Ferix ALTIUM import.
+     * This was the old implementation and is not used currently.
+     * The resulting csv file consists of 3 columns: the quantity, the ferix key and a column containing a single space
+     *
+     * @param writer   the buffered writer with the file already set
+     * @param itemList a list of entries with the price record as key and the quantity as value
+     * @throws IOException if an error occurs while writing the csv file
+     */
+    private static void createPartlistForAltiumFerixImport(BufferedWriter writer,
+                                                           List<Entry<PriceRecord, Integer>> itemList) throws IOException {
+        // write headline
+        writer.write("Quantity,TiViKey");
+        writer.newLine();
+        writer.write("");
+        writer.newLine();
+        // write content
+        for (Entry<PriceRecord, Integer> entry : itemList) {
+            writer.write("\"" + entry.getValue() + "\",\"" + entry.getKey().getFerixKey() + "\",\" \"");
+            writer.newLine();
+        }
+        // make sure it is written
+        writer.flush();
     }
 
     /**
