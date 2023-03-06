@@ -4,37 +4,54 @@
 package de.tichawa.cis.config.model;
 
 
-import de.tichawa.cis.config.model.tables.*;
-import de.tichawa.cis.config.model.tables.records.*;
-import org.jooq.*;
+import de.tichawa.cis.config.model.tables.AdcBoard;
+import de.tichawa.cis.config.model.tables.Config;
+import de.tichawa.cis.config.model.tables.Electronic;
+import de.tichawa.cis.config.model.tables.Equipment;
+import de.tichawa.cis.config.model.tables.Mechanic;
+import de.tichawa.cis.config.model.tables.Price;
+import de.tichawa.cis.config.model.tables.SensorBoard;
+import de.tichawa.cis.config.model.tables.SensorChip;
+import de.tichawa.cis.config.model.tables.records.AdcBoardRecord;
+import de.tichawa.cis.config.model.tables.records.ConfigRecord;
+import de.tichawa.cis.config.model.tables.records.ElectronicRecord;
+import de.tichawa.cis.config.model.tables.records.EquipmentRecord;
+import de.tichawa.cis.config.model.tables.records.MechanicRecord;
+import de.tichawa.cis.config.model.tables.records.PriceRecord;
+import de.tichawa.cis.config.model.tables.records.SensorBoardRecord;
+import de.tichawa.cis.config.model.tables.records.SensorChipRecord;
+
+import org.jooq.ForeignKey;
+import org.jooq.TableField;
+import org.jooq.UniqueKey;
+import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
-import org.jooq.impl.*;
 
 
 /**
- * A class modelling foreign key relationships and constraints of tables in
+ * A class modelling foreign key relationships and constraints of tables in 
  * the default schema.
  */
-@SuppressWarnings({"all", "unchecked", "rawtypes"})
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Keys {
 
     // -------------------------------------------------------------------------
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<AdcBoardRecord> PK_ADC_BOARD = Internal.createUniqueKey(AdcBoard.ADC_BOARD, DSL.name("pk_adc_board"), new TableField[]{AdcBoard.ADC_BOARD.NAME}, true);
-    public static final UniqueKey<ConfigRecord> PK_CONFIG = Internal.createUniqueKey(Config.CONFIG, DSL.name("pk_config"), new TableField[]{Config.CONFIG.CIS_TYPE, Config.CONFIG.KEY}, true);
-    public static final UniqueKey<PriceRecord> PK_PRICE = Internal.createUniqueKey(Price.PRICE, DSL.name("pk_price"), new TableField[]{Price.PRICE.ART_NO}, true);
-    public static final UniqueKey<PriceRecord> SQLITE_AUTOINDEX_PRICE_2 = Internal.createUniqueKey(Price.PRICE, DSL.name("sqlite_autoindex_price_2"), new TableField[]{Price.PRICE.FERIX_KEY}, true);
-    public static final UniqueKey<SensorBoardRecord> PK_SENSOR_BOARD = Internal.createUniqueKey(SensorBoard.SENSOR_BOARD, DSL.name("pk_sensor_board"), new TableField[]{SensorBoard.SENSOR_BOARD.NAME}, true);
-    public static final UniqueKey<SensorChipRecord> PK_SENSOR_CHIP = Internal.createUniqueKey(SensorChip.SENSOR_CHIP, DSL.name("pk_sensor_chip"), new TableField[]{SensorChip.SENSOR_CHIP.NAME}, true);
+    public static final UniqueKey<AdcBoardRecord> PK_ADC_BOARD = Internal.createUniqueKey(AdcBoard.ADC_BOARD, DSL.name("pk_adc_board"), new TableField[] { AdcBoard.ADC_BOARD.NAME }, true);
+    public static final UniqueKey<ConfigRecord> PK_CONFIG = Internal.createUniqueKey(Config.CONFIG, DSL.name("pk_config"), new TableField[] { Config.CONFIG.CIS_TYPE, Config.CONFIG.KEY }, true);
+    public static final UniqueKey<EquipmentRecord> PK_EQUIPMENT = Internal.createUniqueKey(Equipment.EQUIPMENT, DSL.name("pk_equipment"), new TableField[] { Equipment.EQUIPMENT.ART_NO_FERIX_OLD, Equipment.EQUIPMENT.SELECT_CODE }, true);
+    public static final UniqueKey<PriceRecord> PK_PRICE = Internal.createUniqueKey(Price.PRICE, DSL.name("pk_price"), new TableField[] { Price.PRICE.ART_NO }, true);
+    public static final UniqueKey<PriceRecord> SQLITE_AUTOINDEX_PRICE_2 = Internal.createUniqueKey(Price.PRICE, DSL.name("sqlite_autoindex_price_2"), new TableField[] { Price.PRICE.FERIX_KEY }, true);
+    public static final UniqueKey<SensorBoardRecord> PK_SENSOR_BOARD = Internal.createUniqueKey(SensorBoard.SENSOR_BOARD, DSL.name("pk_sensor_board"), new TableField[] { SensorBoard.SENSOR_BOARD.NAME }, true);
+    public static final UniqueKey<SensorChipRecord> PK_SENSOR_CHIP = Internal.createUniqueKey(SensorChip.SENSOR_CHIP, DSL.name("pk_sensor_chip"), new TableField[] { SensorChip.SENSOR_CHIP.NAME }, true);
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final ForeignKey<ElectronicRecord, PriceRecord> FK_ELECTRONIC_PRICE_1 = Internal.createForeignKey(Electronic.ELECTRONIC, DSL.name("fk_electronic_price_1"), new TableField[]{Electronic.ELECTRONIC.ART_NO}, Keys.PK_PRICE, new TableField[]{Price.PRICE.ART_NO}, true);
-    public static final ForeignKey<EquipmentRecord, PriceRecord> FK_EQUIPMENT_PRICE_1 = Internal.createForeignKey(Equipment.EQUIPMENT, DSL.name("fk_equipment_price_1"), new TableField[]{Equipment.EQUIPMENT.ART_NO}, Keys.PK_PRICE, new TableField[]{Price.PRICE.ART_NO}, true);
-    public static final ForeignKey<MechanicRecord, PriceRecord> FK_MECHANIC_PRICE_1 = Internal.createForeignKey(Mechanic.MECHANIC, DSL.name("fk_mechanic_price_1"), new TableField[]{Mechanic.MECHANIC.ART_NO}, Keys.PK_PRICE, new TableField[]{Price.PRICE.ART_NO}, true);
-    public static final ForeignKey<MechanicRecord, PriceRecord> FK_MECHANIC_PRICE_2 = Internal.createForeignKey(Mechanic.MECHANIC, DSL.name("fk_mechanic_price_2"), new TableField[]{Mechanic.MECHANIC.NEXT_SIZE_ART_NO}, Keys.PK_PRICE, new TableField[]{Price.PRICE.ART_NO}, true);
+    public static final ForeignKey<ElectronicRecord, PriceRecord> FK_ELECTRONIC_PRICE_1 = Internal.createForeignKey(Electronic.ELECTRONIC, DSL.name("fk_electronic_price_1"), new TableField[] { Electronic.ELECTRONIC.ART_NO }, Keys.PK_PRICE, new TableField[] { Price.PRICE.ART_NO }, true);
+    public static final ForeignKey<MechanicRecord, PriceRecord> FK_MECHANIC_PRICE_1 = Internal.createForeignKey(Mechanic.MECHANIC, DSL.name("fk_mechanic_price_1"), new TableField[] { Mechanic.MECHANIC.ART_NO }, Keys.PK_PRICE, new TableField[] { Price.PRICE.ART_NO }, true);
+    public static final ForeignKey<MechanicRecord, PriceRecord> FK_MECHANIC_PRICE_2 = Internal.createForeignKey(Mechanic.MECHANIC, DSL.name("fk_mechanic_price_2"), new TableField[] { Mechanic.MECHANIC.NEXT_SIZE_ART_NO }, Keys.PK_PRICE, new TableField[] { Price.PRICE.ART_NO }, true);
 }

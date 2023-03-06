@@ -140,6 +140,16 @@
             <version>3.14.8</version>
         </dependency>
         <dependency>
+            <groupId>org.jooq</groupId><!-- for database codegen -->
+            <artifactId>jooq-meta</artifactId>
+            <version>3.14.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId><!-- for database codegen -->
+            <artifactId>jooq-codegen</artifactId>
+            <version>3.14.8</version>
+        </dependency>
+        <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.36.0.2</version>

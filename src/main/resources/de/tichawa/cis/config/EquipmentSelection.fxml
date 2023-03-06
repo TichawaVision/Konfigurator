@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="de.tichawa.cis.config.controller.EquipmentSelectionController"
+            prefHeight="300.0" prefWidth="500.0">
+    <GridPane vgap="10" hgap="10">
+        <padding>
+            <Insets top="20" bottom="20" left="20" right="20"/>
+        </padding>
+        <Label text="Select additional equipment options"/>
+        <Label text="Power Supply:" GridPane.rowIndex="1"/>
+        <ChoiceBox fx:id="powerSupplyChoiceBox" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Power Cable:" GridPane.rowIndex="2"/>
+        <ChoiceBox fx:id="powerCableChoiceBox" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Camera Link Cable (select grabber connection on user's side):" GridPane.rowIndex="3"/>
+        <HBox GridPane.rowIndex="4" spacing="20">
+            <fx:define>
+                <ToggleGroup fx:id="cameraLinkConnectionToggleGroup"/>
+            </fx:define>
+            <RadioButton fx:id="mdrRadioButton" text="MDR" toggleGroup="$cameraLinkConnectionToggleGroup" selected="true"/>
+            <RadioButton text="SDR" toggleGroup="$cameraLinkConnectionToggleGroup"/>
+        </HBox>
+        <ChoiceBox fx:id="cameraLinkCableLengthChoiceBox" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <Label text="Trigger Cable to Encoder:" GridPane.rowIndex="5"/>
+        <ChoiceBox fx:id="triggerCableChoiceBox" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+        <Button text="Show additional equipment" onAction="#handleSubmit" GridPane.rowIndex="6" defaultButton="true"/>
+    </GridPane>
+</AnchorPane>

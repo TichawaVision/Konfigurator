@@ -114,6 +114,11 @@ public class CPUCLink {
     @Value
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class CameraLink {
+        public static final String CL_FORMAT_DECA = "Deca";
+        public static final String CL_FORMAT_BASE = "Base";
+        public static final String CL_FORMAT_MEDIUM = "Medium";
+        public static final String CL_FORMAT_FULL = "Full";
+
         public static final int DEFAULT_ID = 1;
         public static final int MAX_PORT_COUNT = 10;
 
@@ -195,14 +200,14 @@ public class CPUCLink {
          */
         public String getCLFormat() {
             if (forcedDeca)
-                return "Deca";
+                return CL_FORMAT_DECA;
             if (getPortCount() <= 3)
-                return "Base";
+                return CL_FORMAT_BASE;
             if (getPortCount() <= 6)
-                return "Medium";
+                return CL_FORMAT_MEDIUM;
             if (getPortCount() <= 8)
-                return "Full";
-            return "Deca";
+                return CL_FORMAT_FULL;
+            return CL_FORMAT_DECA;
         }
 
         /**

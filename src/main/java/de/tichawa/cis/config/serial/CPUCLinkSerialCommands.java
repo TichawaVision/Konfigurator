@@ -167,7 +167,7 @@ public class CPUCLinkSerialCommands extends SerialCommands {
      */
     private void generateCLModeCommand() {
         // read from first camera link from the cpuclink
-        setMenuCommands.add("L" + (cpucLink.getCameraLinks().get(0).getCLFormat().equals("Deca") ? 1 : 0));
+        setMenuCommands.add("L" + (cpucLink.getCameraLinks().get(0).getCLFormat().equals(CPUCLink.CameraLink.CL_FORMAT_DECA) ? 1 : 0));
     }
 
     /**

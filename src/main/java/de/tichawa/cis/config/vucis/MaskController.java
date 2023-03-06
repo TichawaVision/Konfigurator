@@ -768,16 +768,6 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * returns whether a bigger size for the housing is required (that is for shape from shading)
-     *
-     * @return true if a bigger size housing is required i.e. if there is shape from shading or false otherwise
-     */
-    @Override
-    protected boolean requiresNextSizeHousing() {
-        return CIS_DATA.isShapeFromShading();
-    }
-
-    /**
      * returns the datasheet controller for VUCIS
      *
      * @return a new {@link de.tichawa.cis.config.vucis.DataSheetController} object

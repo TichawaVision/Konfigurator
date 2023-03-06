@@ -3,36 +3,48 @@ package de.tichawa.cis.config.controller;
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
 import de.tichawa.cis.config.model.tables.records.PriceRecord;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.*;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.layout.*;
 import javafx.stage.*;
 import javafx.util.Pair;
 import lombok.Getter;
-import org.jooq.Record;
 
 import java.io.*;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.*;
 
-import static de.tichawa.cis.config.model.Tables.*;
-
+/**
+ * Main controller class for the user input mask.
+ *
+ * @param <C> the specific cis type that gets configured by the input mask with this controller
+ */
 public abstract class MaskController<C extends CIS> implements Initializable {
+    /**
+     * List of resolutions the user can select
+     */
     @Getter
     private final List<CIS.Resolution> resolutions;
+
+    /**
+     * Choice box for the number of phases that the user selects
+     */
     @FXML
-    protected ComboBox<String> colorComboBox;
+    protected ComboBox<String> colorComboBox; //TODO rename this to phases(?)
+
+    /**
+     * Choice box for the resolution the user can select (see {@link #resolutions})
+     */
     @FXML
     protected ComboBox<String> resolutionComboBox;
+
+    /**
+     * Choice box for the possible scan widths the user can select
+     */
     @FXML
     protected ComboBox<String> scanWidthComboBox;
     @FXML
@@ -80,10 +92,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         this.LDSTD_DATA = new LDSTD();
     }
 
-    @Override
-    public abstract void initialize(URL url, ResourceBundle rb);
-
-    public abstract List<CIS.Resolution> setupResolutions();
+    public abstract List<CIS.Resolution> setupResolutions(); // force subclass to set the resolutions for its CIS
 
     /**
      * handles the calculation button press by showing the calculation window for the cis and the LDSTD if there is external lighting
@@ -302,92 +311,23 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         return new DataSheetController();
     }
 
+    /**
+     * Handles the oem mode button press by passing the button click action event to the {@link #handleDataSheet(ActionEvent)} method.
+     * Will result in an editable datasheet.
+     */
     @FXML
     public void handleOEMMode(ActionEvent a) {
         handleDataSheet(a);
     }
 
+    /**
+     * Handles the additional equipment button press by opening the equipment selection form
+     */
     @FXML
     @SuppressWarnings("unused")
     public void handleEquipment(ActionEvent a) {
-        Stage printStage = new Stage();
-        printStage.setTitle("Additional equipment list");
-        InputStream icon = getClass().getResourceAsStream("/de/tichawa/cis/config/TiViCC.png");
-        if (icon != null) {
-            printStage.getIcons().add(new Image(icon));
-        }
-        GridPane printPane = new GridPane();
-        printPane.getStylesheets().add("/de/tichawa/cis/config/style.css");
-        printPane.getStyleClass().add("white");
-        ColumnConstraints c = new ColumnConstraints();
-        c.setHgrow(Priority.ALWAYS);
-        printPane.getColumnConstraints().addAll(c, c);
-        Scene printScene = new Scene(printPane);
-
-        SimpleBooleanProperty pale = new SimpleBooleanProperty(false);
-        Util.getDatabase().ifPresent(context -> {
-            context.select(EQUIPMENT.asterisk(), PRICE.FERIX_KEY)
-                    .from(EQUIPMENT.join(PRICE).on(EQUIPMENT.ART_NO.eq(PRICE.ART_NO))).stream()
-                    .filter(this::isValidEquipmentRecord)
-                    .map(record -> {
-                        Label[] labels = new Label[2];
-
-                        for (int i = 0; i < labels.length; i++) {
-                            labels[i] = new Label();
-                            Label l = labels[i];
-                            l.setAlignment(Pos.CENTER_LEFT);
-                            l.setMaxWidth(1000);
-                            l.getStyleClass().add("bolder");
-                            if (pale.get()) {
-                                l.getStyleClass().add("pale-blue");
-                            } else {
-                                l.getStyleClass().add("white");
-                            }
-                        }
-
-                        labels[0].setText(record.get(EQUIPMENT.ART_NO).toString());
-                        labels[1].setText(record.get(PRICE.FERIX_KEY));
-
-                        pale.set(!pale.get());
-                        return labels;
-                    }).forEach(labels -> printPane.addRow(printPane.getChildren().size() / 2, labels));
-            printStage.setScene(printScene);
-            printStage.show();
-        });
-    }
-
-    /**
-     * returns whether the CIS requires the next size housing.
-     * Default is false unless overwritten by subclass
-     */
-    protected boolean requiresNextSizeHousing() {
-        return false;
-    }
-
-    /**
-     * returns the given string as a previous size or unchanged if it's not an int string
-     */
-    protected String getPreviousSizeHousingString(String sizeString) {
-        try {
-            return String.valueOf(Integer.parseInt(sizeString) - CIS.BASE_LENGTH);
-        } catch (NumberFormatException e) { // not a number -> return given String
-            return sizeString;
-        }
-    }
-
-    /**
-     * returns whether the given equipment record is valid
-     *
-     * @param record the equipment record that contains the select_code of the equipment table
-     */
-    private boolean isValidEquipmentRecord(Record record) {
-        return record.get(EQUIPMENT.SELECT_CODE) == null // no select code -> it is valid
-                || Arrays.stream(record.get(EQUIPMENT.SELECT_CODE).split("&")).allMatch(pred -> // all predicates must match
-                pred.length() == 0  // predicate matches if it is empty
-                        || (pred.startsWith("!") != CIS_DATA.getTiViKey().contains(requiresNextSizeHousing() // check if we might need next size
-                        ? (getPreviousSizeHousingString(pred.replace("!", "")).equals("0") // previous size would be 0 -> don't take this (and replace with something not in tivi key like °
-                        ? "°" : getPreviousSizeHousingString(pred.replace("!", ""))) // check with prev size to get next size
-                        : pred.replace("!", ""))) // check if pred part of tivi key
-                        || (!(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0 && LDSTD_DATA.getTiViKey().contains(pred.replace("!", ""))));
+        Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("EquipmentSelection.fxml", "Select Additional Equipment");
+        ((EquipmentSelectionController) stageWithLoader.getValue().getController()).passData(CIS_DATA, LDSTD_DATA);
+        stageWithLoader.getKey().show();
     }
 }

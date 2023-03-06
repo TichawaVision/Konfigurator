@@ -4,12 +4,26 @@
 package de.tichawa.cis.config.model.tables;
 
 
-import de.tichawa.cis.config.model.*;
+import de.tichawa.cis.config.model.DefaultSchema;
+import de.tichawa.cis.config.model.Keys;
 import de.tichawa.cis.config.model.tables.records.EquipmentRecord;
-import org.jooq.*;
-import org.jooq.impl.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+
+import org.jooq.Field;
+import org.jooq.ForeignKey;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Row5;
+import org.jooq.Schema;
+import org.jooq.Table;
+import org.jooq.TableField;
+import org.jooq.TableOptions;
+import org.jooq.UniqueKey;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
+import org.jooq.impl.TableImpl;
 
 
 /**
@@ -34,19 +48,29 @@ public class Equipment extends TableImpl<EquipmentRecord> {
     }
 
     /**
-     * The column <code>equipment.art_no</code>.
+     * The column <code>equipment.art_no_ferix_old</code>.
      */
-    public final TableField<EquipmentRecord, Integer> ART_NO = createField(DSL.name("art_no"), SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<EquipmentRecord, Integer> ART_NO_FERIX_OLD = createField(DSL.name("art_no_ferix_old"), SQLDataType.INTEGER.nullable(false), this, "");
+
+    /**
+     * The column <code>equipment.art_no_ferix_new</code>.
+     */
+    public final TableField<EquipmentRecord, Integer> ART_NO_FERIX_NEW = createField(DSL.name("art_no_ferix_new"), SQLDataType.INTEGER, this, "");
+
+    /**
+     * The column <code>equipment.description</code>.
+     */
+    public final TableField<EquipmentRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>equipment.select_code</code>.
      */
-    public final TableField<EquipmentRecord, String> SELECT_CODE = createField(DSL.name("select_code"), SQLDataType.VARCHAR(45), this, "");
+    public final TableField<EquipmentRecord, String> SELECT_CODE = createField(DSL.name("select_code"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>equipment.amount</code>.
      */
-    public final TableField<EquipmentRecord, String> AMOUNT = createField(DSL.name("amount"), SQLDataType.VARCHAR(45).nullable(false), this, "");
+    public final TableField<EquipmentRecord, String> AMOUNT = createField(DSL.name("amount"), SQLDataType.CLOB.nullable(false), this, "");
 
     private Equipment(Name alias, Table<EquipmentRecord> aliased) {
         this(alias, aliased, null);
@@ -87,17 +111,13 @@ public class Equipment extends TableImpl<EquipmentRecord> {
     }
 
     @Override
-    public List<ForeignKey<EquipmentRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<EquipmentRecord, ?>>asList(Keys.FK_EQUIPMENT_PRICE_1);
+    public UniqueKey<EquipmentRecord> getPrimaryKey() {
+        return Keys.PK_EQUIPMENT;
     }
 
-    private transient Price _price;
-
-    public Price price() {
-        if (_price == null)
-            _price = new Price(this, Keys.FK_EQUIPMENT_PRICE_1);
-
-        return _price;
+    @Override
+    public List<UniqueKey<EquipmentRecord>> getKeys() {
+        return Arrays.<UniqueKey<EquipmentRecord>>asList(Keys.PK_EQUIPMENT);
     }
 
     @Override
@@ -127,11 +147,11 @@ public class Equipment extends TableImpl<EquipmentRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row3 type methods
+    // Row5 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row3<Integer, String, String> fieldsRow() {
-        return (Row3) super.fieldsRow();
+    public Row5<Integer, Integer, String, String, String> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 }

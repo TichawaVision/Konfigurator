@@ -1223,6 +1223,16 @@ public class VUCIS extends CIS {
         return mod;
     }
 
+    /**
+     * returns whether a bigger size for the housing is required (that is for shape from shading)
+     *
+     * @return true if a bigger size housing is required i.e. if there is shape from shading or false otherwise
+     */
+    @Override
+    public boolean requiresNextSizeHousing() {
+        return isShapeFromShading();
+    }
+
     @Override
     public CIS copy() {
         return new VUCIS(this);
@@ -1290,5 +1300,10 @@ public class VUCIS extends CIS {
     protected String getWeightString(CISCalculation calculation) {
         // sfs has next size, otherwise index -1
         return WEIGHTS[getScanWidth() / BASE_LENGTH - (isShapeFromShading() ? 0 : 1)] + "\u200akg";
+    }
+
+    @Override
+    public boolean usesMdrCameraLinkOnCisSide() {
+        return false; // VUCIS uses SDR not MDR
     }
 }

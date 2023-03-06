@@ -1164,6 +1164,22 @@ public abstract class CIS {
         return pixelSum * (21 + 1. / 6) * 1200 / selectedResolution.actualResolution / 1000;
     }
 
+    /**
+     * returns whether the CIS requires the next size housing.
+     * Default is false unless overwritten by subclass
+     */
+    public boolean requiresNextSizeHousing() {
+        return false;
+    }
+
+    /**
+     * returns whether this CIS uses an MDR camera link connection on the CIS side.
+     * Default is true unless overwritten by subclass that might use SDR
+     */
+    public boolean usesMdrCameraLinkOnCisSide() {
+        return true;
+    }
+
     public enum LightColor {
         NONE("None", "NO", 'X'),
         RED("Red", "AM", 'A'),

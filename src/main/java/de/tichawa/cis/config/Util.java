@@ -139,7 +139,7 @@ public class Util {
             }
             return new Pair<>(stage, loader);
         } catch (IOException e) {
-            throw new IllegalStateException("fxml file could not be loaded: " + fxmlRelativeUrl);
+            throw new IllegalStateException("fxml file could not be loaded: " + fxmlRelativeUrl + " - " + e);
         }
     }
 
