@@ -47,7 +47,7 @@ public class EquipmentController implements Initializable {
         TableColumn<EquipmentEntry, String> articleNumberFerixNewColumn = new TableColumn<>("FerixNeu");
         articleNumberFerixNewColumn.setCellValueFactory(e -> new ReadOnlyObjectWrapper<>(e.getValue().articleNumberFerixNew == 0 ? "-" : String.valueOf(e.getValue().articleNumberFerixNew))); // 0 stands for null value
         equipmentTableView.getColumns().addAll(descriptionColumn, ferixKeyColumn, articleNumberFerixOldColumn, articleNumberFerixNewColumn);
-        equipmentTableView.getSortOrder().add(descriptionColumn); //TODO maybe sort by ferix key instead
+        equipmentTableView.getSortOrder().add(ferixKeyColumn);
     }
 
     /**
@@ -103,7 +103,6 @@ public class EquipmentController implements Initializable {
      * @return true if the predicate could be matched or false otherwise
      */
     private boolean isValidPredicate(String predicate) {
-
         return predicate == null
                 || (predicate.startsWith("!") ? !isValidPositivePredicate(predicate.replace("!", "")) : isValidPositivePredicate(predicate));
     }

@@ -75,7 +75,6 @@ public class EquipmentSelectionController implements Initializable {
         });
         powerSupplyChoiceBox.getItems().clear();
         powerSupplyChoiceBox.getItems().addAll(PowerSupplyOptions.values());
-        powerSupplyChoiceBox.getSelectionModel().select(PowerSupplyOptions.NONE); //TODO replace with what was calculated
 
         // power cable
         powerCableChoiceBox.setConverter(new StringConverter<PowerCableOptions>() {
@@ -92,7 +91,7 @@ public class EquipmentSelectionController implements Initializable {
 
         powerCableChoiceBox.getItems().clear();
         powerCableChoiceBox.getItems().addAll(PowerCableOptions.values());
-        powerCableChoiceBox.getSelectionModel().select(PowerCableOptions.THREE); //TODO maybe replace with something else
+        powerCableChoiceBox.getSelectionModel().select(PowerCableOptions.THREE);
 
         // camera link cable
         cameraLinkCableLengthChoiceBox.setConverter(new StringConverter<CameraLinkLengthOptions>() {
@@ -137,6 +136,9 @@ public class EquipmentSelectionController implements Initializable {
     public void passData(CIS cisData, CIS ldstdData) {
         this.cisData = cisData;
         this.ldstdData = ldstdData;
+
+        double neededPower = cisData.calculateNeededPower(cisData.calculate());
+        powerSupplyChoiceBox.getSelectionModel().select(PowerSupplyOptions.getNextHighest(neededPower));
     }
 
     /**
@@ -159,19 +161,21 @@ public class EquipmentSelectionController implements Initializable {
      * Used for the {@link #powerSupplyChoiceBox}.
      */
     private enum PowerSupplyOptions {
-        NONE("None", null),
-        TWO_POINT_FIVE("2.5 A", SELECT_CODE_POWER_SUPPLY_2_5),
-        FOUR("4 A", SELECT_CODE_POWER_SUPPLY_4),
-        SIX("6 A", SELECT_CODE_POWER_SUPPLY_6),
-        THIRTEEN("13 A", SELECT_CODE_POWER_SUPPLY_13),
-        TWENTY("20 A", SELECT_CODE_POWER_SUPPLY_20);
+        NONE("None", null, 0),
+        TWO_POINT_FIVE("2.5 A", SELECT_CODE_POWER_SUPPLY_2_5, 2.5),
+        FOUR("4 A", SELECT_CODE_POWER_SUPPLY_4, 4),
+        SIX("6 A", SELECT_CODE_POWER_SUPPLY_6, 6),
+        THIRTEEN("13 A", SELECT_CODE_POWER_SUPPLY_13, 13),
+        TWENTY("20 A", SELECT_CODE_POWER_SUPPLY_20, 20);
 
         private final String displayString;
         private final String selectCodeString;
+        private final double providedAmpere;
 
-        PowerSupplyOptions(String displayString, String selectCodeString) {
+        PowerSupplyOptions(String displayString, String selectCodeString, double providedAmpere) {
             this.displayString = displayString;
             this.selectCodeString = selectCodeString;
+            this.providedAmpere = providedAmpere;
         }
 
         /**
@@ -180,6 +184,18 @@ public class EquipmentSelectionController implements Initializable {
         public static PowerSupplyOptions forDisplayString(String displayString) {
             return Arrays.stream(PowerSupplyOptions.values()).filter(option -> option.displayString.equals(displayString)).findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Power supply option not found for display string: " + displayString));
+        }
+
+        /**
+         * Returns the next highest power supply option for the given ampere value
+         *
+         * @param ampere the ampere value that is needed
+         * @return the next highest option that can provide the needed amount or the highest ({@link #TWENTY}) option
+         */
+        public static PowerSupplyOptions getNextHighest(double ampere) {
+            return Arrays.stream(PowerSupplyOptions.values())
+                    .filter(powerSupplyOption -> powerSupplyOption.providedAmpere - ampere > 0) // don't need any supplier that can't provide enough
+                    .min(Comparator.comparingDouble(o -> o.providedAmpere)).orElse(TWENTY); // take minimum provided ampere or if non left (all filtered out) take highest provider
         }
     }
 
