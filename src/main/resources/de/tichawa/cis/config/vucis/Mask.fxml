@@ -205,6 +205,8 @@
                 <Label text="Curr. Line Rate:" GridPane.rowIndex="1"/>
                 <Label fx:id="currentLineRateLabel" text="0 kHz" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                 <Slider fx:id="selectedLineRateSlider" min="100" GridPane.columnSpan="2" GridPane.rowIndex="2" snapToTicks="true"/>
+                <Label fx:id="currentLineRatePercentLabel" text="100 %" GridPane.columnSpan="2" GridPane.rowIndex="3" alignment="CENTER"
+                       maxWidth="Infinity"/>
                 <Label text="Transport Speed:" GridPane.columnIndex="2"/>
                 <Label fx:id="speedmmsLabel" text="0 mm/s" GridPane.columnIndex="3"/>
                 <Label fx:id="speedmsLabel" text="0 m/s" GridPane.columnIndex="3" GridPane.rowIndex="1"/>

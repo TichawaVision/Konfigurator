@@ -64,6 +64,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     private CheckBox cloudyDayCheckBox;
     @FXML
     private ChoiceBox<String> lightPresetChoiceBox;
+    @FXML
+    private Label currentLineRatePercentLabel;
 
     public MaskController() {
         CIS_DATA = new VUCIS();
@@ -526,6 +528,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void handleLineRateChange(int lineRate) {
         currentLineRateLabel.setText(lineRate / 1000.0 + " kHz");
+        currentLineRatePercentLabel.setText(Math.round(lineRate / CIS_DATA.getMaxLineRate() * 100) + " %");
     }
 
     /**
@@ -698,7 +701,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                         // camera link format (base, medium, full, deca)
                         + c.getCameraLinks().stream().map(CPUCLink.CameraLink::getCLFormat).collect(Collectors.joining("+", "(", ")"))
                         // needed cables and ports
-                        + ": " + c.getCableCount() + " cable, " + c.getPortCount() + " ports";
+                        + ": " + c.getCableCount() + " cable, " + c.getPortCount() + " ports, " + c.getPortCount() / CIS_DATA.getPhaseCount() + " taps";
                 displayText.add(boardText);
             }
             cameraLinkInfoLabel.setText(displayText + "\n"
