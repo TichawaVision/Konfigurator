@@ -52,6 +52,8 @@ public class EquipmentSelectionController implements Initializable {
     private RadioButton mdrRadioButton;
     @FXML
     private ChoiceBox<CameraLinkLengthOptions> cameraLinkCableLengthChoiceBox;
+    @FXML
+    private Label cameraLinkCableLengthWarningLabel;
 
     private CIS cisData;
     private CIS ldstdData;
@@ -108,6 +110,7 @@ public class EquipmentSelectionController implements Initializable {
         cameraLinkCableLengthChoiceBox.getItems().clear();
         cameraLinkCableLengthChoiceBox.getItems().addAll(CameraLinkLengthOptions.values());
         cameraLinkCableLengthChoiceBox.getSelectionModel().select(CameraLinkLengthOptions.NONE);
+        cameraLinkCableLengthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> updateCameraLinkWarning());
 
         // trigger cable
         triggerCableChoiceBox.setConverter(new StringConverter<TriggerCableOptions>() {
@@ -125,6 +128,14 @@ public class EquipmentSelectionController implements Initializable {
         triggerCableChoiceBox.getItems().clear();
         triggerCableChoiceBox.getItems().addAll(TriggerCableOptions.values());
         triggerCableChoiceBox.getSelectionModel().select(TriggerCableOptions.NONE);
+    }
+
+    /**
+     * Updates the camera link warning label by removing the text if the chosen camera link cable length is at most 5m or by setting a warning text
+     */
+    private void updateCameraLinkWarning() {
+        cameraLinkCableLengthWarningLabel.setText(cameraLinkCableLengthChoiceBox.getValue().length <= 5 || cisData.isReducedPixelClock() ? "" :
+                "Caution! Camera link cable might be too long for the chosen frequency!");
     }
 
     /**
@@ -231,12 +242,18 @@ public class EquipmentSelectionController implements Initializable {
      * Used for the {@link #cameraLinkCableLengthChoiceBox}.
      */
     private enum CameraLinkLengthOptions {
-        NONE("None"), THREE("3 m"), FIVE("5 m"), SEVEN_FIVE("7.5 m"), TEN("10 m");
+        NONE("None", 0),
+        THREE("3 m", 3),
+        FIVE("5 m", 5),
+        SEVEN_FIVE("7.5 m", 7.5),
+        TEN("10 m", 10);
 
         private final String displayString;
+        private final double length;
 
-        CameraLinkLengthOptions(String displayString) {
+        CameraLinkLengthOptions(String displayString, double length) {
             this.displayString = displayString;
+            this.length = length;
         }
 
         /**

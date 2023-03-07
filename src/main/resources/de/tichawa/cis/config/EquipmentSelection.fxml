@@ -16,7 +16,7 @@
         <ChoiceBox fx:id="powerSupplyChoiceBox" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
         <Label text="Power Cable:" GridPane.rowIndex="2"/>
         <ChoiceBox fx:id="powerCableChoiceBox" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <Label text="Camera Link Cable (select grabber connection on user's side):" GridPane.rowIndex="3"/>
+        <Label text="Grabber Side (Camera Link Cable connection):" GridPane.rowIndex="3"/>
         <HBox GridPane.rowIndex="4" spacing="20">
             <fx:define>
                 <ToggleGroup fx:id="cameraLinkConnectionToggleGroup"/>
@@ -25,8 +25,9 @@
             <RadioButton text="SDR" toggleGroup="$cameraLinkConnectionToggleGroup"/>
         </HBox>
         <ChoiceBox fx:id="cameraLinkCableLengthChoiceBox" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-        <Label text="Trigger Cable to Encoder:" GridPane.rowIndex="5"/>
-        <ChoiceBox fx:id="triggerCableChoiceBox" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-        <Button text="Show additional equipment" onAction="#handleSubmit" GridPane.rowIndex="6" defaultButton="true"/>
+        <Label fx:id="cameraLinkCableLengthWarningLabel" GridPane.rowIndex="5" GridPane.columnSpan="2" textFill="red"/>
+        <Label text="Trigger Cable to Encoder:" GridPane.rowIndex="6"/>
+        <ChoiceBox fx:id="triggerCableChoiceBox" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+        <Button text="Show additional equipment" onAction="#handleSubmit" GridPane.rowIndex="7" defaultButton="true"/>
     </GridPane>
 </AnchorPane>
