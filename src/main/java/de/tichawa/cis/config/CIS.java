@@ -594,7 +594,7 @@ public abstract class CIS {
         // - end of specs
         printout.append(getEndOfSpecs());
         // - add warning if necessary (if min freq is less than 2 * selected line rate)
-        if (minFreq < 2 * lineRate)
+        if (minFreq < lineRate)
             printout.append(PRINTOUT_WARNING).append(Util.getString("warning minfreq linerate")).append("\n");
 
         //CL Config

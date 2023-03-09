@@ -94,7 +94,7 @@
                     <Label text="Light Frequency Limit: "/>
                     <Label fx:id="lightFrequencyLimitLabel"/>
                 </HBox>
-                <!-- warning if freq < 2 * selected line rate, overlapping with above label intented as the above will only span when the following is not shown-->
+                <!-- warning if freq < selected line rate, overlapping with above label intended as the above will only span when the following is not shown-->
                 <HBox alignment="CENTER_LEFT" GridPane.rowIndex="5" GridPane.columnIndex="1" GridPane.columnSpan="4">
                     <Label fx:id="warningSelectedLineRateLabel" textFill="red"/>
                 </HBox>

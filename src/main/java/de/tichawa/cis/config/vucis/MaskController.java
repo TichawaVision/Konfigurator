@@ -368,7 +368,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         // disable interface choice
         interfaceComboBox.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
         // listener and text output for reduced pixel clock
-        reducedPixelClockCheckBox.setText(reducedPixelClockCheckBox.getText() + " (" + (VUCIS.PIXEL_CLOCK_REDUCED / 1000000) + "\u200akHz)");
+        reducedPixelClockCheckBox.setText(reducedPixelClockCheckBox.getText() + " (" + (VUCIS.PIXEL_CLOCK_REDUCED / 1000000) + "\u200aMHz)");
         reducedPixelClockCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
         reducedPixelClockCheckBox.setSelected(CIS_DATA.isReducedPixelClock());
         // setup choice box for valid mod options
@@ -766,7 +766,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void updateSelectedLineRateWarning() {
         double lineRate = Math.round(CIS_DATA.getSelectedLineRate() / 100.0) / 10.0;
-        if (lastMinFreq >= 0 && lastMinFreq < 2 * lineRate) // if missing values in database lastMinFreq is <0 -> don't show warning as this would overlap with other warning
+        if (lastMinFreq >= 0 && lastMinFreq < lineRate) // if missing values in database lastMinFreq is <0 -> don't show warning as this would overlap with other warning
             warningSelectedLineRateLabel.setText(Util.getString("warning minfreq linerate").replace('\n', ' '));
         else
             warningSelectedLineRateLabel.setText("");
