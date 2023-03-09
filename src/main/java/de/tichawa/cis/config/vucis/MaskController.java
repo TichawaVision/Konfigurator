@@ -481,6 +481,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             case "resolution":
                 handleResolutionChange((CIS.Resolution) evt.getNewValue());
                 updateCameraLinkInfo();
+                updateLightFrequencyLimit();
                 return;
             case "scanWidth":
                 scanWidthComboBox.getSelectionModel().select(evt.getNewValue() + " mm");
@@ -491,6 +492,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 handleLineRateChange((int) evt.getNewValue());
                 updateCameraLinkInfo();
                 updateSelectedLineRateWarning();
+                updateLightFrequencyLimit();
                 return;
             case "transportSpeed":
                 handleTransportSpeedChange((int) evt.getNewValue());
