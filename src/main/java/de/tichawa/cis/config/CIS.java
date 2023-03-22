@@ -577,7 +577,11 @@ public abstract class CIS {
         printout.append(Util.getString("shading")).append("\n");
         // - power
         printout.append(Util.getString("powersource")).append("(24 +/- 1)\u200aVDC\n");
-        printout.append(Util.getString("Needed power:")).append((" " + calculateNeededPower(calculation) + "\u200aA").replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
+        printout.append(Util.getString("Needed max power:")).append((" " + calculateNeededPower(calculation) + "\u200aA")
+                .replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
+        printout.append(Util.getString("Needed average power:"))
+                .append((" " + (double) Math.round(calculateNeededPower(calculation) / phaseCount * 100) / 100 + "\u200aA")
+                        .replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
         // - frequency limit
         long minFreq = Math.round(1000 * getMinFreq(calculation)) / 1000;
         if (hasLEDs()) // only print this if there are lights
