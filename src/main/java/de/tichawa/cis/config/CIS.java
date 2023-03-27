@@ -565,6 +565,12 @@ public abstract class CIS {
         printout.append(getGeometryCorrectionString()).append("\n");
         // - trigger (if late printout)
         printout.append(hasEarlyTriggerPrintout() ? "" : getTriggerPrintout());
+        // - trigger pulse
+        printout.append(Util.getString("trigger-pulse"))
+                .append("\n\t").append(Util.getString("trigger-pulse2")).append(" 1 ").append(Util.getString("impulse-every")).append(" ")
+                .append(selectedResolution.pixelSize / phaseCount * 2000).append("\u200aµm")
+                .append("\n\t").append(Util.getString("trigger-pulse4")).append(" 1 ").append(Util.getString("impulse-every")).append(" ")
+                .append(selectedResolution.pixelSize / phaseCount * 4000).append("\u200aµm\n");
         // - scan distance
         printout.append(Util.getString("scan distance")).append(": ").append(getScanDistanceString()).append("\n");
         // - depth of field (replaced +/- with *2)
