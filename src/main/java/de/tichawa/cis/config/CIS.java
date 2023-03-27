@@ -893,10 +893,10 @@ public abstract class CIS {
         calculation.electConfig.forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
                 .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
                 .append(amount).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getAssemblyTime() * amount)).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPowerConsumption() * amount)).append("\n"));
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice())).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight())).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getAssemblyTime())).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPowerConsumption())).append("\n"));
 
         electOutput.append("\n\t\n").append(Util.getString("Totals")).append("\t")
                 .append(" \t")
@@ -909,8 +909,8 @@ public abstract class CIS {
         calculation.mechaConfig.forEach((priceRecord, amount) -> mechaOutput.append(priceRecord.getFerixKey()).append("\t")
                 .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
                 .append(amount).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice() * amount)).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight() * amount)).append("\n"));
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice())).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight())).append("\n"));
 
         mechaOutput.append("\n\t\n").append(Util.getString("Totals")).append("\t")
                 .append(" \t")
