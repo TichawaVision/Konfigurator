@@ -183,13 +183,13 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void initPhases() {
         //set items to choice box
-        colorComboBox.getItems().clear();
-        colorComboBox.getItems().addAll(Arrays.stream(Phases.values()).map(Phases::getDisplayText).collect(Collectors.toList()));
+        phasesChoiceBox.getItems().clear();
+        phasesChoiceBox.getItems().addAll(Arrays.stream(Phases.values()).map(Phases::getDisplayText).collect(Collectors.toList()));
         //select initial value
         Phases initialPhase = Phases.findByPhaseCount(CIS_DATA.getPhaseCount()).orElseThrow(() -> new IllegalArgumentException("selected phases do not exist"));
-        colorComboBox.getSelectionModel().select(initialPhase.getDisplayText());
+        phasesChoiceBox.getSelectionModel().select(initialPhase.getDisplayText());
         //add listener to set phase count on changes
-        colorComboBox.valueProperty().addListener((property, oldValue, newValue) -> {
+        phasesChoiceBox.valueProperty().addListener((property, oldValue, newValue) -> {
             Phases selectedPhase = Phases.findByDisplayText(newValue).orElseThrow(() -> new IllegalArgumentException("selected phases do not exist"));
             //set phase count in model when choice box value changed
             CIS_DATA.setPhaseCount(selectedPhase.phaseCount);
@@ -329,16 +329,16 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void initResolutionAndScanWidth() {
         // select initial resolution
-        resolutionComboBox.getSelectionModel().selectFirst();
+        resolutionChoiceBox.getSelectionModel().selectFirst();
         // listener for resolution choice box that sets the new resolution in the model
-        resolutionComboBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedResolution(getResolutions().get(resolutionComboBox.getSelectionModel().getSelectedIndex())));
+        resolutionChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedResolution(getResolutions().get(resolutionChoiceBox.getSelectionModel().getSelectedIndex())));
         // set items to scan width choice box
-        scanWidthComboBox.getItems().clear();
-        scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+        scanWidthChoiceBox.getItems().clear();
+        scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
         // set initial value
-        scanWidthComboBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+        scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
         // listener for scan width choice box that sets the new scan width in the model
-        scanWidthComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+        scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue != null && newValue != null)
                 CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim()));
         });
@@ -366,7 +366,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void initInterface() {
         // disable interface choice
-        interfaceComboBox.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
+        interfaceChoiceBox.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
         // listener and text output for reduced pixel clock
         reducedPixelClockCheckBox.setText(reducedPixelClockCheckBox.getText() + " (" + (VUCIS.PIXEL_CLOCK_REDUCED / 1000000) + "\u200aMHz)");
         reducedPixelClockCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
@@ -395,7 +395,6 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         initLineRateAndTransportSpeed();
 
         // initialize other stuff
-        coolingComboBox.setVisible(false); //make invisible as this is not used for VUCIS for now (but comes from config/MaskController)
         initInterface();
         updateCameraLinkInfo();
     }
@@ -484,7 +483,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 updateLightFrequencyLimit();
                 return;
             case "scanWidth":
-                scanWidthComboBox.getSelectionModel().select(evt.getNewValue() + " mm");
+                scanWidthChoiceBox.getSelectionModel().select(evt.getNewValue() + " mm");
                 updateCameraLinkInfo();
                 return;
             // line rate and transport speed
@@ -611,7 +610,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void handlePhasesChange(Phases selectedPhase) {
         // set choice box selection
-        colorComboBox.getSelectionModel().select(selectedPhase.getDisplayText());
+        phasesChoiceBox.getSelectionModel().select(selectedPhase.getDisplayText());
         // adjust line rate outputs
         updateMaxLineRateChange();
     }
@@ -628,19 +627,19 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         boolean hadCoax = oldValue != CIS.LightColor.NONE;
         if (hasCoax != hadCoax) {//only do something if we switch from coax to non-coax or other way around
             //clear scan width and left bright field because these options will be changed
-            scanWidthComboBox.getItems().clear();
+            scanWidthChoiceBox.getItems().clear();
             brightFieldLeftChoiceBox.getItems().clear();
             if (hasCoax) { //coax selected
                 //set items of scan width choice box to ones without coax
-                scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
                 //set items of left bf to ones without sfs (no coax and left sided sfs)
                 brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
             } else { // coax deselected
                 //set items of scan width choice box to ones with coax
                 if (CIS_DATA.isShapeFromShading()) {
-                    scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
                 } else {
-                    scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
                 }
                 //set items of left bf to ones with sfs
                 brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
@@ -649,7 +648,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             darkFieldLeftChoiceBox.setDisable(hasCoax || CIS_DATA.isCloudyDay());
             //select current values
             selectLightChoiceBox(brightFieldLeftChoiceBox, CIS_DATA.getBrightFieldLeft());
-            scanWidthComboBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+            scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
         }
     }
 
@@ -670,14 +669,14 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     private void updateScanWidthOptions() {
         if (!CIS_DATA.hasCoax()) { // with coax already handled
             //sfs ->
-            scanWidthComboBox.getItems().clear();
+            scanWidthChoiceBox.getItems().clear();
             if (CIS_DATA.isShapeFromShading()) {
-                scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
             } else {
-                scanWidthComboBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
             }
             // set initial value
-            scanWidthComboBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+            scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
         }
     }
 

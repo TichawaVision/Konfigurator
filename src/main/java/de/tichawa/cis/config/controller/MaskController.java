@@ -34,19 +34,19 @@ public abstract class MaskController<C extends CIS> implements Initializable {
      * Choice box for the number of phases that the user selects
      */
     @FXML
-    protected ComboBox<String> colorComboBox; //TODO rename this to phases(?)
+    protected ChoiceBox<String> phasesChoiceBox;
 
     /**
      * Choice box for the resolution the user can select (see {@link #resolutions})
      */
     @FXML
-    protected ComboBox<String> resolutionComboBox;
+    protected ChoiceBox<String> resolutionChoiceBox;
 
     /**
      * Choice box for the possible scan widths the user can select
      */
     @FXML
-    protected ComboBox<String> scanWidthComboBox;
+    protected ChoiceBox<String> scanWidthChoiceBox;
     @FXML
     protected Label pixelSizeLabel;
     @FXML
@@ -66,17 +66,17 @@ public abstract class MaskController<C extends CIS> implements Initializable {
     @FXML
     protected Label speedipsLabel;
     @FXML
-    protected ComboBox<String> internalLightSourceComboBox;
+    protected ChoiceBox<String> internalLightSourceChoiceBox;
     @FXML
-    protected ComboBox<String> internalLightColorComboBox;
+    protected ChoiceBox<String> internalLightColorChoiceBox;
     @FXML
-    protected ComboBox<String> externalLightSourceComboBox;
+    protected ChoiceBox<String> externalLightSourceChoiceBox;
     @FXML
-    protected ComboBox<String> externalLightColorComboBox;
+    protected ChoiceBox<String> externalLightColorChoiceBox;
     @FXML
-    protected ComboBox<String> interfaceComboBox;
+    protected ChoiceBox<String> interfaceChoiceBox;
     @FXML
-    protected ComboBox<String> coolingComboBox;
+    protected ChoiceBox<String> coolingChoiceBox;
     @FXML
     protected CheckBox externalTriggerCheckbox;
     @FXML

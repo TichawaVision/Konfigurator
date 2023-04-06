@@ -25,14 +25,14 @@
         </rowConstraints>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3">
             <Label text="Color:"/>
-            <ComboBox fx:id="colorComboBox" promptText="Monochrome">
+            <ChoiceBox fx:id="phasesChoiceBox">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="Monochrome"/>
                         <String fx:value="RGB"/>
                     </FXCollections>
                 </items>
-            </ComboBox>
+            </ChoiceBox>
         </HBox>
         <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                     text="Resolution &amp; Scan Width" GridPane.fillHeight="true" GridPane.fillWidth="true"
@@ -47,8 +47,7 @@
                     <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0"/>
                 </rowConstraints>
                 <Label text="Resolution:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <ComboBox fx:id="resolutionComboBox" promptText="Switchable 1200/600/300 dpi" GridPane.columnIndex="1"
-                          GridPane.rowIndex="0">
+                <ChoiceBox fx:id="resolutionChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="0">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="Switchable 1200/600/300 dpi"/>
@@ -64,9 +63,9 @@
                             <String fx:value="Fixed Resolution 25 dpi"/>
                         </FXCollections>
                     </items>
-                </ComboBox>
+                </ChoiceBox>
                 <Label text="Scan Width:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <ComboBox fx:id="scanWidthComboBox" promptText="1040 mm" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <ChoiceBox fx:id="scanWidthChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="1040 mm"/>
@@ -75,7 +74,7 @@
                             <String fx:value="260 mm"/>
                         </FXCollections>
                     </items>
-                </ComboBox>
+                </ChoiceBox>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
@@ -138,8 +137,8 @@
                     <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                 </rowConstraints>
                 <Label text="Internal Light Source:"/>
-                <ComboBox fx:id="internalLightSourceComboBox" maxWidth="160.0" minWidth="160.0" prefHeight="25.0"
-                          prefWidth="160.0" promptText="One sided" GridPane.columnIndex="1">
+                <ChoiceBox fx:id="internalLightSourceChoiceBox" maxWidth="160.0" minWidth="160.0" prefHeight="25.0" prefWidth="160.0"
+                           GridPane.columnIndex="1">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="None"/>
@@ -149,10 +148,10 @@
                             <String fx:value="Coax"/>
                         </FXCollections>
                     </items>
-                </ComboBox>
+                </ChoiceBox>
                 <Label text="Internal Light Color:" GridPane.rowIndex="1"/>
-                <ComboBox fx:id="internalLightColorComboBox" maxWidth="160.0" minWidth="160.0" prefWidth="160.0" promptText="Red"
-                          GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <ChoiceBox fx:id="internalLightColorChoiceBox" maxWidth="160.0" minWidth="160.0" prefWidth="160.0" GridPane.columnIndex="1"
+                           GridPane.rowIndex="1">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="None"/>
@@ -164,20 +163,19 @@
                             <String fx:value="White"/>
                         </FXCollections>
                     </items>
-                </ComboBox>
+                </ChoiceBox>
                 <Label text="External Light Source:" GridPane.columnIndex="2"/>
-                <ComboBox fx:id="externalLightSourceComboBox" maxWidth="160.0" minWidth="160.0" prefWidth="160.0"
-                          promptText="One sided" GridPane.columnIndex="3">
+                <ChoiceBox fx:id="externalLightSourceChoiceBox" maxWidth="160.0" minWidth="160.0" prefWidth="160.0" GridPane.columnIndex="3">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="None"/>
                             <String fx:value="One sided"/>
                         </FXCollections>
                     </items>
-                </ComboBox>
+                </ChoiceBox>
                 <Label text="External Light Color:" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                <ComboBox fx:id="externalLightColorComboBox" maxWidth="160.0" minWidth="160.0" prefWidth="160.0" promptText="Red"
-                          GridPane.columnIndex="3" GridPane.rowIndex="1">
+                <ChoiceBox fx:id="externalLightColorChoiceBox" maxWidth="160.0" minWidth="160.0" prefWidth="160.0" GridPane.columnIndex="3"
+                           GridPane.rowIndex="1">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="None"/>
@@ -189,23 +187,23 @@
                             <String fx:value="White"/>
                         </FXCollections>
                     </items>
-                </ComboBox>
+                </ChoiceBox>
             </GridPane>
         </TitledPane>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="3">
             <Label text="Interface:"/>
-            <ComboBox fx:id="interfaceComboBox" promptText="CameraLink">
+            <ChoiceBox fx:id="interfaceChoiceBox">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="CameraLink"/>
                         <String fx:value="GigE"/>
                     </FXCollections>
                 </items>
-            </ComboBox>
+            </ChoiceBox>
         </HBox>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="4">
             <Label text="Cooling:"/>
-            <ComboBox fx:id="coolingComboBox" promptText="Int. Forced Air (Default)">
+            <ChoiceBox fx:id="coolingChoiceBox">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="None"/>
@@ -215,7 +213,7 @@
                         <String fx:value="Liquid Cooling"/>
                     </FXCollections>
                 </items>
-            </ComboBox>
+            </ChoiceBox>
         </HBox>
         <CheckBox fx:id="externalTriggerCheckbox" mnemonicParsing="false"
                   text="External Trigger over RS422 / Free running with programmable line rate (Default: CC1)"

@@ -42,7 +42,7 @@
                 </HBox>
                 <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1" GridPane.columnSpan="2">
                     <Label text="Color:"/>
-                    <ComboBox fx:id="colorComboBox"/><!-- TODO why is this a combo box not a choice box ? -->
+                    <ChoiceBox fx:id="phasesChoiceBox"/>
                 </HBox>
                 <HBox GridPane.columnIndex="3" GridPane.columnSpan="2" alignment="CENTER">
                     <CheckBox text="Cloudy Day" fx:id="cloudyDayCheckBox"/>
@@ -128,8 +128,7 @@
                     <RowConstraints maxHeight="30.0" minHeight="30.0" prefHeight="30.0"/>
                 </rowConstraints>
                 <Label text="Resolution:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <ComboBox fx:id="resolutionComboBox" promptText="Switchable 1000/500/250 dpi" GridPane.columnIndex="1"
-                          GridPane.rowIndex="0">
+                <ChoiceBox fx:id="resolutionChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="0">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="Switchable 1200/600/300 dpi"/>
@@ -145,21 +144,9 @@
                             <String fx:value="Fixed Resolution 25 dpi"/>
                         </FXCollections>
                     </items>
-                </ComboBox>
+                </ChoiceBox>
                 <Label text="Scan Width:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <ComboBox fx:id="scanWidthComboBox" promptText="300 mm" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                    <items>
-                        <FXCollections fx:factory="observableArrayList">
-                            <!--String fx:value="1820 mm"/-->
-                            <String fx:value="1560 mm"/>
-                            <String fx:value="1300 mm"/>
-                            <String fx:value="1040 mm"/>
-                            <String fx:value="780 mm"/>
-                            <String fx:value="520 mm"/>
-                            <String fx:value="260 mm"/>
-                        </FXCollections>
-                    </items>
-                </ComboBox>
+                <ChoiceBox fx:id="scanWidthChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" minHeight="120" GridPane.columnIndex="1" GridPane.fillHeight="true"
@@ -226,13 +213,13 @@
                 </columnConstraints>
                 <HBox alignment="CENTER" spacing="5.0">
                     <Label text="Interface:"/>
-                    <ComboBox fx:id="interfaceComboBox" disable="true" promptText="CameraLink"> <!-- TODO why is this a combo box not a choice box -->
+                    <ChoiceBox fx:id="interfaceChoiceBox" disable="true">
                         <items>
                             <FXCollections fx:factory="observableArrayList">
                                 <String fx:value="CameraLink"/>
                             </FXCollections>
                         </items>
-                    </ComboBox>
+                    </ChoiceBox>
                 </HBox>
                 <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1">
                     <Label text="Mod for lval:"/>
@@ -246,18 +233,7 @@
         </TitledPane>
         <!-- not needed for VUCIS but part of the main class -->
         <HBox alignment="CENTER" spacing="5.0" GridPane.rowIndex="3" GridPane.columnIndex="0">
-            <ComboBox fx:id="coolingComboBox" disable="true"
-                      promptText="Liquid Cooling (Default)"><!-- TODO why is this a combo box not a choice box -->
-                <items>
-                    <FXCollections fx:factory="observableArrayList">
-                        <String fx:value="None"/>
-                        <String fx:value="Liquid Cooling (Default)"/>
-                        <String fx:value="Ext. Forced Air"/>
-                        <String fx:value="Passive Air"/>
-                        <String fx:value="Liquid Cooling"/>
-                    </FXCollections>
-                </items>
-            </ComboBox>
+            <ChoiceBox fx:id="coolingChoiceBox" disable="true" style="visibility: hidden;"/>
         </HBox>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="6">
             <Button mnemonicParsing="false" onAction="#handleCalculation" text="Calculation"/>

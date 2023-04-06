@@ -19,10 +19,10 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         CIS_DATA.setScanWidth(1040);
         CIS_DATA.setExternalTrigger(false);
 
-        colorComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
+        phasesChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
         {
             if (newValue.equals("RGB") && CIS_DATA.getLedLines() == 0) {
-                colorComboBox.getSelectionModel().select(oldValue);
+                phasesChoiceBox.getSelectionModel().select(oldValue);
                 return;
             }
 
@@ -37,22 +37,22 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 }
             }
 
-            internalLightColorComboBox.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
+            internalLightColorChoiceBox.setDisable(newValue.equals("RGB") || CIS_DATA.getLedLines() == 0);
             if (newValue.equals("RGB")) {
-                internalLightColorComboBox.getSelectionModel().selectFirst();
+                internalLightColorChoiceBox.getSelectionModel().selectFirst();
             }
-            externalLightColorComboBox.setDisable(newValue.equals("RGB") || externalLightSourceComboBox.getSelectionModel().getSelectedIndex() == 0);
+            externalLightColorChoiceBox.setDisable(newValue.equals("RGB") || externalLightSourceChoiceBox.getSelectionModel().getSelectedIndex() == 0);
         });
-        scanWidthComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
+        scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
                 CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim())));
-        internalLightSourceComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
+        internalLightSourceChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
         {
             if (CIS_DATA.getPhaseCount() == 3 && newValue.equals("None") && LDSTD_DATA.getLedLines() == 0) {
-                internalLightSourceComboBox.getSelectionModel().select(oldValue);
+                internalLightSourceChoiceBox.getSelectionModel().select(oldValue);
                 return;
             }
 
-            switch (internalLightSourceComboBox.getSelectionModel().getSelectedIndex()) {
+            switch (internalLightSourceChoiceBox.getSelectionModel().getSelectedIndex()) {
                 case 0:
                     CIS_DATA.setDiffuseLightSources(0);
                     CIS_DATA.setCoaxLightSources(0);
@@ -74,15 +74,15 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                     CIS_DATA.setCoaxLightSources(1);
                     break;
             }
-            internalLightColorComboBox.setDisable(CIS_DATA.getPhaseCount() == 3 || CIS_DATA.getLedLines() == 0);
+            internalLightColorChoiceBox.setDisable(CIS_DATA.getPhaseCount() == 3 || CIS_DATA.getLedLines() == 0);
         });
-        internalLightColorComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
+        internalLightColorChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
                 CIS.LightColor.findByDescription(newValue).ifPresent(CIS_DATA::setLightColor));
 
-        colorComboBox.getSelectionModel().selectFirst();
-        scanWidthComboBox.getSelectionModel().selectFirst();
-        internalLightSourceComboBox.getSelectionModel().select(1);
-        internalLightColorComboBox.getSelectionModel().select(1);
+        phasesChoiceBox.getSelectionModel().selectFirst();
+        scanWidthChoiceBox.getSelectionModel().selectFirst();
+        internalLightSourceChoiceBox.getSelectionModel().select(1);
+        internalLightColorChoiceBox.getSelectionModel().select(1);
     }
 
     @Override

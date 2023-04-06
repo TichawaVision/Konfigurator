@@ -90,7 +90,7 @@ public class LDSTD extends CIS {
         printout += Util.getString("glass pane, see drawing") + "\n";
         printout += Util.getString("shading") + "\n";
         printout += Util.getString("powersource") + "(24 +/- 1) VDC\n";
-        printout += Util.getString("Needed power:")
+        printout += Util.getString("Needed max power:") + " "
                 + (((calculation.electSums[2] == null) ? 0.0 : (Math.round(10.0 * calculation.electSums[2]) / 10.0)) + " A")
                 .replace(" 0 A", " ???") + " +/- 20%\n";
         printout += Util.getString("weight") + ": ~ "
