@@ -61,12 +61,15 @@ public abstract class CIS {
     protected transient PropertyChangeSupport observers; // part of 'observer' pattern (via property change) to communicate changes of the model (this class) e.g. to the GUI
     // observer currently only supported by VUCIS so only methods used by VUCIS will fire property changes (for now)
 
+    /**
+     * The name (type) of the CIS (e.g. VUCIS, VTCIS, ...)
+     */
     public final String cisName;
     @Getter
     private final Set<LightColor> lightColors;
     @Getter
     @Setter
-    private int mode;
+    private int mode; //TODO this could probably be moved to MXCIS
     @Getter
     private int phaseCount;
     @Getter
@@ -79,7 +82,7 @@ public abstract class CIS {
     @Getter
     private Resolution selectedResolution;
     @Setter
-    private int numOfPix;
+    private int numOfPix; //TODO maybe remove this as member and calculate when needed (and only save the needed fixed values for the calculation as members)
     @Getter
     @Setter
     private boolean externalTrigger;
@@ -104,7 +107,7 @@ public abstract class CIS {
 
         // other inits (known at creation)
         String fullName = this.getClass().getName();
-        cisName = fullName.substring(fullName.lastIndexOf('.') + 1);
+        cisName = fullName.substring(fullName.lastIndexOf('.') + 1); //TODO why not just getSimpleName?
         this.lightColors = new HashSet<>();
     }
 
@@ -183,94 +186,126 @@ public abstract class CIS {
         return Math.round(Math.pow(10.0, digits) * value) / Math.pow(10.0, digits);
     }
 
+    /**
+     * Calculates the components with prices for the current selection
+     *
+     * @return A {@link CISCalculation} calculation result object
+     */
     public CISCalculation calculate() {
+        // create the result object
         CISCalculation calculation = new CISCalculation();
 
+        // map for prices, maps artNo -> priceRecord
         Map<Integer, PriceRecord> priceRecords = new HashMap<>();
 
+        // look in database for records
         Util.getDatabase().ifPresent(context -> {
-            context.selectFrom(PRICE).stream()
-                    .forEach(priceRecord -> priceRecords.put(priceRecord.getArtNo(), priceRecord));
+            // put all price entries into map
+            context.selectFrom(PRICE).stream().forEach(priceRecord -> priceRecords.put(priceRecord.getArtNo(), priceRecord));
 
-            //Electronics
-            int sensPerFpga;
+            /*
+                Electronics
+            */
 
-            if (getSelectedResolution().getActualResolution() > 600) {
-                sensPerFpga = 1;
-            } else if ((this instanceof VDCIS && getPhaseCount() > 1) || (this instanceof MXCIS && getPhaseCount() == 4)) {
-                //FULL (RGB)
-                sensPerFpga = 2;
-            } else if (getMaxRateForHalfMode(getSelectedResolution())
-                    .map(rate -> getSelectedLineRate() / 1000 <= rate)
-                    .orElse(false)) {
-                //HALF
-                sensPerFpga = 4;
-            } else {
-                //FULL
-                sensPerFpga = 2;
-            }
+            int sensorsPerFpga = getNumberOfSensorsPerFpga();
+            setMode(sensorsPerFpga);
 
-            setMode(sensPerFpga);
-
-            double lengthPerSens = BASE_LENGTH * sensPerFpga;
+            double lengthPerSens = BASE_LENGTH * sensorsPerFpga;
             calculation.numFPGA = (int) Math.ceil(getScanWidth() / lengthPerSens);
 
             try {
-                // Einlesen der Elektronik-Tabelle
+                // read applicable entries from electronic table
                 context.selectFrom(ELECTRONIC)
+                        // must be for this CIS
                         .where(ELECTRONIC.CIS_TYPE.eq(getClass().getSimpleName()))
-                        .and(ELECTRONIC.CIS_LENGTH.eq(getScanWidth()))
-                        .stream()
+                        // must be for current scan width
+                        .and(ELECTRONIC.CIS_LENGTH.eq(getScanWidth())).stream()
+                        // must match otherwise
                         .filter(electronicRecord -> isApplicable(electronicRecord.getSelectCode()))
-                        .forEach(electronicRecord ->
-                        {
-                            int amount = (int) (getElectFactor(electronicRecord.getMultiplier())
-                                    * MathEval.evaluate(electronicRecord.getAmount()
-                                    .replace(" ", "")
-                                    .replace("L", "" + getLedLines())
-                                    .replace("F", "" + calculation.numFPGA)
-                                    .replace("S", "" + getBoardCount())
-                                    .replace("N", "" + getScanWidth())));
+                        // for each applicable record: add price
+                        .forEach(electronicRecord -> {
+                            // calculate needed amount
+                            int amount = (int) (getElectronicsFactor(electronicRecord.getMultiplier()) *
+                                    // replace codes with numbers and evaluate factor
+                                    MathEval.evaluate(electronicRecord.getAmount()
+                                            .replace(" ", "") // don't need empty spaces
+                                            .replace("L", "" + getLedLines()) // L is replaced by light number
+                                            .replace("F", "" + calculation.numFPGA) // F is replaced by FPGA number
+                                            .replace("S", "" + getBoardCount()) // S is replaced by number of boards
+                                            .replace("N", "" + getScanWidth()))); // N is replaced by scan width
 
+                            // add to prices
                             calculateAndAddSinglePrice(electronicRecord.getArtNo(), amount, calculation.electConfig, calculation.electSums, priceRecords);
 
+                            // add FPGA if there is an item with a code that contains it
                             if (amount > 0 && electronicRecord.getSelectCode() != null && electronicRecord.getSelectCode().contains("FPGA")) {
-                                calculation.numFPGA += amount;
+                                calculation.numFPGA += amount; //TODO check if this works if it's changed here but (also) read above
                             }
                         });
             } catch (DataAccessException e) {
                 throw new CISException("Error in Electronics");
             }
 
-            //Mechanics
+            /*
+                Mechanics
+            */
             try {
+                // read applicable entries from mechanics table
                 context.selectFrom(MECHANIC)
+                        // must be for this CIS
                         .where(MECHANIC.CIS_TYPE.eq(getClass().getSimpleName()))
+                        // must be for current scan width
                         .and(MECHANIC.CIS_LENGTH.eq(getScanWidth()))
-                        .and(MECHANIC.LIGHTS.eq(getLightSources())
-                                .or(MECHANIC.LIGHTS.isNull()))
-                        .stream()
+                        // light code must match (or be empty)
+                        .and(MECHANIC.LIGHTS.eq(getLightSources()).or(MECHANIC.LIGHTS.isNull())).stream()
+                        // must match otherwise
                         .filter(mechanicRecord -> {
                             try {
+                                // check if this item is applicable
                                 return isApplicable(mechanicRecord.getSelectCode());
-                            } catch (CISNextSizeException e) { // need next size
+                            } catch (CISNextSizeException e) { // will throw an exception if we need next size (that's ugly but works for now...)
+                                // adds the next size entry instead of this one
                                 calculateNextSizeMechanics(calculation, mechanicRecord, priceRecords);
                                 return false; //don't take this size if we need next larger one
                             }
                         })
+                        // for each applicable entry: add to prices
                         .forEach(mechanicRecord -> {
-                            int amount = getMechaFactor(mechanicRecord.getAmount(), calculation);
+                            int amount = getMechanicsFactor(mechanicRecord.getAmount(), calculation);
                             calculateAndAddSinglePrice(mechanicRecord.getArtNo(), amount, calculation.mechaConfig, calculation.mechaSums, priceRecords);
                         });
             } catch (DataAccessException e) {
                 throw new CISException("Error in Mechanics");
             }
 
-            if (!(this instanceof LDSTD)) {
+            // calculate number of pixel
+            if (!(this instanceof LDSTD)) { //TODO move this to subclass + helper method
                 setNumOfPix(calcNumOfPix());
             }
         });
         return calculation;
+    }
+
+    /**
+     * Calculates and returns the number of sensors per FPGA
+     */
+    private int getNumberOfSensorsPerFpga() {
+        int sensorsPerFpga;
+        if (getSelectedResolution().getActualResolution() > 600) {
+            sensorsPerFpga = 1;
+        } else if ((this instanceof VDCIS && getPhaseCount() > 1) || (this instanceof MXCIS && getPhaseCount() == 4)) { //TODO move this to subclass
+            //FULL (RGB)
+            sensorsPerFpga = 2;
+        } else if (getMaxRateForHalfMode(getSelectedResolution())
+                .map(rate -> getSelectedLineRate() / 1000 <= rate)
+                .orElse(false)) {
+            //HALF
+            sensorsPerFpga = 4;
+        } else {
+            //FULL
+            sensorsPerFpga = 2;
+        }
+        return sensorsPerFpga;
     }
 
     /**
@@ -292,6 +327,8 @@ public abstract class CIS {
 
                         if (priceRecord.getPhotoValue() != 0) {
                             sums[4] = priceRecord.getPhotoValue(); //TODO is this right?
+                            // only one record will have a photo value, so it can be overwritten ?!
+                            // but is this actually the case?
                         }
                     });
         }
@@ -305,9 +342,9 @@ public abstract class CIS {
         String selectCodeWithoutSpaces = mechanicRecord.getSelectCode().replaceAll("\\s", "");
         String selectCodeWithoutS = "S".equals(selectCodeWithoutSpaces) ? "" : selectCodeWithoutSpaces.replace("S&", "");
         if (isApplicable(selectCodeWithoutS)) { // only add if select code without S works
-            int amount = getMechaFactor(mechanicRecord.getAmount(), calculation);
+            int amount = getMechanicsFactor(mechanicRecord.getAmount(), calculation);
             if (mechanicRecord.getNextSizeArtNo().equals(mechanicRecord.getArtNo())) // same number -> depends on N -> make N next size (+260)
-                amount = getMechaFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + BASE_LENGTH)), calculation);
+                amount = getMechanicsFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + BASE_LENGTH)), calculation);
             calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, calculation.mechaConfig, calculation.mechaSums, priceRecords);
         }
     }
@@ -809,7 +846,7 @@ public abstract class CIS {
         }
     }
 
-    private int getMechaFactor(String factor, CISCalculation calculation) {
+    private int getMechanicsFactor(String factor, CISCalculation calculation) {
         if (isInteger(factor)) {
             return Integer.parseInt(factor);
         } else {
@@ -818,7 +855,7 @@ public abstract class CIS {
                     .replace("N", "" + getScanWidth())
                     .replace(" ", "")
                     .replace("L", "" + getLedLines());
-            ev = prepareMechaFactor(ev); // do CIS specific calculations
+            ev = prepareMechanicsFactor(ev); // do CIS specific calculations
             return (int) MathEval.evaluate(ev);
         }
     }
@@ -827,7 +864,7 @@ public abstract class CIS {
      * Method for CIS specific Mecha calculations. To be overwritten by subclasses if specific calculations are required.
      * Default implementation returns the given String unchanged.
      */
-    protected String prepareMechaFactor(String factor) {
+    protected String prepareMechanicsFactor(String factor) {
         return factor;
     }
 
@@ -835,35 +872,51 @@ public abstract class CIS {
      * Method for CIS specific Elect calculations. To be overwritten by subclasses if specific calculations are required.
      * Default implementation returns the given String unchanged.
      */
-    protected String prepareElectFactor(String factor) {
+    protected String prepareElectronicsFactor(String factor) {
         return factor;
     }
 
-    private int getElectFactor(String factor) {
-        factor = prepareElectFactor(factor); // do CIS specific calculations
+    /**
+     * Determines the int value of the given String factor by replacing Variables with the corresponding values.
+     * Currently, replaces 'L' with the number of led lines.
+     *
+     * @param factor the factor String that might contain variables
+     * @return the calculated int value corresponding to the given String. If there is a condition, the return value is 1 if the condition is met or -1 otherwise
+     */
+    private int getElectronicsFactor(String factor) {
+        factor = prepareElectronicsFactor(factor); // do CIS specific calculations
         if (isInteger(factor)) {
+            // just a number -> convert to int
             return Integer.parseInt(factor);
         } else if (factor.equals("L")) {
+            // just 'L' -> return number of led lines
             return getLedLines();
         } else if (factor.contains("==")) {
-            String[] splitted = factor.split("==");
-            if (splitted[0].equals("L") && isInteger(splitted[1]) && getLedLines() == Integer.parseInt(splitted[1])) {
+            // condition with L==...
+            String[] split = factor.split("==");
+            if (split[0].equals("L") && isInteger(split[1]) && getLedLines() == Integer.parseInt(split[1])) {
                 return 1;
             }
         } else if (factor.contains(">")) {
-            String[] splitted = factor.split(">");
-            if (splitted[0].equals("L") && isInteger(splitted[1]) && getLedLines() > Integer.parseInt(splitted[1])) {
+            // condition with L>...
+            String[] split = factor.split(">");
+            if (split[0].equals("L") && isInteger(split[1]) && getLedLines() > Integer.parseInt(split[1])) {
                 return 1;
             }
         } else if (factor.contains("<")) {
-            String[] splitted = factor.split("<");
-            if (splitted[0].equals("L") && isInteger(splitted[1]) && getLedLines() < Integer.parseInt(splitted[1])) {
+            // condition with L<...
+            String[] split = factor.split("<");
+            if (split[0].equals("L") && isInteger(split[1]) && getLedLines() < Integer.parseInt(split[1])) {
                 return 1;
             }
         }
+        // condition isn't met, or we have something else -> return -1
         return -1;
     }
 
+    /**
+     * Returns the board count (that is the scan width divided by the base length)
+     */
     protected int getBoardCount() {
         return getScanWidth() / BASE_LENGTH;
     }
@@ -1103,7 +1156,7 @@ public abstract class CIS {
         return s != null && s.matches("[-+]?\\d+[.,]?\\d*");
     }
 
-    public static double decodeQuantity(String s) {
+    public static double decodeQuantity(String s) { //TODO move this to ferix price update?
         switch (s) {
             case "2":
                 return 1000;

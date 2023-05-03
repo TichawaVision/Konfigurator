@@ -253,7 +253,7 @@ public class VUCIS extends CIS {
      * - C replaced with number of coolings
      */
     @Override
-    protected String prepareMechaFactor(String factor) {
+    protected String prepareMechanicsFactor(String factor) {
         //small n: "LED in middle...", !X: "...that exists" (is not X)
         return factor.replace("n(?!X)", getNonSfsLEDsInMiddle() + "")
                 .replace("C", getCoolingCount() + "");
@@ -265,7 +265,7 @@ public class VUCIS extends CIS {
      * - shape from shading light special factors to count all bright / dark field lights
      */
     @Override
-    protected String prepareElectFactor(String factor) {
+    protected String prepareElectronicsFactor(String factor) {
         if (Arrays.stream(LightColor.values()).map(LightColor::getShortHand).anyMatch(factor::equals)) {
             return getLights().chars().mapToObj(c -> LightColor.findByCode((char) c)).filter(LightColor.findByShortHand(factor)::equals).count() + "";
         }
