@@ -77,7 +77,7 @@ public class MXCIS extends CIS {
             key += "C";
         }
 
-        key += getMechaVersion();
+        key += getMechanicVersion();
 
         if (isGigeInterface()) {
             key += "GT";

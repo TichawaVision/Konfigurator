@@ -353,7 +353,7 @@ public abstract class CIS {
         return ResourceBundle.getBundle("de.tichawa.cis.config.version").getString("version");
     }
 
-    public String getMechaVersion() {
+    public String getMechanicVersion() {
         return "_" + Util.getDatabase().flatMap(context -> context.selectFrom(CONFIG)
                         .where(CONFIG.CIS_TYPE.eq(getClass().getSimpleName()))
                         .and(CONFIG.KEY.eq("VERSION"))

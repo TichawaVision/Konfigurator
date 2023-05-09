@@ -42,7 +42,7 @@ public class LDSTD extends CIS {
             key += "C";
         }
 
-        key += getMechaVersion();
+        key += getMechanicVersion();
 
         if (key.endsWith("_")) {
             key = key.substring(0, key.length() - 1);

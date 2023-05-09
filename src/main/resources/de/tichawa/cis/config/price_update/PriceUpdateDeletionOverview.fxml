@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="de.tichawa.cis.config.controller.price_update.PriceUpdateDeletionOverviewController"
+            prefHeight="600.0" prefWidth="400.0">
+    <GridPane vgap="10" hgap="20" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+              AnchorPane.topAnchor="10.0">
+        <TableView fx:id="overviewTable" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS"/>
+        <Button GridPane.rowIndex="1" onAction="#handleConfirmDeletion">Confirm deletion</Button>
+    </GridPane>
+</AnchorPane>

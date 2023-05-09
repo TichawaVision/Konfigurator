@@ -6,8 +6,8 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="de.tichawa.cis.config.serial.SerialController"
             prefHeight="600.0" prefWidth="500.0">
-    <GridPane vgap="10" hgap="10" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
-              AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+    <GridPane vgap="10" hgap="10" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+              AnchorPane.topAnchor="10.0">
         <Label text="Serial Port:"/>
         <ChoiceBox fx:id="serialPortChoiceBox" GridPane.columnIndex="1"/>
         <Label text="Commands that are sent:" GridPane.columnIndex="2"/>

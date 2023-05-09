@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="de.tichawa.cis.config.controller.price_update.PriceUpdateNewItemController"
+            prefHeight="400.0" prefWidth="600.0">
+    <GridPane vgap="10" hgap="20" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+              AnchorPane.topAnchor="10.0">
+        <Label GridPane.columnSpan="2">
+            New article number not found in configurator database. Please add the following information for a new entry.
+        </Label>
+
+        <Label GridPane.rowIndex="1">Article number (FERIX alt):</Label>
+        <Label fx:id="articleNumberLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label GridPane.rowIndex="2">FERIX key:</Label>
+        <TextField fx:id="ferixKeyTextField" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label GridPane.rowIndex="3">Assembly time:</Label>
+        <TextField fx:id="assemblyTimeTextField" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label GridPane.rowIndex="4">Power consumption:</Label>
+        <TextField fx:id="powerConsumptionTextField" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <Label GridPane.rowIndex="5">Weight:</Label>
+        <TextField fx:id="weightTextField" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+        <Label GridPane.rowIndex="6">Photo value:</Label>
+        <TextField fx:id="photoValueTextField" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+        <Button onAction="#handleSubmit" GridPane.rowIndex="7" GridPane.columnSpan="2">Create new article in configurator database</Button>
+    </GridPane>
+</AnchorPane>

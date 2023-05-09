@@ -46,7 +46,7 @@ public class VDCIS extends CIS {
             key += "C";
         }
 
-        key += getMechaVersion();
+        key += getMechanicVersion();
 
         if (isGigeInterface()) {
             key += "GT";

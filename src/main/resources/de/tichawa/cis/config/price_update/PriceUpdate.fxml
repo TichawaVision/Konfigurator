@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="de.tichawa.cis.config.controller.price_update.PriceUpdateController"
+            prefHeight="175.0" prefWidth="480.0">
+    <GridPane vgap="10" hgap="20" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0"
+              AnchorPane.topAnchor="20.0">
+        <Label GridPane.columnSpan="2">Export prices from Ferix to the CSV file:</Label>
+        <Button GridPane.columnIndex="2" onAction="#handleExportFerixPrices">Export Ferix prices</Button>
+        <Label GridPane.rowIndex="2" GridPane.columnSpan="3">The following functions use the latest exported prices</Label>
+        <Button GridPane.rowIndex="3" onAction="#handleUpdatePrices">Update Prices</Button>
+        <Button GridPane.rowIndex="3" GridPane.columnIndex="1" onAction="#handleShowInactiveItems">Show inactive articles</Button>
+        <Button GridPane.rowIndex="3" GridPane.columnIndex="2" onAction="#handleDeleteInactiveUnusedItems">Delete inactive unused articles</Button>
+    </GridPane>
+</AnchorPane>

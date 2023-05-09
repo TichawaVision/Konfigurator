@@ -169,7 +169,7 @@ public class VUCIS extends CIS {
         key += "_" + getLensType().getCode();
 
         key += "_C";
-        key += getMechaVersion();
+        key += getMechanicVersion();
 
         if (key.endsWith("_")) {
             key = key.substring(0, key.length() - 1);
