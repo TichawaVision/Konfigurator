@@ -1202,7 +1202,7 @@ public class VUCIS extends CIS {
 
     @Override
     protected String getInterfacePrintout() {
-        return "Interface: CameraLink (max. " + (reducedPixelClock ? "10" : "5") + "\u200am)";
+        return "Interface: CameraLink (max. " + (reducedPixelClock ? "10" : "5") + "\u200am) " + Util.getString("interface-SDR");
     }
 
     /**

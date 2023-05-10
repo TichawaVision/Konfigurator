@@ -554,7 +554,7 @@ public abstract class CIS {
      * Default is GigE or CameraLink max 5m unless overwritten by subclass
      */
     protected String getInterfacePrintout() {
-        return "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5\u200am)");
+        return "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5\u200am) " + Util.getString("interface-SDR"));
     }
 
     /**
@@ -597,7 +597,7 @@ public abstract class CIS {
         double lineRate = Math.round(getSelectedLineRate() / 100.0) / 10.0;
         printout.append(Util.getString("sellinerate")).append(lineRate).append("\u200akHz\n");
         // - transport speed
-        printout.append(Util.getString("transport speed")).append(": ").append(String.format("%.1f", (getTransportSpeed() / 1000.0))).append("\u200amm/s\n");
+        printout.append(Util.getString("transport speed")).append(": ").append(String.format(Locale.US, "%.1f", (getTransportSpeed() / 1000.0))).append("\u200amm/s\n");
         // - geometry correction
         printout.append(getGeometryCorrectionString()).append("\n");
         // - trigger (if late printout)
@@ -605,9 +605,9 @@ public abstract class CIS {
         // - trigger pulse
         printout.append(Util.getString("trigger-pulse"))
                 .append("\n\t").append(Util.getString("trigger-pulse2")).append(" 1 ").append(Util.getString("impulse-every")).append(" ")
-                .append(selectedResolution.pixelSize / phaseCount * 2000).append("\u200aµm")
+                .append(String.format(Locale.US, "%.2f", selectedResolution.pixelSize / phaseCount * 2000)).append("\u200aµm")
                 .append("\n\t").append(Util.getString("trigger-pulse4")).append(" 1 ").append(Util.getString("impulse-every")).append(" ")
-                .append(selectedResolution.pixelSize / phaseCount * 4000).append("\u200aµm\n");
+                .append(String.format(Locale.US, "%.2f", selectedResolution.pixelSize / phaseCount * 4000)).append("\u200aµm\n");
         // - scan distance
         printout.append(Util.getString("scan distance")).append(": ").append(getScanDistanceString()).append("\n");
         // - depth of field (replaced +/- with *2)
