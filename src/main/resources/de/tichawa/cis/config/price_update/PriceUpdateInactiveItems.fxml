@@ -1,13 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.TableView?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="de.tichawa.cis.config.controller.price_update.PriceUpdateInactiveItemsController"
             prefHeight="500.0" prefWidth="500.0">
-    <GridPane vgap="10" hgap="20" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
-              AnchorPane.topAnchor="10.0">
-        <TableView fx:id="overviewTable" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS"/>
-    </GridPane>
+    <BorderPane AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+        <top>
+            <MenuBar>
+                <Menu text="File">
+                    <MenuItem onAction="#handleSave" text="Save"/>
+                </Menu>
+            </MenuBar>
+        </top>
+        <center>
+            <GridPane vgap="10" hgap="20">
+                <BorderPane.margin>
+                    <Insets bottom="20" left="20" right="20" top="20"/>
+                </BorderPane.margin>
+                <TableView fx:id="overviewTable" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS"/>
+            </GridPane>
+        </center>
+    </BorderPane>
 </AnchorPane>

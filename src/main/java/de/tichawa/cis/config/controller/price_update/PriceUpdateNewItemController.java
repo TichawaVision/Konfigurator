@@ -4,6 +4,7 @@ import de.tichawa.cis.config.model.tables.Price;
 import de.tichawa.cis.config.model.tables.records.PriceRecord;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 
@@ -11,8 +12,7 @@ import java.io.IOException;
  * Controller class for PriceUpdateNewItem.fxml
  */
 public class PriceUpdateNewItemController {
-    private int oldArticleNumber;
-
+    private boolean addingSuccessful = false;
     @FXML
     private Label articleNumberLabel;
     @FXML
@@ -26,8 +26,13 @@ public class PriceUpdateNewItemController {
     @FXML
     private TextField photoValueTextField;
 
+    /**
+     * Accepts the data for initialization. Initializes the form values for the new article with the existing values of the old one.
+     *
+     * @param oldArticleNumber the article number of the old article. This is used to read the existing values for the other form fields.
+     * @param newArticleNumber the article number of the new article. This is shown in the form as the new article number.
+     */
     public void passData(int oldArticleNumber, int newArticleNumber) {
-        this.oldArticleNumber = oldArticleNumber;
         articleNumberLabel.setText(String.valueOf(newArticleNumber));
 
         try {
@@ -47,6 +52,11 @@ public class PriceUpdateNewItemController {
         }
     }
 
+    /**
+     * Handles the submit button press. Inserts a new article to the database via {@link #addArticleToDatabase(int, String, double, double, double, double)}.
+     * Sets the {@link #addingSuccessful} flag to true if the creation was successful.
+     * Shows an alert otherwise or if the user input has the wrong format.
+     */
     @FXML
     private void handleSubmit() {
         try {
@@ -58,9 +68,12 @@ public class PriceUpdateNewItemController {
             double photoValue = Double.parseDouble(photoValueTextField.getText());
 
             // add new to database
-            if (addArticleToDatabase(newArticleNumber, ferixKeyTextField.getText(), assemblyTime, powerConsumption, weight, photoValue))
-                // and replace in existing
-                PriceUpdateInactiveItemsController.replaceItem(oldArticleNumber, newArticleNumber);
+            if (addArticleToDatabase(newArticleNumber, ferixKeyTextField.getText(), assemblyTime, powerConsumption, weight, photoValue)) {
+                // set flag true so that old one can be replaced
+                addingSuccessful = true;
+                // close window for further processing
+                ((Stage) articleNumberLabel.getScene().getWindow()).close();
+            }
         } catch (NumberFormatException e) {
             // wrong user inputs -> show alert
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -69,6 +82,17 @@ public class PriceUpdateNewItemController {
         }
     }
 
+    /**
+     * Inserts the given article into the database's price table
+     *
+     * @param articleNumber    the article number of the new article
+     * @param ferixKey         the ferix key of the new article
+     * @param assemblyTime     the assembly time of the new article
+     * @param powerConsumption the power consumption of the new article
+     * @param weight           the weight of the new article
+     * @param photoValue       the photo value of the new article
+     * @return whether the inserting succeeded
+     */
     private boolean addArticleToDatabase(int articleNumber, String ferixKey, double assemblyTime, double powerConsumption, double weight, double photoValue) {
         try {
             int inserted = PriceUpdateController.getDatabaseOrThrowException().insertInto(Price.PRICE,
@@ -85,5 +109,15 @@ public class PriceUpdateNewItemController {
             alert.showAndWait();
         }
         return false;
+    }
+
+    /**
+     * Getter for the flag {@link #addingSuccessful}.
+     * To be called after the user closed the form to check whether the old item can be replaced with the new one.
+     *
+     * @return whether the insertion of the new article into the price database table was successful
+     */
+    public boolean wasAddingSuccessful() {
+        return addingSuccessful;
     }
 }

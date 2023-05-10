@@ -1156,18 +1156,6 @@ public abstract class CIS {
         return s != null && s.matches("[-+]?\\d+[.,]?\\d*");
     }
 
-    public static double decodeQuantity(String s) { //TODO move this to ferix price update?
-        switch (s) {
-            case "2":
-                return 1000;
-            case "1":
-                return 100;
-            case "0":
-            default:
-                return 1;
-        }
-    }
-
     public static String getPortName(int x) {
         return Character.toString((char) (65 + x));
     }

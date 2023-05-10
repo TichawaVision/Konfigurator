@@ -195,7 +195,7 @@ public class PriceUpdateController {
                 // filter malformed lines (item at index 0 should be article number, at index 1 price (per items at index 2)
                 .filter(line -> CIS.isInteger(line[0]) && CIS.isDouble(line[1]))
                 // convert line to tuple <article number, <price, isActive>>
-                .map(line -> new Tuple<>(Integer.parseInt(line[0]), new Tuple<>(Double.parseDouble(line[1]) / CIS.decodeQuantity(line[2]), line.length < 4 || line[3].equals("A"))))
+                .map(line -> new Tuple<>(Integer.parseInt(line[0]), new Tuple<>(Double.parseDouble(line[1]) / decodeQuantity(line[2]), line.length < 4 || line[3].equals("A"))))
                 // filter items by price > 0
                 .filter(t -> t.getV().getU() > 0)
                 // convert to map: article number -> <price, isActive>
@@ -225,5 +225,23 @@ public class PriceUpdateController {
      */
     public static DSLContext getDatabaseOrThrowException() throws IOException {
         return Util.getDatabase().orElseThrow(() -> new IOException("unable to read database"));
+    }
+
+    /**
+     * Converts the ferix export quantity value to the corresponding multiplier
+     *
+     * @param ferixQuantityIdentifier the quantity identifier from the ferix export
+     * @return the quantity multiplier that corresponds to the given identifier
+     */
+    private static double decodeQuantity(String ferixQuantityIdentifier) {
+        switch (ferixQuantityIdentifier) {
+            case "2": // per 1000
+                return 1000;
+            case "1": // per 100
+                return 100;
+            case "0": // per 1
+            default:
+                return 1;
+        }
     }
 }

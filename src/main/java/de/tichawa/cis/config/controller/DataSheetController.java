@@ -200,7 +200,7 @@ public class DataSheetController implements Initializable {
      * saves the current contents of the datasheet to a pdf file.
      * Shows a file chooser to determine the file location.
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings("unused") // shows unused because controller class is set programmatically and not via fxml
     @FXML
     private void save() {
         try {
@@ -209,6 +209,8 @@ public class DataSheetController implements Initializable {
             fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("PDF files", "*.pdf"),
                     new FileChooser.ExtensionFilter("All files", "*"));
             java.io.File file = fileChooser.showSaveDialog(headerTextArea.getScene().getWindow());
+            if (file == null)
+                return;
             Document document = new Document();
             PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
             addHeader(pdfWriter);
