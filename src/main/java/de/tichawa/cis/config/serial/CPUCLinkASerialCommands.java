@@ -43,9 +43,16 @@ public class CPUCLinkASerialCommands extends SerialCommands {
         // switch to set menu
         commands.add("SET");
         commands.addAll(setMenuCommands);
+
+        // save if we want to
+        if (storeParameters) { // save in set menu
+            commands.add("PPS"); // store parameters
+            commands.add("SFS"); // save factory settings //TODO do we want this here?
+        }
         commands.add("<"); // back to main menu
-        if (storeParameters) // save if we want to
-            commands.add("PPS"); // needs to be last
+        if (storeParameters) // save in main menu
+            commands.add("PCS"); // store pixel correction
+
         return commands;
     }
 
@@ -54,6 +61,7 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      */
     private void generateMainMenuCommands() {
         generateVideoModeCommands();
+        generatePixelCorrectionCommand();
     }
 
     /**
@@ -87,24 +95,28 @@ public class CPUCLinkASerialCommands extends SerialCommands {
         generateGlobalGainCommand();
         generateNumberOfChipsCommand();
         generateShiftCommands();
-        generateKinkCommand();
         generateLaserExpoCommands();
+        generateStartStopModeCommand();
+        generateDynamicSensorBalanceCommand();
     }
 
     /**
      * generates the main menu commands for the video mode ("V")
      */
     private void generateVideoModeCommands() {
-        //TODO
-        throw new UnsupportedOperationException();
+        mainMenuCommands.add("V 0,0,1");
+        mainMenuCommands.add("V 1,0,1");
+    }
+
+    /**
+     * generates the main menu command for the pixel correction.
+     * Enables pixel correction for all phases (sends value 1).
+     */
+    private void generatePixelCorrectionCommand() {
+        mainMenuCommands.add("PCP 1,1,1,1,1,1");
     }
 
     private void generateLaserExpoCommands() {
-        //TODO
-        throw new UnsupportedOperationException();
-    }
-
-    private void generateKinkCommand() {
         //TODO
         throw new UnsupportedOperationException();
     }
@@ -127,7 +139,7 @@ public class CPUCLinkASerialCommands extends SerialCommands {
             case DEFAULT:
                 int xShift = 48 * cis.getSelectedResolution().getBoardResolution() / 1200;
                 setMenuCommands.add("XG 999," + xShift + ",0," + (maxPixel - xShift - 1));
-        } //TODO check if correct
+        }
         setMenuCommands.add("YG 999,0,0,0,0");
     }
 
@@ -135,28 +147,28 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      * generates the set menu command for the number of chips ("W")
      */
     private void generateNumberOfChipsCommand() {
-        setMenuCommands.add("W" + chips); //TODO check if correct
+        setMenuCommands.add("W " + chips);
     }
 
     /**
      * generates the set menu command for the global gain ("GLG")
      */
     private void generateGlobalGainCommand() {
-        setMenuCommands.add("GLG 72"); //TODO check if correct
+        setMenuCommands.add("GLG 72");
     }
 
     /**
      * generates the set menu command for the camera link patch ("CLP")
      */
     private void generateCLPatchCommand() {
-        setMenuCommands.add("CLP 0"); //TODO check if correct
+        setMenuCommands.add("CLP 0");
     }
 
     /**
      * generates the set menu command for the unit type ("UTP")
      */
     private void generateUnitTypeCommand() {
-        setMenuCommands.add("UTP 0"); //TODO check if correct
+        setMenuCommands.add("UTP 0");
     }
 
     /**
@@ -182,18 +194,17 @@ public class CPUCLinkASerialCommands extends SerialCommands {
     }
 
     /**
-     * generates the set menu command for the autocorrection ("AC")
+     * generates the set menu command for the auto correlator ("AC")
      */
     private void generateAutoCorrCommand() {
-        setMenuCommands.add("AC 0,0,0,0"); //TODO check if correct
+        setMenuCommands.add("AC 1,50,3,250");
     }
 
     /**
      * generates the set menu command for the max temperature ("TMP")
      */
     private void generateMaxTempCommand() {
-        setMenuCommands.add("TMP 65,35,35"); //TODO check if correct
-        throw new UnsupportedOperationException();
+        setMenuCommands.add("TMP 65,35,35");
     }
 
     /**
@@ -215,6 +226,14 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      * generates the set menu commands for the sequence/phases ("SEQ").
      * All but the last phase get a command with 0 as the third and second last element, the last phase gets a 1 instead.
      * Uses the phase index wherever possible otherwise.
+     * <p>
+     * Command parameters:
+     * - phase number,
+     * - target type (1 - video, 5 - autocorrection),
+     * - FPGA channel number,
+     * - video flag (0 - read video data, 1 - return video data),
+     * - return flag (0 - continue, 1 - return),
+     * - color mix table number
      */
     private void generateSequenceCommands() {
         int phases = cis.getPhaseCount();
@@ -225,18 +244,36 @@ public class CPUCLinkASerialCommands extends SerialCommands {
     }
 
     /**
-     * generates the set menu command for the sensor chip
+     * generates the set menu commands for the sensor chip
      */
     private void generateSensorChipCommands() {
-        //TODO
-        throw new UnsupportedOperationException();
+        CIS.Resolution resolution = cis.getSelectedResolution();
+
+        // RES command (sensor chip dpi)
+        String resCommand = "RES ";
+        switch (resolution.getBoardResolution()) {
+            case 1200:
+                resCommand += "2";
+                break;
+            case 600:
+                resCommand += "1";
+                break;
+            case 300:
+                resCommand += "0";
+                break;
+            default:
+                throw new UnsupportedOperationException("unsupported resolution: " + resolution.getBoardResolution());
+        }
+        setMenuCommands.add(resCommand);
+
+        //TODO binning?
     }
 
     /**
      * generates the set menu command to enable switching DPI ("SWI")
      */
     private void generateSetDPICommand() {
-        setMenuCommands.add("SWI 1"); //TODO GEO?
+        setMenuCommands.add("SWI 1");
     }
 
     /**
@@ -250,15 +287,14 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      * generates the set menu command for the sheet len delay
      */
     private void generateSheetLenDelayCommand() {
-        //TODO
-        throw new UnsupportedOperationException();
+        setMenuCommands.add("SHD 0,0");
     }
 
     /**
      * generates the set menu command for the trigger pulses
      */
     private void generateTriggerPulsesCommand() {
-        setMenuCommands.add("TP 1"); //TODO check if correct
+        setMenuCommands.add("TP 1");
     }
 
     /**
@@ -274,7 +310,7 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      * The command is a broadcast command with the value 0.
      */
     private void generateAnalogOffsetCommand() {
-        setMenuCommands.add("AOF 999,0"); //TODO check if exists
+        setMenuCommands.add("AOF 999,0"); //TODO weg?
     }
 
     /**
@@ -295,16 +331,14 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      * generates the set menu command for the line frequency
      */
     private void generateLineFrequencyCommand() {
-        //TODO LFR/FRQ??
-        throw new UnsupportedOperationException();
+        setMenuCommands.add("LFR 1000");
     }
 
     /**
      * generates the set menu command for the exposure
      */
     private void generateExposureCommand() {
-        //TODO
-        throw new UnsupportedOperationException();
+        setMenuCommands.add("EXP 99,99,0,0");
     }
 
     /**
@@ -334,20 +368,25 @@ public class CPUCLinkASerialCommands extends SerialCommands {
         setMenuCommands.add("FFD 0");
     }
 
+    /**
+     * generates the set menu start/stop mode command.
+     */
+    private void generateStartStopModeCommand() {
+        setMenuCommands.add("SSM 0");
+    }
+
+    /**
+     * generates the set menu dynamic sensor balance ("Streifenregelung") command.
+     * Disables the dynamic sensor balance by sending 0 as first parameter.
+     * The second parameter (low pass length/depth) will then not be used.
+     * Second parameter values range from 0 to 7 with 0 representing an extra half of the line before that results in a limit of 2 lines while 7 represents 7/8 of the line before resulting in a limit of 2^8=256 lines.
+     */
+    private void generateDynamicSensorBalanceCommand() {
+        setMenuCommands.add("DSB 0,7");
+    }
 }
-/* TODO go through serial commands from non ARM and bring them here
-    status:
-        - prev. main menu -> done
-        - pref set menu -> done
-        other
-            Pixelcorrection PCS/PCP
-            Taps CLT
-            Exposure EXP
-            Enable Geo GEO
-            Humidity HUM
-            Registers? REG
-            Resolution RES
-            Safe Factory Settings? SFS
-            Sheet Delay? SHD
-            Set Start/Stop Mode SSM
+/* TODO
+    Taps CLT -> ??
+    Humidity HUM -> ?
+    Registers? REG -> nix
 */
