@@ -27,6 +27,10 @@ public class SerialController {
     private TextArea commandsTextArea;
     @FXML
     private TextField delayTextField;
+    @FXML
+    private RadioButton cpucLinkButton;
+    @FXML
+    private RadioButton cpucLinkAButton;
 
     private long totalNumberOfPix;
 
@@ -57,6 +61,17 @@ public class SerialController {
                 return com.fazecast.jSerialComm.SerialPort.getCommPort(port);
             }
         });
+        // - arm or not
+        cpucLinkButton.setSelected(true);
+        updateSaveLabel();
+        cpucLinkButton.selectedProperty().addListener(((observable, oldValue, newValue) -> {
+            updateSaveLabel();
+            updateCommandsText();
+        }));
+        cpucLinkAButton.selectedProperty().addListener(((observable, oldValue, newValue) -> {
+            updateSaveLabel();
+            updateCommandsText();
+        }));
         // - cpuc link
         cpucLinkChoiceBox.getItems().clear();
         cpucLinkChoiceBox.getItems().addAll(cpucLinks);
@@ -106,6 +121,20 @@ public class SerialController {
     }
 
     /**
+     * updates the label for the save parameters checkbox depending on the currently selected radio button ({@link #cpucLinkButton} or {@link #cpucLinkAButton})
+     *
+     * @throws IllegalStateException if none of the two radio buttons is selected for some reason
+     */
+    private void updateSaveLabel() {
+        if (cpucLinkButton.isSelected())
+            saveParametersCheckBox.setText("Save in the end (send S-command)");
+        else if (cpucLinkAButton.isSelected())
+            saveParametersCheckBox.setText("Save in the end (send PPS-, SFS- and PCS-commands)");
+        else
+            throw new IllegalStateException("expected one button to be selected");
+    }
+
+    /**
      * updates the commands text label by generating the commands for the current selection
      */
     private void updateCommandsText() {
@@ -113,17 +142,28 @@ public class SerialController {
     }
 
     /**
-     * generates a serial commands object for cpuclinks with the current selection
+     * generates a serial commands object for cpuclinks with the current selection.
      *
-     * @return a {@link CPUCLinkSerialCommands} object for the current selection
+     * @return a {@link CPUCLinkSerialCommands} or {@link CPUCLinkASerialCommands} object depending on the current selection
+     * @throws IllegalStateException if none of the two radio buttons {@link #cpucLinkButton} and {@link #cpucLinkAButton} is selected for some reason
      */
     private SerialCommands getCurrentCommands() {
-        return new CPUCLinkSerialCommands(
-                cis,
-                xyShiftChoiceBox.getValue(),
-                saveParametersCheckBox.isSelected(),
-                cpucLinkChoiceBox.getValue(),
-                totalNumberOfPix);
+        if (cpucLinkButton.isSelected())
+            return new CPUCLinkSerialCommands(
+                    cis,
+                    xyShiftChoiceBox.getValue(),
+                    saveParametersCheckBox.isSelected(),
+                    cpucLinkChoiceBox.getValue(),
+                    totalNumberOfPix);
+        else if (cpucLinkAButton.isSelected())
+            return new CPUCLinkASerialCommands(
+                    cis,
+                    xyShiftChoiceBox.getValue(),
+                    saveParametersCheckBox.isSelected(),
+                    cpucLinkChoiceBox.getValue(),
+                    totalNumberOfPix);
+        else
+            throw new IllegalStateException("expected one button to be selected");
     }
 
     /**
