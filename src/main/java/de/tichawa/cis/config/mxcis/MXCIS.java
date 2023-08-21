@@ -2,6 +2,7 @@ package de.tichawa.cis.config.mxcis;
 
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.model.tables.records.*;
+import lombok.*;
 
 import java.util.*;
 
@@ -10,11 +11,16 @@ public class MXCIS extends CIS {
     private static final HashMap<Integer, String> resToSens = new HashMap<>();
     private static final HashMap<Integer, Integer> dpiToRate = new HashMap<>();
 
+    @Getter
+    @Setter
+    private int mode;
+
     public MXCIS() {
     }
 
     protected MXCIS(MXCIS cis) {
         super(cis);
+        this.mode = cis.mode;
     }
 
     static {
@@ -285,7 +291,7 @@ public class MXCIS extends CIS {
      * chips on board * number of boards * pixels per sensor / binning
      */
     @Override
-    protected int calcNumOfPix() {
+    public int calcNumOfPix() {
         SensorChipRecord sensorChip = getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
         SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / getBinning();
@@ -298,5 +304,40 @@ public class MXCIS extends CIS {
     @Override
     public CIS copy() {
         return new MXCIS(this);
+    }
+
+    /**
+     * Calculates the number of sensors per fpga for MXCIS.
+     * Also sets the mode accordingly to mimic previous behaviour in {@link CIS#calculate()} that got refactored to this class.
+     *
+     * @return the number of sensors per fpga:
+     * 1 - if the actual resulotion is greater than 600
+     * 2 - if the phase count is 4
+     * otherwise the result of the default (super) call in {@link CIS#getNumberOfSensorsPerFpga()}
+     */
+    @Override
+    protected int getNumberOfSensorsPerFpga() {
+        int numberOfSensorsPerFpga;
+        if (getSelectedResolution().getActualResolution() > 600)
+            numberOfSensorsPerFpga = 1;
+        else if (getPhaseCount() == 4)
+            numberOfSensorsPerFpga = 2;
+        else
+            numberOfSensorsPerFpga = super.getNumberOfSensorsPerFpga();
+
+        setMode(numberOfSensorsPerFpga);
+        return numberOfSensorsPerFpga;
+    }
+
+    // should return false if code is unknown
+    @Override
+    protected boolean checkSpecificApplicability(String code) {
+        switch (code) {
+            case "L": //MODE: LOW (MXCIS only)
+                return getMode() == 4;
+            case "H": //Mode: HIGH (MXCIS only)
+                return getMode() == 2;
+        }
+        return false;
     }
 }

@@ -694,7 +694,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void updateCameraLinkInfo() {
         try {
-            List<CPUCLink> clcalc = CIS_DATA.getCLCalc(CIS_DATA.getNumOfPix(), null);
+            List<CPUCLink> clcalc = CIS_DATA.getCLCalc(CIS_DATA.calcNumOfPix(), null);
             StringJoiner displayText = new StringJoiner("\n");
             int boardNumber = 1;
             for (CPUCLink c : clcalc) {

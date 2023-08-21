@@ -176,4 +176,15 @@ public class Util {
     public static Stage createNewStage(String fxmlRelativeUrl, String title, Object controller) {
         return createNewStageWithLoader(fxmlRelativeUrl, title, controller).getKey();
     }
+
+    /**
+     * Converts the given number to string via {@link String#format(Locale, String, Object...)}
+     *
+     * @param number   the number to format
+     * @param decimals the number of output decimals
+     * @return a {@link String} object representing the number in {@link Locale#US}
+     */
+    public static String getNumberAsOutputString(double number, int decimals) {
+        return String.format(Locale.US, "%." + decimals + "f", number);
+    }
 }

@@ -68,9 +68,6 @@ public abstract class CIS {
     @Getter
     private final Set<LightColor> lightColors;
     @Getter
-    @Setter
-    private int mode; //TODO this could probably be moved to MXCIS
-    @Getter
     private int phaseCount;
     @Getter
     private int scanWidth;
@@ -81,8 +78,6 @@ public abstract class CIS {
     private boolean gigeInterface;
     @Getter
     private Resolution selectedResolution;
-    @Setter
-    private int numOfPix; //TODO maybe remove this as member and calculate when needed (and only save the needed fixed values for the calculation as members)
     @Getter
     @Setter
     private boolean externalTrigger;
@@ -106,8 +101,7 @@ public abstract class CIS {
         observers = new PropertyChangeSupport(this); // create observer list
 
         // other inits (known at creation)
-        String fullName = this.getClass().getName();
-        cisName = fullName.substring(fullName.lastIndexOf('.') + 1); //TODO why not just getSimpleName?
+        cisName = getClass().getSimpleName();
         this.lightColors = new HashSet<>();
     }
 
@@ -123,8 +117,6 @@ public abstract class CIS {
         this.externalTrigger = cis.externalTrigger;
         this.gigeInterface = cis.gigeInterface;
         this.lightColors = new HashSet<>(cis.lightColors);
-        this.mode = cis.mode;
-        this.numOfPix = cis.numOfPix;
         this.phaseCount = cis.phaseCount;
         this.scanWidth = cis.scanWidth;
         this.selectedLineRate = cis.selectedLineRate;
@@ -208,7 +200,6 @@ public abstract class CIS {
             */
 
             int sensorsPerFpga = getNumberOfSensorsPerFpga();
-            setMode(sensorsPerFpga);
 
             double lengthPerSens = BASE_LENGTH * sensorsPerFpga;
             calculation.numFPGA = (int) Math.ceil(getScanWidth() / lengthPerSens);
@@ -277,35 +268,26 @@ public abstract class CIS {
             } catch (DataAccessException e) {
                 throw new CISException("Error in Mechanics");
             }
-
-            // calculate number of pixel
-            if (!(this instanceof LDSTD)) { //TODO move this to subclass + helper method
-                setNumOfPix(calcNumOfPix());
-            }
         });
         return calculation;
     }
 
     /**
-     * Calculates and returns the number of sensors per FPGA
+     * Calculates and returns the number of sensors per FPGA based on the current resolution and line rate
+     *
+     * @return the number of sensors per fpga:
+     * 1 - if the actual resolution is greater than 600 dpi
+     * 4 - if the selected line rate is smaller than the maximum rate for half mode (i.e. the half mode can be used)
+     * 2 - else
      */
-    private int getNumberOfSensorsPerFpga() {
-        int sensorsPerFpga;
-        if (getSelectedResolution().getActualResolution() > 600) {
-            sensorsPerFpga = 1;
-        } else if ((this instanceof VDCIS && getPhaseCount() > 1) || (this instanceof MXCIS && getPhaseCount() == 4)) { //TODO move this to subclass
-            //FULL (RGB)
-            sensorsPerFpga = 2;
-        } else if (getMaxRateForHalfMode(getSelectedResolution())
-                .map(rate -> getSelectedLineRate() / 1000 <= rate)
-                .orElse(false)) {
-            //HALF
-            sensorsPerFpga = 4;
-        } else {
-            //FULL
-            sensorsPerFpga = 2;
-        }
-        return sensorsPerFpga;
+    protected int getNumberOfSensorsPerFpga() {
+        if (getSelectedResolution().getActualResolution() > 600)
+            return 1;
+        if (getMaxRateForHalfMode(getSelectedResolution()).map(rate -> getSelectedLineRate() / 1000 <= rate).orElse(false))
+            // half mode
+            return 4;
+        // else: full mode
+        return 2;
     }
 
     /**
@@ -594,10 +576,9 @@ public abstract class CIS {
         // - scan width
         printout.append(Util.getString("scan width")).append(getScanWidth()).append("\u200amm\n");
         // - selected line rate
-        double lineRate = Math.round(getSelectedLineRate() / 100.0) / 10.0;
-        printout.append(Util.getString("sellinerate")).append(lineRate).append("\u200akHz\n");
+        printout.append(Util.getString("sellinerate")).append(Util.getNumberAsOutputString(getSelectedLineRate() / 1000., 1)).append("\u200akHz\n");
         // - transport speed
-        printout.append(Util.getString("transport speed")).append(": ").append(String.format(Locale.US, "%.1f", (getTransportSpeed() / 1000.0))).append("\u200amm/s\n");
+        printout.append(Util.getString("transport speed")).append(": ").append(Util.getNumberAsOutputString(getTransportSpeed() / 1000., 1)).append("\u200amm/s\n");
         // - geometry correction
         printout.append(getGeometryCorrectionString()).append("\n");
         // - trigger (if late printout)
@@ -623,14 +604,13 @@ public abstract class CIS {
         printout.append(Util.getString("Needed max power:")).append((" " + calculateNeededPower(calculation) + "\u200aA")
                 .replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
         printout.append(Util.getString("Needed average power:"))
-                .append((" " + (double) Math.round(calculateNeededPower(calculation) / phaseCount * 100) / 100 + "\u200aA")
+                .append((" " + Util.getNumberAsOutputString(calculateNeededPower(calculation) / phaseCount, 1) + "\u200aA")
                         .replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
         // - frequency limit
-        long minFreq = Math.round(1000 * getMinFreq(calculation)) / 1000;
         if (hasLEDs()) // only print this if there are lights
             printout.append(Util.getString("FrequencyLimit")).append(" ").append(getMinFreq(calculation) < 0 // if < 0 there are values missing in database -> give error msg
                     ? Util.getString("missing photo values") + "\n"
-                    : "~" + minFreq + "\u200akHz\n");
+                    : "~" + Util.getNumberAsOutputString(getMinFreq(calculation), 0) + "\u200akHz\n");
         // - cooling
         printout.append(Util.getString(getCooling().getShortHand())).append("\n");
         // - weight
@@ -641,12 +621,13 @@ public abstract class CIS {
         // - end of specs
         printout.append(getEndOfSpecs());
         // - add warning if necessary (if min freq is less than 2 * selected line rate)
-        if (minFreq < lineRate)
+        if (getMinFreq(calculation) < getSelectedLineRate() / 1000.)
             printout.append(PRINTOUT_WARNING).append(Util.getString("warning minfreq linerate")).append("\n");
 
         //CL Config
         printout.append("\n\t\n");
         printout.append(getStartOfCLPrintOut());
+        int numOfPix = calcNumOfPix();
         if (isGigeInterface()) {
             printout.append("Pixel Clock: 40\u200aMHz\n");
             printout.append(Util.getString("numofpix")).append(numOfPix).append("\n");
@@ -798,12 +779,6 @@ public abstract class CIS {
                     break;
                 case "EXT": //With external trigger
                     proceed = isExternalTrigger();
-                    break;
-                case "L": //MODE: LOW (MXCIS only)
-                    proceed = this instanceof MXCIS && getMode() == 4;
-                    break;
-                case "H": //Mode: HIGH (MXCIS only)
-                    proceed = this instanceof MXCIS && getMode() == 2;
                     break;
                 default: //Unknown modifier -> maybe find it in P code or subclass checking
                     proceed = isValidPCode(multiplier) || checkSpecificApplicability(multiplier);
@@ -1109,7 +1084,7 @@ public abstract class CIS {
      * Unless overwritten by subclass the default implementation calculates with SMARAGD (single line):
      * chips * number of sensor boards * 0.72 * actual resolution
      */
-    protected int calcNumOfPix() {
+    public int calcNumOfPix() {
         int sensorBoardCount = getBoardCount();
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = (int) (sensorBoard.getChips() * sensorBoardCount * 0.72 * getSelectedResolution().getActualResolution());
@@ -1206,14 +1181,6 @@ public abstract class CIS {
         public CISNextSizeException(String message) {
             super(message);
         }
-    }
-
-    /**
-     * calculates the number of pixel and returns it
-     */
-    public int getNumOfPix() {
-        setNumOfPix(calcNumOfPix());
-        return numOfPix;
     }
 
     /**

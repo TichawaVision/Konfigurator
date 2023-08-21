@@ -194,4 +194,12 @@ public class VDCIS extends CIS {
     public CIS copy() {
         return new VDCIS(this);
     }
+
+    @Override
+    protected int getNumberOfSensorsPerFpga() {
+        if (getSelectedResolution().getActualResolution() > 600) return 1;
+        if (getPhaseCount() > 1) return 2;
+        // else
+        return super.getNumberOfSensorsPerFpga();
+    }
 }

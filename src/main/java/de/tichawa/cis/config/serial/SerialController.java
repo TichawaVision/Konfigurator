@@ -41,7 +41,7 @@ public class SerialController {
      */
     public void initialize(CIS cis) {
         this.cis = cis;
-        List<CPUCLink> cpucLinks = cis.getCLCalc(cis.getNumOfPix(), cis.calculate());
+        List<CPUCLink> cpucLinks = cis.getCLCalc(cis.calcNumOfPix(), cis.calculate());
         totalNumberOfPix = cpucLinks.stream().mapToLong(de.tichawa.cis.config.CPUCLink::getPixelCount).sum();
 
         // setup choice boxes
