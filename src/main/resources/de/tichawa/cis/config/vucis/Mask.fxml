@@ -14,13 +14,19 @@
             <ColumnConstraints hgrow="SOMETIMES" prefWidth="400.0"/>
         </columnConstraints>
         <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES" prefHeight="80"/>
             <RowConstraints vgrow="SOMETIMES" prefHeight="220"/>
             <RowConstraints vgrow="SOMETIMES" prefHeight="80"/>
             <RowConstraints vgrow="SOMETIMES" prefHeight="120"/>
             <RowConstraints vgrow="SOMETIMES" prefHeight="130"/>
         </rowConstraints>
 
-        <TitledPane animated="false" prefHeight="220.0" collapsible="false" GridPane.columnSpan="3"
+        <TitledPane animated="false" collapsible="false" GridPane.columnSpan="3" text="Current TiVi-Key">
+            <HBox alignment="CENTER">
+                <Label fx:id="tiViKeyLabel" style="-fx-font-weight: bold"/>
+            </HBox>
+        </TitledPane>
+        <TitledPane animated="false" prefHeight="220.0" collapsible="false" GridPane.columnSpan="3" GridPane.rowIndex="1"
                     text="Color &amp; Light Sources">
             <GridPane>
                 <columnConstraints>
@@ -100,7 +106,7 @@
                 </HBox>
             </GridPane>
         </TitledPane>
-        <TitledPane collapsible="false" GridPane.columnSpan="3" GridPane.fillHeight="true" GridPane.fillWidth="true" GridPane.rowIndex="1"
+        <TitledPane collapsible="false" GridPane.columnSpan="3" GridPane.fillHeight="true" GridPane.fillWidth="true" GridPane.rowIndex="2"
                     text="Optics">
             <GridPane alignment="CENTER" hgap="50.0" vgap="5.0" GridPane.rowIndex="1">
                 <Label text="Lens working distance:" alignment="BASELINE_LEFT" GridPane.columnIndex="0"
@@ -118,7 +124,7 @@
                 <Label fx:id="lensCodeLabel" GridPane.columnIndex="4"/>
             </GridPane>
         </TitledPane>
-        <TitledPane collapsible="false" minHeight="120" GridPane.fillWidth="true" GridPane.rowIndex="2"
+        <TitledPane collapsible="false" minHeight="120" GridPane.fillWidth="true" GridPane.rowIndex="3"
                     text="Resolution &amp; Scan Width">
             <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.rowIndex="1">
                 <columnConstraints>
@@ -151,10 +157,8 @@
                 <ChoiceBox fx:id="scanWidthChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
             </GridPane>
         </TitledPane>
-        <TitledPane collapsible="false" minHeight="120" GridPane.columnIndex="1" GridPane.fillHeight="true"
-                    GridPane.fillWidth="true"
-                    GridPane.rowIndex="2"
-                    text="Pixel &amp; Defect Size">
+        <TitledPane collapsible="false" minHeight="120" GridPane.columnIndex="1" GridPane.fillHeight="true" GridPane.fillWidth="true"
+                    GridPane.rowIndex="3" text="Pixel &amp; Defect Size">
             <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <columnConstraints>
                     <ColumnConstraints minWidth="120.0"/>
@@ -173,8 +177,7 @@
                 <Label fx:id="pixelCountLabel" text="0 mm" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
             </GridPane>
         </TitledPane>
-        <TitledPane collapsible="false" GridPane.columnIndex="2" GridPane.fillHeight="true"
-                    GridPane.fillWidth="true" GridPane.rowIndex="2"
+        <TitledPane collapsible="false" GridPane.columnIndex="2" GridPane.fillHeight="true" GridPane.fillWidth="true" GridPane.rowIndex="3"
                     text="Line Rate &amp; Transport Speed">
             <GridPane alignment="CENTER" hgap="5.0" vgap="5.0">
                 <columnConstraints>
@@ -203,9 +206,7 @@
                 <Label fx:id="speedipsLabel" text="0 ips" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
             </GridPane>
         </TitledPane>
-        <TitledPane collapsible="false" minHeight="130" GridPane.columnSpan="3"
-                    GridPane.fillWidth="true" GridPane.rowIndex="3"
-                    text="Interface">
+        <TitledPane collapsible="false" minHeight="130" GridPane.columnSpan="3" GridPane.fillWidth="true" GridPane.rowIndex="4" text="Interface">
             <GridPane alignment="CENTER" hgap="20">
                 <columnConstraints>
                     <ColumnConstraints percentWidth="20"/><!-- Interface -->

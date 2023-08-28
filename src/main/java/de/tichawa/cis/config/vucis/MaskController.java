@@ -29,6 +29,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     private static long lastMinFreq = 0;
 
     @FXML
+    private Label tiViKeyLabel;
+    @FXML
     private Label warningSelectedLineRateLabel;
     @FXML
     private ChoiceBox<String> lensTypeChoiceBox;
@@ -426,6 +428,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         // initialize other stuff
         initInterface();
         updateCameraLinkInfo();
+        updateTiViKey();
     }
 
     /**
@@ -450,92 +453,93 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 setLightPresetToManual();
                 updateLightInfo();
                 updateLightFrequencyLimit();
-                return;
+                break;
             case "leftBrightField":
                 selectLightChoiceBox(brightFieldLeftChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
                 updateLightFrequencyLimit();
-                return;
+                break;
             case "coaxLight":
                 handleCoaxChange((CIS.LightColor) evt.getOldValue(), (CIS.LightColor) evt.getNewValue());
                 selectLightChoiceBox(coaxChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateLightInfo();
                 updateLightFrequencyLimit();
-                return;
+                break;
             case "rightBrightField":
                 selectLightChoiceBox(brightFieldRightChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
                 updateLightFrequencyLimit();
-                return;
+                break;
             case "rightDarkField":
                 selectLightChoiceBox(darkFieldRightChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
                 updateLightFrequencyLimit();
-                return;
+                break;
             case "phaseCount":
                 Phases selectedPhase = Phases.findByPhaseCount((int) evt.getNewValue()).orElseThrow(() -> new IllegalArgumentException("selected phase count not found"));
                 handlePhasesChange(selectedPhase);
                 setLightPresetToManual();
                 updateCameraLinkInfo();
                 updateLightFrequencyLimit();
-                return;
+                break;
             case "cloudyDay":
                 cloudyDayCheckBox.setSelected((boolean) evt.getNewValue());
                 updateDarkFieldChoiceBoxes((boolean) evt.getNewValue());
                 setLightPresetToManual();
                 updateLightFrequencyLimit();
-                return;
+                break;
             case "coolingLeft":
                 coolingLeftCheckBox.setSelected((boolean) evt.getNewValue());
                 setLightPresetToManual();
-                return;
+                break;
             case "coolingRight":
                 coolingRightCheckBox.setSelected((boolean) evt.getNewValue());
                 setLightPresetToManual();
-                return;
+                break;
             // optics
             case "lensType":
                 handleLensChange((VUCIS.LensType) evt.getNewValue());
                 updateLightFrequencyLimit();
-                return;
+                break;
             // resolution and scan width
             case "resolution":
                 handleResolutionChange((CIS.Resolution) evt.getNewValue());
                 updateCameraLinkInfo();
                 updateLightFrequencyLimit();
-                return;
+                break;
             case "scanWidth":
                 scanWidthChoiceBox.getSelectionModel().select(evt.getNewValue() + " mm");
                 updateCameraLinkInfo();
-                return;
+                break;
             // line rate and transport speed
             case "lineRate":
                 handleLineRateChange((int) evt.getNewValue());
                 updateCameraLinkInfo();
                 updateSelectedLineRateWarning();
                 updateLightFrequencyLimit();
-                return;
+                break;
             case "transportSpeed":
                 handleTransportSpeedChange((int) evt.getNewValue());
-                return;
+                break;
             // interface
             case "reducedPixelClock":
                 reducedPixelClockCheckBox.setSelected((boolean) evt.getNewValue());
                 updateCameraLinkInfo();
-                return;
+                break;
             // mod
             case "mod":
                 moduloChoiceBox.setValue(String.valueOf((int) evt.getNewValue()));
                 updateCameraLinkInfo();
-                return;
+                break;
         }
+        updateTiViKey();
     }
 
     /**
@@ -819,5 +823,12 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("Serial.fxml", "Serial Interface parameters");
         ((SerialController) stageWithLoader.getValue().getController()).initialize(CIS_DATA);
         stageWithLoader.getKey().show();
+    }
+
+    /**
+     * updates the {@link #tiViKeyLabel} by setting the current tivi key of the cis
+     */
+    private void updateTiViKey() {
+        tiViKeyLabel.setText(CIS_DATA.getTiViKey());
     }
 }
