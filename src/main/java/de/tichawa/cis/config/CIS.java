@@ -199,11 +199,8 @@ public abstract class CIS {
                 Electronics
             */
 
-            int sensorsPerFpga = getNumberOfSensorsPerFpga();
-
-            double lengthPerSens = BASE_LENGTH * sensorsPerFpga;
+            double lengthPerSens = BASE_LENGTH * getNumberOfSensorsPerFpga();
             calculation.numFPGA = (int) Math.ceil(getScanWidth() / lengthPerSens);
-
             try {
                 // read applicable entries from electronic table
                 context.selectFrom(ELECTRONIC)
@@ -425,7 +422,7 @@ public abstract class CIS {
      * Default is 9-12mm unless overwritten by subclass
      */
     protected String getScanDistanceString() {
-        return "9-12\u200amm " + Util.getString("exactseetypesign");
+        return "9-12mm " + Util.getString("exactseetypesign");
     }
 
     /**
@@ -536,7 +533,7 @@ public abstract class CIS {
      * Default is GigE or CameraLink max 5m unless overwritten by subclass
      */
     protected String getInterfacePrintout() {
-        return "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5\u200am) " + Util.getString("interface-SDR"));
+        return "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m) " + Util.getString("interface-SDR"));
     }
 
     /**
@@ -544,8 +541,8 @@ public abstract class CIS {
      */
     protected String getWeightString(CISCalculation calculation) {
         return (" " + Math.round((((calculation.electSums[3] == null) ? 0.0 : calculation.electSums[3])
-                + ((calculation.mechaSums[3] == null) ? 0.0 : calculation.mechaSums[3])) * 10) / 10.0 + "\u200akg")
-                .replace(" 0\u200akg", " ???");
+                + ((calculation.mechaSums[3] == null) ? 0.0 : calculation.mechaSums[3])) * 10) / 10.0 + "kg")
+                .replace(" 0kg", " ???");
     }
 
     /**
@@ -560,9 +557,9 @@ public abstract class CIS {
 
         // specs section
         // - scan width, trigger, phase count, max line rate
-        printout.append(getScanWidth()).append("\u200amm, ").append(hasEarlyTriggerPrintout() ? getTriggerPrintout() : "");
+        printout.append(getScanWidth()).append("mm, ").append(hasEarlyTriggerPrintout() ? getTriggerPrintout() : "");
         printout.append(Util.getString("numPhases")).append(getPhaseCount()).append(", ");
-        printout.append("max. ").append((getMaxLineRate() / 1000) * getMaxLineRateFactor()).append("\u200akHz\n");
+        printout.append("max. ").append((getMaxLineRate() / 1000) * getMaxLineRateFactor()).append("kHz\n");
 
         // - resolution
         printout.append(Util.getString("Resolution: "));
@@ -574,11 +571,11 @@ public abstract class CIS {
         printout.append("\n\n");
 
         // - scan width
-        printout.append(Util.getString("scan width")).append(getScanWidth()).append("\u200amm\n");
+        printout.append(Util.getString("scan width")).append(getScanWidth()).append("mm\n");
         // - selected line rate
-        printout.append(Util.getString("sellinerate")).append(Util.getNumberAsOutputString(getSelectedLineRate() / 1000., 1)).append("\u200akHz\n");
+        printout.append(Util.getString("sellinerate")).append(Util.getNumberAsOutputString(getSelectedLineRate() / 1000., 1)).append("kHz\n");
         // - transport speed
-        printout.append(Util.getString("transport speed")).append(": ").append(Util.getNumberAsOutputString(getTransportSpeed() / 1000., 1)).append("\u200amm/s\n");
+        printout.append(Util.getString("transport speed")).append(": ").append(Util.getNumberAsOutputString(getTransportSpeed() / 1000., 1)).append("mm/s\n");
         // - geometry correction
         printout.append(getGeometryCorrectionString()).append("\n");
         // - trigger (if late printout)
@@ -586,31 +583,31 @@ public abstract class CIS {
         // - trigger pulse
         printout.append(Util.getString("trigger-pulse"))
                 .append("\n\t").append(Util.getString("trigger-pulse2")).append(" 1 ").append(Util.getString("impulse-every")).append(" ")
-                .append(String.format(Locale.US, "%.2f", selectedResolution.pixelSize / phaseCount * 2000)).append("\u200aµm")
+                .append(String.format(Locale.US, "%.2f", selectedResolution.pixelSize / phaseCount * 2000)).append("µm")
                 .append("\n\t").append(Util.getString("trigger-pulse4")).append(" 1 ").append(Util.getString("impulse-every")).append(" ")
-                .append(String.format(Locale.US, "%.2f", selectedResolution.pixelSize / phaseCount * 4000)).append("\u200aµm\n");
+                .append(String.format(Locale.US, "%.2f", selectedResolution.pixelSize / phaseCount * 4000)).append("µm\n");
         // - scan distance
         printout.append(Util.getString("scan distance")).append(": ").append(getScanDistanceString()).append("\n");
         // - depth of field (replaced +/- with *2)
-        printout.append(Util.getString("DepthofField")).append(": ~ ").append(getDepthOfField() * 2).append("\u200amm\n");
+        printout.append(Util.getString("DepthofField")).append(": ~ ").append(getDepthOfField() * 2).append("mm\n");
         // - line width
-        printout.append(Util.getString("line width")).append(": > 1\u200amm\n");
+        printout.append(Util.getString("line width")).append(": > 1mm\n");
         // - case printout (L x W x H, with glass pane)
         printout.append(getCasePrintout());
         // - shading
         printout.append(Util.getString("shading")).append("\n");
         // - power
-        printout.append(Util.getString("powersource")).append("(24 +/- 1)\u200aVDC\n");
-        printout.append(Util.getString("Needed max power:")).append((" " + calculateNeededPower(calculation) + "\u200aA")
-                .replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
+        printout.append(Util.getString("powersource")).append("(24 +/- 1)VDC\n");
+        printout.append(Util.getString("Needed max power:")).append((" " + calculateNeededPower(calculation) + "A")
+                .replace(" 0A", " ???")).append(" +/- 20%\n");
         printout.append(Util.getString("Needed average power:"))
-                .append((" " + Util.getNumberAsOutputString(calculateNeededPower(calculation) / phaseCount, 1) + "\u200aA")
-                        .replace(" 0\u200aA", " ???")).append(" +/- 20%\n");
+                .append((" " + Util.getNumberAsOutputString(calculateNeededPower(calculation) / phaseCount, 1) + "A")
+                        .replace(" 0A", " ???")).append(" +/- 20%\n");
         // - frequency limit
         if (hasLEDs()) // only print this if there are lights
             printout.append(Util.getString("FrequencyLimit")).append(" ").append(getMinFreq(calculation) < 0 // if < 0 there are values missing in database -> give error msg
                     ? Util.getString("missing photo values") + "\n"
-                    : "~" + Util.getNumberAsOutputString(getMinFreq(calculation), 0) + "\u200akHz\n");
+                    : "~" + Util.getNumberAsOutputString(getMinFreq(calculation), 0) + "kHz\n");
         // - cooling
         printout.append(Util.getString(getCooling().getShortHand())).append("\n");
         // - weight
@@ -629,7 +626,7 @@ public abstract class CIS {
         printout.append(getStartOfCLPrintOut());
         int numOfPix = calcNumOfPix();
         if (isGigeInterface()) {
-            printout.append("Pixel Clock: 40\u200aMHz\n");
+            printout.append("Pixel Clock: 40MHz\n");
             printout.append(Util.getString("numofpix")).append(numOfPix).append("\n");
         } else {
             List<CPUCLink> clCalc = getCLCalc(numOfPix, calculation);
@@ -1208,6 +1205,9 @@ public abstract class CIS {
         return true;
     }
 
+    /**
+     * enumeration of all available light colors
+     */
     public enum LightColor {
         NONE("None", "NO", 'X'),
         RED("Red", "AM", 'A'),
@@ -1250,12 +1250,24 @@ public abstract class CIS {
             this.code = code;
         }
 
+        /**
+         * searches the light color with the given description out of all available light colors
+         *
+         * @param description the description of the light color to search
+         * @return an {@link Optional} of the light color with the given description if it exists or an empty one otherwise
+         */
         public static Optional<LightColor> findByDescription(String description) {
             return Arrays.stream(LightColor.values())
                     .filter(c -> c.getDescription().equals(description))
                     .findFirst();
         }
 
+        /**
+         * searches the light color with the given short hand out of all available light colors
+         *
+         * @param shortHand the shortHand of the light color to search
+         * @return an {@link Optional} of the light color with the given shortHand if it exists or an empty one otherwise
+         */
         @SuppressWarnings("unused")
         public static Optional<LightColor> findByShortHand(String shortHand) {
             return Arrays.stream(LightColor.values())
@@ -1263,18 +1275,31 @@ public abstract class CIS {
                     .findFirst();
         }
 
-        @SuppressWarnings("unused")
+        /**
+         * searches the light color with the given code out of all available light colors
+         *
+         * @param code the description of the light color to search
+         * @return an {@link Optional} of the light color with the given code if it exists or an empty one otherwise
+         */
         public static Optional<LightColor> findByCode(char code) {
             return Arrays.stream(LightColor.values())
                     .filter(c -> c.getCode() == code)
                     .findFirst();
         }
 
+        /**
+         * returns whether this light color is a shape from shading light color
+         *
+         * @return true for shape from shading light colors i.e. {@link #WHITE_SFS} and {@link #RED_SFS} or false otherwise
+         */
         public boolean isShapeFromShading() {
             return this == WHITE_SFS || this == RED_SFS;
         }
     }
 
+    /**
+     * enumeration of all available cooling methods
+     */
     public enum Cooling {
         NONE("NOCO", "None", "none"),
         PAIR("PAIR", "Passive Air", "passair"),
@@ -1304,12 +1329,24 @@ public abstract class CIS {
             return description;
         }
 
+        /**
+         * searches the cooling method with the given description out of all available cooling methods
+         *
+         * @param description the description of the cooling method to search
+         * @return an {@link Optional} of the cooling method with the given description if it exists or an empty one otherwise
+         */
         public static Optional<Cooling> findByDescription(String description) {
             return Arrays.stream(Cooling.values())
                     .filter(c -> c.getDescription().equals(description))
                     .findFirst();
         }
 
+        /**
+         * searches the cooling method with the given code out of all available cooling methods
+         *
+         * @param code the code of the cooling method to search
+         * @return an {@link Optional} of the cooling method with the given code if it exists or an empty one otherwise
+         */
         @SuppressWarnings("unused")
         public static Optional<Cooling> findByCode(String code) {
             return Arrays.stream(Cooling.values())

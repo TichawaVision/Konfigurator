@@ -129,7 +129,7 @@ public class SerialController {
         if (cpucLinkButton.isSelected())
             saveParametersCheckBox.setText("Save in the end (send S-command)");
         else if (cpucLinkAButton.isSelected())
-            saveParametersCheckBox.setText("Save in the end (send PPS-, SFS- and PCS-commands)");
+            saveParametersCheckBox.setText("Save in the end (send PPS- and PCS-commands)");
         else
             throw new IllegalStateException("expected one button to be selected");
     }

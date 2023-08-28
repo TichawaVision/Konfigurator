@@ -38,18 +38,23 @@ public class CPUCLinkASerialCommands extends SerialCommands {
         generateMainMenuCommands();
         generateSetMenuCommands();
 
+
+        List<String> commands = new LinkedList<>();
         // main menu commands first
-        List<String> commands = new LinkedList<>(mainMenuCommands);
-        // switch to set menu
-        commands.add("SET");
+        commands.add("<"); // back to main menu (in case we are not there already)
+        commands.addAll(mainMenuCommands);
+
+        // set menu next
+        commands.add("SET"); // switch to set menu
         commands.addAll(setMenuCommands);
 
         // save if we want to
         if (storeParameters) { // save in set menu
             commands.add("PPS"); // store parameters
-            commands.add("SFS"); // save factory settings //TODO do we want this here?
         }
+
         commands.add("<"); // back to main menu
+        commands.add("PCC"); // clear pixel correction
         if (storeParameters) // save in main menu
             commands.add("PCS"); // store pixel correction
 
@@ -77,7 +82,6 @@ public class CPUCLinkASerialCommands extends SerialCommands {
         generateLTrigModeCommand();
         generateFTrigModeCommand();
         generateAnalogOffsetCommand();
-        generateCyclesCommand();
         generateTriggerPulsesCommand();
         generateSheetLenDelayCommand();
         generateADCBoardCommand();
@@ -95,7 +99,6 @@ public class CPUCLinkASerialCommands extends SerialCommands {
         generateGlobalGainCommand();
         generateNumberOfChipsCommand();
         generateShiftCommands();
-        generateLaserExpoCommands();
         generateStartStopModeCommand();
         generateDynamicSensorBalanceCommand();
     }
@@ -114,11 +117,6 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      */
     private void generatePixelCorrectionCommand() {
         mainMenuCommands.add("PCP 1,1,1,1,1,1");
-    }
-
-    private void generateLaserExpoCommands() {
-        //TODO
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -251,22 +249,42 @@ public class CPUCLinkASerialCommands extends SerialCommands {
 
         // RES command (sensor chip dpi)
         String resCommand = "RES ";
-        switch (resolution.getBoardResolution()) {
-            case 1200:
-                resCommand += "2";
-                break;
-            case 600:
-                resCommand += "1";
-                break;
-            case 300:
+        switch (resolution.getActualResolution()) {
+            case 25:
                 resCommand += "0";
                 break;
+            case 50:
+                resCommand += "1";
+                break;
+            case 75:
+                resCommand += "2";
+                break;
+            case 100:
+                resCommand += "3";
+                break;
+            case 150:
+                resCommand += "4";
+                break;
+            case 200:
+                resCommand += "5";
+                break;
+            case 300:
+                resCommand += "6";
+                break;
+            case 400:
+                resCommand += "7";
+                break;
+            case 600:
+                resCommand += "8";
+                break;
+            case 1200:
+                resCommand += "9";
+                break;
             default:
-                throw new UnsupportedOperationException("unsupported resolution: " + resolution.getBoardResolution());
+                throw new UnsupportedOperationException("unsupported resolution: " + resolution.getActualResolution());
         }
         setMenuCommands.add(resCommand);
-
-        //TODO binning?
+        // RES will also handle binning
     }
 
     /**
@@ -287,7 +305,7 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      * generates the set menu command for the sheet len delay
      */
     private void generateSheetLenDelayCommand() {
-        setMenuCommands.add("SHD 0,0");
+        setMenuCommands.add("SD 0,0");
     }
 
     /**
@@ -295,14 +313,6 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      */
     private void generateTriggerPulsesCommand() {
         setMenuCommands.add("TP 1");
-    }
-
-    /**
-     * generates the set menu command for the cycles
-     */
-    private void generateCyclesCommand() {
-        //TODO
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -338,7 +348,7 @@ public class CPUCLinkASerialCommands extends SerialCommands {
      * generates the set menu command for the exposure
      */
     private void generateExposureCommand() {
-        setMenuCommands.add("EXP 99,99,0,0");
+        setMenuCommands.add("EXP 999,999,0,0");
     }
 
     /**
@@ -385,8 +395,10 @@ public class CPUCLinkASerialCommands extends SerialCommands {
         setMenuCommands.add("DSB 0,7");
     }
 }
-/* TODO
-    Taps CLT -> ??
-    Humidity HUM -> ?
+/*
+    Taps CLT -> werden automatisch berechnet -> nix
+    Humidity HUM -> nein
     Registers? REG -> nix
+    Cycles -> nix (einfach lassen wie vorher)
+    BS (binning skal) -> nix (einfach lassen wie vorher), default wäre 1
 */

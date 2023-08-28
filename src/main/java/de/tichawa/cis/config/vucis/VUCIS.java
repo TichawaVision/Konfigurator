@@ -22,9 +22,18 @@ public class VUCIS extends CIS {
     public static final int MAX_SCAN_WIDTH_WITH_SFS = 1820;
     public static final long PIXEL_CLOCK_NORMAL = 85000000;
     public static final long PIXEL_CLOCK_REDUCED = 53000000;
-    public static final List<Resolution> resolutions;
     public static final List<Integer> VALID_MODS;
 
+    /**
+     * Available resolutions for VUCIS
+     */
+    private static final List<Resolution> resolutions;
+
+    /**
+     * estimated weights in kg for a VUCIS by length (first value is for 260 mm, 2nd for 520 mm, ..., last for 2080 mm).
+     * These weights were determined by weighing the end product (and scaling by length).
+     * These should be used as long as the weight values of the single components are not set in the database.
+     */
     private static final double[] WEIGHTS = {3.8, 5.6, 8.2, 11.1, 13.2, 15.4, 17.6, 20}; // total (estimated) weights of the VUCIS by length
 
     static {
@@ -157,6 +166,19 @@ public class VUCIS extends CIS {
                 || coaxLight.isShapeFromShading(); //coax sfs should not be possible anyway
     }
 
+    /**
+     * generates the TiVi-key for this VUCIS in its current configuration.
+     *
+     * @return the TiVi-key consisting of:
+     * - "G_VUCIS_"
+     * - scan width
+     * - "_S_" (as Smaragd is the only sensor at the moment)
+     * - light code
+     * - "_"
+     * - lens type code
+     * - "_C"
+     * - mechanic version (see {@link #getMechanicVersion()}
+     */
     @Override
     public String getTiViKey() {
         String key = "G_VUCIS";
@@ -178,6 +200,11 @@ public class VUCIS extends CIS {
         return key;
     }
 
+    /**
+     * generates a set of light colors for this VUCIS in the current configuration
+     *
+     * @return a {@link Set} consisting of a {@link de.tichawa.cis.config.CIS.LightColor} representing each currently set light of this VUCIS
+     */
     @Override
     public Set<LightColor> getLightColors() {
         return getLights().chars()
@@ -350,10 +377,10 @@ public class VUCIS extends CIS {
     /**
      * creates a camera link with the given number of ports.
      */
-    private static CPUCLink.CameraLink createCameraLink(int phases, int numberOfports, int lval, int id, int startLval, int startLvalCPUC, boolean forcedDeca) {
+    private static CPUCLink.CameraLink createCameraLink(int phases, int numberOfPorts, int lval, int id, int startLval, int startLvalCPUC, boolean forcedDeca) {
         CPUCLink.CameraLink cameraLink = new CPUCLink.CameraLink(id, forcedDeca);
         List<CPUCLink.Port> ports = new LinkedList<>();
-        for (int i = 0; i < numberOfports; i += phases) {
+        for (int i = 0; i < numberOfPorts; i += phases) {
             for (int j = 0; j < phases; j++) {
                 CPUCLink.Port port = new CPUCLink.Port(i / phases * lval + startLval + startLvalCPUC, (i / phases + 1) * lval - 1 + startLval + startLvalCPUC);
                 ports.add(port);
@@ -990,11 +1017,11 @@ public class VUCIS extends CIS {
         switch (lensType) {
             case TC54:
             case TC54L:
-                return "10\u200amm +/- 2\u200amm";
+                return "10mm +/- 2mm";
             case TC80:
             case TC80L:
             case TC100L:
-                return "23\u200amm +/- 3\u200amm";
+                return "23mm +/- 3mm";
             default:
                 throw new IllegalStateException("current lens not supported yet");
         }
@@ -1005,7 +1032,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getCaseProfile() {
-        return Util.getString("Aluminium case profile: 92x80\u200amm (HxT) with bonded");
+        return Util.getString("Aluminium case profile: 92x80mm (HxT) with bonded");
     }
 
     /**
@@ -1014,9 +1041,9 @@ public class VUCIS extends CIS {
     @Override
     protected String getCasePrintout() {
         return Util.getString("Case dimensions") + "\n\t" +
-                Util.getString("Width") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + "\u200amm +/-3\u200amm\n\t" +
-                Util.getString("Height") + ": ~ 92\u200amm +/-2\u200amm\n\t" +
-                Util.getString("Depth") + ": ~ 80\u200amm +/-2\u200amm\n" +
+                Util.getString("Width") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + "mm +/-3mm\n\t" +
+                Util.getString("Height") + ": ~ 92mm +/-2mm\n\t" +
+                Util.getString("Depth") + ": ~ 80mm +/-2mm\n" +
                 Util.getString("Alu case with bonded glass pane") + "\n";
     }
 
@@ -1202,7 +1229,7 @@ public class VUCIS extends CIS {
 
     @Override
     protected String getInterfacePrintout() {
-        return "Interface: CameraLink (max. " + (reducedPixelClock ? "10" : "5") + "\u200am) " + Util.getString("interface-SDR");
+        return "Interface: CameraLink (max. " + (reducedPixelClock ? "10" : "5") + "m) " + Util.getString("interface-SDR");
     }
 
     /**
@@ -1238,6 +1265,9 @@ public class VUCIS extends CIS {
         return new VUCIS(this);
     }
 
+    /**
+     * enumeration of available lens types for VUCIS
+     */
     public enum LensType {
         TC54("TC54", "20", false, true),
         TC54L("TC54 with long DOF", "2L", true, true),
@@ -1273,6 +1303,12 @@ public class VUCIS extends CIS {
             this.hasShortDOFVersion = hasShortDOFVersion;
         }
 
+        /**
+         * searches the lens type with the given description out of all {@link LensType}s
+         *
+         * @param description the description of the lens type to search
+         * @return an {@link Optional} of the lens type with the given description if it exists or an empty one otherwise
+         */
         public static Optional<LensType> findByDescription(String description) {
             return Arrays.stream(LensType.values())
                     .filter(c -> c.getDescription().equals(description))
@@ -1288,6 +1324,11 @@ public class VUCIS extends CIS {
             return longDOF;
         }
 
+        /**
+         * returns whether a short version exists for this lens type
+         *
+         * @return true if there exists a short version of this lens type and false otherwise
+         */
         public boolean hasShortDOFVersion() {
             return hasShortDOFVersion;
         }
@@ -1299,7 +1340,7 @@ public class VUCIS extends CIS {
     @Override
     protected String getWeightString(CISCalculation calculation) {
         // sfs has next size, otherwise index -1
-        return WEIGHTS[getScanWidth() / BASE_LENGTH - (isShapeFromShading() ? 0 : 1)] + "\u200akg";
+        return WEIGHTS[getScanWidth() / BASE_LENGTH - (isShapeFromShading() ? 0 : 1)] + "kg";
     }
 
     @Override

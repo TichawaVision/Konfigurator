@@ -100,7 +100,7 @@ public class SerialConnection {
                         e.printStackTrace();
                     }
                 });
-                Thread.sleep(2000); // give some time for answers
+                Thread.sleep(5000); // give some time for answers
                 port.closePort();
                 return null;
             }
