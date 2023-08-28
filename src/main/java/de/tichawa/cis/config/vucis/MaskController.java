@@ -7,7 +7,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.fxml.*;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import javafx.util.Pair;
+import javafx.util.*;
 
 import java.beans.*;
 import java.net.URL;
@@ -16,12 +16,12 @@ import java.util.stream.*;
 
 public class MaskController extends de.tichawa.cis.config.controller.MaskController<VUCIS> implements PropertyChangeListener {
 
-    private static final List<String> LIGHT_COLOR_OPTIONS_WITH_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor)
-            .map(CIS.LightColor::getDescription).collect(Collectors.toList());
-    private static final List<String> LIGHT_COLOR_OPTIONS_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor).filter(c -> !c.isShapeFromShading())
-            .map(CIS.LightColor::getDescription).collect(Collectors.toList());
-    private static final List<String> LIGHT_COLOR_OPTIONS_COAX_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISCoaxLightColor).filter(c -> !c.isShapeFromShading())
-            .map(CIS.LightColor::getDescription).collect(Collectors.toList()); //coax is always without sfs
+    private static final List<CIS.LightColor> LIGHT_COLOR_OPTIONS_WITH_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor)
+            .collect(Collectors.toList());
+    private static final List<CIS.LightColor> LIGHT_COLOR_OPTIONS_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor).filter(c -> !c.isShapeFromShading())
+            .collect(Collectors.toList());
+    private static final List<CIS.LightColor> LIGHT_COLOR_OPTIONS_COAX_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISCoaxLightColor).filter(c -> !c.isShapeFromShading())
+            .collect(Collectors.toList()); //coax is always without sfs
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_COAX = Stream.of(260, 520, 780, 1040).collect(Collectors.toList());
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITHOUT_COAX = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820/*, 2080 (removed for now)*/).collect(Collectors.toList());
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_SFS = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820).collect(Collectors.toList());
@@ -47,15 +47,15 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     @FXML
     private Label lightFrequencyLimitLabel;
     @FXML
-    private ChoiceBox<String> brightFieldLeftChoiceBox;
+    private ChoiceBox<CIS.LightColor> brightFieldLeftChoiceBox;
     @FXML
-    private ChoiceBox<String> coaxChoiceBox;
+    private ChoiceBox<CIS.LightColor> coaxChoiceBox;
     @FXML
-    private ChoiceBox<String> brightFieldRightChoiceBox;
+    private ChoiceBox<CIS.LightColor> brightFieldRightChoiceBox;
     @FXML
-    private ChoiceBox<String> darkFieldLeftChoiceBox;
+    private ChoiceBox<CIS.LightColor> darkFieldLeftChoiceBox;
     @FXML
-    private ChoiceBox<String> darkFieldRightChoiceBox;
+    private ChoiceBox<CIS.LightColor> darkFieldRightChoiceBox;
     @FXML
     private CheckBox coolingLeftCheckBox;
     @FXML
@@ -199,7 +199,31 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     /**
      * initializes a single given light choice box. If it is not the coax box, all light options for VUCIS will be present. For Coax only non shape from shading ones.
      */
-    private void initLight(ChoiceBox<String> lightBox, String initialValue, boolean isCoaxBox) {
+    private void initLight(ChoiceBox<CIS.LightColor> lightBox, CIS.LightColor initialValue, boolean isCoaxBox) {
+        // create string converter to convert the LightColor enum to and from String
+        lightBox.setConverter(new StringConverter<CIS.LightColor>() {
+            /**
+             * Creates a {@link String} representation of the given light color for GUI light choice boxes:
+             * Shows the description and the light short code separated by ' - '
+             * @param lightColor the light color that is shown
+             * @return the string representation of the light color
+             */
+            @Override
+            public String toString(CIS.LightColor lightColor) {
+                return lightColor.getDescription() + " - " + lightColor.getCode();
+            }
+
+            /**
+             * Creates the corresponding light color object from the string representation created by {@link #toString(CIS.LightColor)}
+             * @param string the string representation of the light color
+             * @return the light color
+             */
+            @Override
+            public CIS.LightColor fromString(String string) {
+                // search all light colors by short code - the short code is (one character) after the separating ' - '
+                return CIS.LightColor.findByCode(string.split(" - ")[1].charAt(0)).orElseThrow(() -> new IllegalStateException("invalid light code found at light choice box"));
+            }
+        });
         //set items to choice box
         lightBox.getItems().clear();
         lightBox.getItems().addAll(isCoaxBox ? LIGHT_COLOR_OPTIONS_COAX_WITHOUT_SFS : LIGHT_COLOR_OPTIONS_WITH_SFS);
@@ -210,8 +234,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             if (newValue != null) { // when clearing and resetting choice boxes this may be null
                 //set light color in model on light change
                 String choiceBoxId = ((ChoiceBox<?>) ((ObjectProperty<?>) property).getBean()).getId();
-                CIS_DATA.setLightColor(getLightNameFromChoiceBoxId(choiceBoxId),
-                        CIS.LightColor.findByDescription(newValue).orElseThrow(() -> new IllegalArgumentException("selected light color for light " + choiceBoxId + " does not exist: " + newValue)));
+                CIS_DATA.setLightColor(getLightNameFromChoiceBoxId(choiceBoxId), newValue);
             }
         });
     }
@@ -243,11 +266,11 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      * initializes the lights: left/right dark/bright field and coax
      */
     private void initLights() {
-        initLight(brightFieldLeftChoiceBox, CIS_DATA.getBrightFieldLeft().getDescription(), false);
-        initLight(brightFieldRightChoiceBox, CIS_DATA.getBrightFieldRight().getDescription(), false);
-        initLight(darkFieldLeftChoiceBox, CIS_DATA.getDarkFieldLeft().getDescription(), false);
-        initLight(darkFieldRightChoiceBox, CIS_DATA.getDarkFieldRight().getDescription(), false);
-        initLight(coaxChoiceBox, CIS_DATA.getCoaxLight().getDescription(), true);
+        initLight(brightFieldLeftChoiceBox, CIS_DATA.getBrightFieldLeft(), false);
+        initLight(brightFieldRightChoiceBox, CIS_DATA.getBrightFieldRight(), false);
+        initLight(darkFieldLeftChoiceBox, CIS_DATA.getDarkFieldLeft(), false);
+        initLight(darkFieldRightChoiceBox, CIS_DATA.getDarkFieldRight(), false);
+        initLight(coaxChoiceBox, CIS_DATA.getCoaxLight(), true);
     }
 
     /**
@@ -657,8 +680,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      * Also calls {@link #updateCoolingCheckboxes()} to enable/disable the checkboxes after light change
      * and {@link #updateLensTypeChoiceBox()} to enable/disable lens type changes if there is shape from shading
      */
-    private void selectLightChoiceBox(ChoiceBox<String> box, CIS.LightColor lightColor) {
-        box.getSelectionModel().select(lightColor.getDescription());
+    private void selectLightChoiceBox(ChoiceBox<CIS.LightColor> box, CIS.LightColor lightColor) {
+        box.getSelectionModel().select(lightColor);
         updateCoolingCheckboxes();
         updateLensTypeChoiceBox();
     }
