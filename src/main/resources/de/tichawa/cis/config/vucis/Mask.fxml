@@ -114,6 +114,8 @@
                     </items>
                 </ChoiceBox>
                 <CheckBox mnemonicParsing="false" GridPane.columnIndex="2" text="Long/High DOF" fx:id="lensDofCheckBox"/>
+                <Label text="Lens code:" GridPane.columnIndex="3"/>
+                <Label fx:id="lensCodeLabel" GridPane.columnIndex="4"/>
             </GridPane>
         </TitledPane>
         <TitledPane collapsible="false" minHeight="120" GridPane.fillWidth="true" GridPane.rowIndex="2"

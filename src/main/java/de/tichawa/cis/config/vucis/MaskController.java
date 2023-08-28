@@ -35,6 +35,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     @FXML
     private CheckBox lensDofCheckBox;
     @FXML
+    private Label lensCodeLabel;
+    @FXML
     private CheckBox reducedPixelClockCheckBox;
     @FXML
     private Label cameraLinkInfoLabel;
@@ -329,6 +331,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      * initializes the optics section (lens type, DOF)
      */
     private void initOptics() {
+        VUCIS.LensType defaultLens = VUCIS.LensType.TC54;
+
         // set initial value
         lensTypeChoiceBox.getSelectionModel().select("10mm"); //not pretty to have this fixed value here... could rework LensType enum to have 10mm as display text and make lens type handling easier
         // listener for lens type choice box that sets the new lens in the model
@@ -338,13 +342,15 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             CIS_DATA.setLensType(VUCIS.LensType.findByDescription(description).orElseThrow(() -> new IllegalArgumentException("selected lens does not exist")));
         });
         // set initial value
-        lensDofCheckBox.setSelected(false); //not pretty to have this fixed value here... (see comment above)
+        lensDofCheckBox.setSelected(defaultLens.isLongDOF());
         // listener for lens DOF checkbox that sets the new lens in the model
         lensDofCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             String description = getLensStringFromDistanceValue(lensTypeChoiceBox.getValue());
             description += getLensStringSuffixFromDOFValue(description.contains("TC100") || newValue);
             CIS_DATA.setLensType(VUCIS.LensType.findByDescription(description).orElseThrow(() -> new IllegalArgumentException("selected lens does not exist")));
         });
+        // set initial lens code label
+        lensCodeLabel.setText(defaultLens.getCode());
     }
 
     /**
@@ -608,6 +614,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         }
         // disable the checkbox if there is only one version
         lensDofCheckBox.setDisable(!lens.hasShortDOFVersion());
+        lensCodeLabel.setText(lens.getCode());
     }
 
     /**
