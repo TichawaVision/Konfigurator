@@ -235,7 +235,7 @@
             </GridPane>
         </TitledPane>
         <!-- not needed for VUCIS but part of the main class -->
-        <HBox alignment="CENTER" spacing="5.0" GridPane.rowIndex="3" GridPane.columnIndex="0">
+        <HBox alignment="CENTER" spacing="5.0" GridPane.rowIndex="6" GridPane.columnIndex="0">
             <ChoiceBox fx:id="coolingChoiceBox" disable="true" style="visibility: hidden;"/>
         </HBox>
         <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="6">
