@@ -111,14 +111,7 @@
             <GridPane alignment="CENTER" hgap="50.0" vgap="5.0" GridPane.rowIndex="1">
                 <Label text="Lens working distance:" alignment="BASELINE_LEFT" GridPane.columnIndex="0"
                        GridPane.rowIndex="0"/>
-                <ChoiceBox fx:id="lensTypeChoiceBox" GridPane.columnIndex="1" maxWidth="100">
-                    <items>
-                        <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="10mm"/>
-                            <String fx:value="23mm"/>
-                        </FXCollections>
-                    </items>
-                </ChoiceBox>
+                <ChoiceBox fx:id="lensTypeChoiceBox" GridPane.columnIndex="1" maxWidth="100"/>
                 <CheckBox mnemonicParsing="false" GridPane.columnIndex="2" text="Long/High DOF" fx:id="lensDofCheckBox"/>
                 <Label text="Lens code:" GridPane.columnIndex="3"/>
                 <Label fx:id="lensCodeLabel" GridPane.columnIndex="4"/>

@@ -616,10 +616,8 @@ public class VUCIS extends CIS {
     private static LensType getLowDistanceLens(LensType lensType) {
         switch (lensType) {
             case TC54:
-            case TC80:
                 return LensType.TC54;
             case TC54L:
-            case TC80L:
             case TC100L:
                 return LensType.TC54L;
             default:
@@ -1014,17 +1012,8 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getScanDistanceString() {
-        switch (lensType) {
-            case TC54:
-            case TC54L:
-                return "10mm +/- 2mm";
-            case TC80:
-            case TC80L:
-            case TC100L:
-                return "23mm +/- 3mm";
-            default:
-                throw new IllegalStateException("current lens not supported yet");
-        }
+        return lensType.getWorkingDistanceString() + " +/- " + (lensType.workingDistance / 10 + 1) + "mm";
+
     }
 
     /**
@@ -1269,50 +1258,66 @@ public class VUCIS extends CIS {
      * enumeration of available lens types for VUCIS
      */
     public enum LensType {
-        TC54("TC54", "20", false, true),
-        TC54L("TC54 with long DOF", "2L", true, true),
-        TC80("TC80", "30", false, true),
-        TC80L("TC80 with long DOF", "3L", true, true),
-        TC100L("TC100 with long DOF", "3L", true, false);
+        TC54("20", false, true, 10),
+        TC54L("2L", true, true, 10),
+        TC100L("3L", true, false, 23);
 
-        private final String description;
         private final String code;
         private final boolean longDOF;
         private final boolean hasShortDOFVersion;
+        private final int workingDistance;
 
-        public String getDescription() {
-            return description;
+        /**
+         * Searches a lens type with the given working distance and longDOF value.
+         * Filters all lens types by working distance first. If only one is left it is returned (disregarding the longDOF value).
+         * If there are more than one lens types with the correct working distance, they are filtered by longDOF value and returned.
+         *
+         * @param workingDistanceString the working distance string of the lens type that is returned
+         * @param longDOF               the longDOF value of the lens type that is returned if there is more than one lens type with the given working distance
+         * @return the found lens type or an empty optional
+         */
+        public static Optional<LensType> findLens(String workingDistanceString, boolean longDOF) {
+            int workingDistance = fromWorkingDistanceString(workingDistanceString);
+            List<LensType> lensesWithCorrectWorkingDistance = Arrays.stream(LensType.values()).filter(l -> l.workingDistance == workingDistance).collect(Collectors.toList());
+            // check if there is only one (e.g. TC100) -> return it disregarding DOF
+            if (lensesWithCorrectWorkingDistance.size() == 1)
+                return Optional.of(lensesWithCorrectWorkingDistance.get(0));
+            // else: filter by DOF and return
+            return lensesWithCorrectWorkingDistance.stream().filter(l -> l.longDOF == longDOF).findFirst();
+        }
+
+        /**
+         * Extracts the working distance from the given working distance string
+         *
+         * @param workingDistanceString the working distance string of a lens created by {@link #getWorkingDistanceString()}
+         * @return the working distance value
+         */
+        private static int fromWorkingDistanceString(String workingDistanceString) {
+            return Integer.parseInt(workingDistanceString.substring(0, workingDistanceString.length() - 2));
+        }
+
+        public String getWorkingDistanceString() {
+            return workingDistance + "mm";
         }
 
         public String getCode() {
             return code;
         }
 
+
         /**
          * creates the lens type with the given parameters.
          *
-         * @param description        the description String of the lens
          * @param code               the code of the lens
          * @param longDOF            whether the lens is the long DOF version
          * @param hasShortDOFVersion whether there is a short DOF version for this lens
+         * @param workingDistance    the working distance of the lens
          */
-        LensType(String description, String code, boolean longDOF, boolean hasShortDOFVersion) {
-            this.description = description;
+        LensType(String code, boolean longDOF, boolean hasShortDOFVersion, int workingDistance) {
             this.code = code;
             this.longDOF = longDOF;
             this.hasShortDOFVersion = hasShortDOFVersion;
-        }
-
-        /**
-         * searches the lens type with the given description out of all {@link LensType}s
-         *
-         * @param description the description of the lens type to search
-         * @return an {@link Optional} of the lens type with the given description if it exists or an empty one otherwise
-         */
-        public static Optional<LensType> findByDescription(String description) {
-            return Arrays.stream(LensType.values())
-                    .filter(c -> c.getDescription().equals(description))
-                    .findFirst();
+            this.workingDistance = workingDistance;
         }
 
         /**

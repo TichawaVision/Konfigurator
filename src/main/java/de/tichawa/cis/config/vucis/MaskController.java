@@ -309,48 +309,25 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * determines the lens String for the given distance
-     */
-    private static String getLensStringFromDistanceValue(String distance) {
-        switch (distance) {
-            case "10mm":
-                return "TC54";
-            case "23mm":
-                return "TC100";
-            default:
-                throw new IllegalArgumentException("selected lens type does not exist");
-        }
-    }
-
-    /**
-     * determines the String suffix if DOF is selected
-     */
-    private static String getLensStringSuffixFromDOFValue(boolean isDOF) {
-        return isDOF ? " with long DOF" : "";
-    }
-
-    /**
      * initializes the optics section (lens type, DOF)
      */
     private void initOptics() {
         VUCIS.LensType defaultLens = VUCIS.LensType.TC54;
 
+        lensTypeChoiceBox.getItems().clear();
+        lensTypeChoiceBox.getItems().addAll(Arrays.stream(VUCIS.LensType.values()).distinct().map(VUCIS.LensType::getWorkingDistanceString).collect(Collectors.toSet()));
         // set initial value
-        lensTypeChoiceBox.getSelectionModel().select("10mm"); //not pretty to have this fixed value here... could rework LensType enum to have 10mm as display text and make lens type handling easier
+        lensTypeChoiceBox.getSelectionModel().select(defaultLens.getWorkingDistanceString());
         // listener for lens type choice box that sets the new lens in the model
-        lensTypeChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            String description = getLensStringFromDistanceValue(newValue);
-            description += getLensStringSuffixFromDOFValue(description.contains("TC100") || lensDofCheckBox.isSelected());
-            CIS_DATA.setLensType(VUCIS.LensType.findByDescription(description).orElseThrow(() -> new IllegalArgumentException("selected lens does not exist")));
-        });
+        lensTypeChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                CIS_DATA.setLensType(VUCIS.LensType.findLens(newValue, lensDofCheckBox.isSelected())
+                        .orElseThrow(() -> new IllegalStateException("selected lens does not exist"))));
         // set initial value
         lensDofCheckBox.setSelected(defaultLens.isLongDOF());
         // listener for lens DOF checkbox that sets the new lens in the model
-        lensDofCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            String description = getLensStringFromDistanceValue(lensTypeChoiceBox.getValue());
-            description += getLensStringSuffixFromDOFValue(description.contains("TC100") || newValue);
-            CIS_DATA.setLensType(VUCIS.LensType.findByDescription(description).orElseThrow(() -> new IllegalArgumentException("selected lens does not exist")));
-        });
+        lensDofCheckBox.selectedProperty().addListener((observable, oldValue, newValue) ->
+                CIS_DATA.setLensType(VUCIS.LensType.findLens(lensTypeChoiceBox.getValue(), newValue)
+                        .orElseThrow(() -> new IllegalStateException("selected lens does not exist"))));
         // set initial lens code label
         lensCodeLabel.setText(defaultLens.getCode());
     }
@@ -599,23 +576,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      * handles a lens change by setting the corresponding boxes
      */
     private void handleLensChange(VUCIS.LensType lens) {
-        switch (lens) {
-            case TC54L: // 10mm with DOF
-                setLensBoxes("10mm", true);
-                break;
-            case TC54:
-                setLensBoxes("10mm", false);
-                break;
-            case TC80L:
-            case TC100L:
-                setLensBoxes("23mm", true);
-                break;
-            case TC80:
-                setLensBoxes("23mm", false);
-                break;
-            default:
-                throw new IllegalArgumentException("lens does not exist");
-        }
+        setLensBoxes(lens.getWorkingDistanceString(), lens.isLongDOF());
         // disable the checkbox if there is only one version
         lensDofCheckBox.setDisable(!lens.hasShortDOFVersion());
         lensCodeLabel.setText(lens.getCode());
