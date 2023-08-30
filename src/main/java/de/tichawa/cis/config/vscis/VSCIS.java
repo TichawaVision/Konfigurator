@@ -158,9 +158,9 @@ public class VSCIS extends CIS {
     @Override
     protected String getCaseProfile() {
         if (!getLightSources().endsWith("0C")) {
-            return Util.getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax");
+            return Util.getString("aluminumCaseCoax");
         } else {
-            return Util.getString("Aluminium case profile: 53x50mm (HxT) with bonded");
+            return Util.getString("aluminumCaseVSCIS");
         }
     }
 
@@ -170,7 +170,7 @@ public class VSCIS extends CIS {
     @Override
     protected String getResolutionString() {
         if (getSelectedResolution().isSwitchable())
-            return Util.getString("binning200");
+            return Util.getString("switchableResolution");
         return super.getResolutionString();
     }
 

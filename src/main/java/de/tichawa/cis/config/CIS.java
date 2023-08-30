@@ -379,19 +379,19 @@ public abstract class CIS {
                 printout += Util.getString("None");
                 break;
             case "1D0C":
-                printout += color + Util.getString("onesided");
+                printout += color + ", " + Util.getString("oneSided");
                 break;
             case "2D0C":
-                printout += color + Util.getString("twosided");
+                printout += color + ", " + Util.getString("twoSided");
                 break;
             case "1D1C":
-                printout += color + Util.getString("onepluscoax");
+                printout += color + ", " + Util.getString("oneSidedCoax");
                 break;
             case "2D1C":
-                printout += color + Util.getString("twopluscoax");
+                printout += color + ", " + Util.getString("twoSidedCoax");
                 break;
             case "0D1C":
-                printout += color + Util.getString("coax");
+                printout += color + ", " + Util.getString("coax");
                 break;
             default:
                 printout += "Unknown";
@@ -411,9 +411,9 @@ public abstract class CIS {
      */
     protected String getGeometryCorrectionString() {
         if (getSelectedResolution().getActualResolution() > 400) {
-            return Util.getString("Geometry correction: x and y");
+            return Util.getString("xYCorrection");
         } else {
-            return Util.getString("Geometry correction: x");
+            return Util.getString("xCorrection");
         }
     }
 
@@ -422,7 +422,7 @@ public abstract class CIS {
      * Default is 9-12mm unless overwritten by subclass
      */
     protected String getScanDistanceString() {
-        return "9-12mm " + Util.getString("exactseetypesign");
+        return "9-12mm " + Util.getString("warningExactScanDistance");
     }
 
     /**
@@ -454,7 +454,7 @@ public abstract class CIS {
      * Default is unknown aluminum case
      */
     protected String getCaseProfile() {
-        return Util.getString("Aluminium case profile: unknown with bonded");
+        return Util.getString("aluminumCaseUnknown");
     }
 
     /**
@@ -496,11 +496,11 @@ public abstract class CIS {
     protected String getCasePrintout() {
         String printout = "";
         // - case length
-        printout += Util.getString("case length") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + " mm" + getCaseLengthAppendix() + "\n";
+        printout += Util.getString("caseLength") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + " mm" + getCaseLengthAppendix() + "\n";
         // - case profile
         printout += getCaseProfile() + "\n";
         // - glass pane
-        printout += Util.getString("glass pane, see drawing") + "\n";
+        printout += Util.getString("glassPane") + "\n";
         return printout;
     }
 
@@ -562,11 +562,11 @@ public abstract class CIS {
         printout.append("max. ").append((getMaxLineRate() / 1000) * getMaxLineRateFactor()).append("kHz\n");
 
         // - resolution
-        printout.append(Util.getString("Resolution: "));
+        printout.append("\n").append(Util.getString("resolution")).append(": ");
         printout.append(getResolutionString()).append("\n");
 
         // - internal lights
-        printout.append(Util.getString("internal light"));
+        printout.append(Util.getString("internalLight")).append(": ");
         printout.append(getInternalLightsForPrintOut());
         printout.append("\n\n");
 
@@ -575,7 +575,7 @@ public abstract class CIS {
         // - selected line rate
         printout.append(Util.getString("sellinerate")).append(Util.getNumberAsOutputString(getSelectedLineRate() / 1000., 1)).append("kHz\n");
         // - transport speed
-        printout.append(Util.getString("transport speed")).append(": ").append(Util.getNumberAsOutputString(getTransportSpeed() / 1000., 1)).append("mm/s\n");
+        printout.append(Util.getString("transportSpeed")).append(": ").append(Util.getNumberAsOutputString(getTransportSpeed() / 1000., 1)).append("mm/s\n");
         // - geometry correction
         printout.append(getGeometryCorrectionString()).append("\n");
         // - trigger (if late printout)
@@ -587,21 +587,21 @@ public abstract class CIS {
                 .append("\n\t").append(Util.getString("trigger-pulse4")).append(" 1 ").append(Util.getString("impulse-every")).append(" ")
                 .append(String.format(Locale.US, "%.2f", selectedResolution.pixelSize / phaseCount * 4000)).append("µm\n");
         // - scan distance
-        printout.append(Util.getString("scan distance")).append(": ").append(getScanDistanceString()).append("\n");
+        printout.append(Util.getString("scanDistance")).append(": ").append(getScanDistanceString()).append("\n");
         // - depth of field (replaced +/- with *2)
-        printout.append(Util.getString("DepthofField")).append(": ~ ").append(getDepthOfField() * 2).append("mm\n");
+        printout.append(Util.getString("depthOfField")).append(": ~ ").append(getDepthOfField() * 2).append("mm\n");
         // - line width
-        printout.append(Util.getString("line width")).append(": > 1mm\n");
+        printout.append(Util.getString("lineWidthLight")).append(": > 1mm\n");
         // - case printout (L x W x H, with glass pane)
         printout.append(getCasePrintout());
         // - shading
         printout.append(Util.getString("shading")).append("\n");
         // - power
-        printout.append(Util.getString("powersource")).append("(24 +/- 1)VDC\n");
-        printout.append(Util.getString("Needed max power:")).append((" " + calculateNeededPower(calculation) + "A")
+        printout.append(Util.getString("powerSource")).append(": (24 +/- 1)VDC\n");
+        printout.append(Util.getString("maxPower")).append((": " + calculateNeededPower(calculation) + "A")
                 .replace(" 0A", " ???")).append(" +/- 20%\n");
-        printout.append(Util.getString("Needed average power:"))
-                .append((" " + Util.getNumberAsOutputString(calculateNeededPower(calculation) / phaseCount, 1) + "A")
+        printout.append(Util.getString("averagePower"))
+                .append((": " + Util.getNumberAsOutputString(calculateNeededPower(calculation) / phaseCount, 1) + "A")
                         .replace(" 0A", " ???")).append(" +/- 20%\n");
         // - frequency limit
         if (hasLEDs()) // only print this if there are lights
@@ -897,23 +897,23 @@ public abstract class CIS {
         CISCalculation calculation = calculate();
 
         String printout = getTiViKey() + "\n\t\n";
-        StringBuilder electOutput = new StringBuilder(Util.getString("Electronics")).append(":").append("\n\n");
-        StringBuilder mechaOutput = new StringBuilder(Util.getString("Mechanics")).append(":").append("\n\n");
-        StringBuilder totalOutput = new StringBuilder(Util.getString("Totals")).append(":").append("\n\n");
+        StringBuilder electOutput = new StringBuilder(Util.getString("electronics")).append(":").append("\n\n");
+        StringBuilder mechaOutput = new StringBuilder(Util.getString("mechanics")).append(":").append("\n\n");
+        StringBuilder totalOutput = new StringBuilder(Util.getString("totals")).append(":").append("\n\n");
 
-        electOutput.append(Util.getString("Component")).append("\t")
-                .append(Util.getString("Item no.")).append("\t")
-                .append(Util.getString("Amount")).append("\t")
-                .append(Util.getString("Price/pc (EUR)")).append("\t")
-                .append(Util.getString("Weight/pc (kg)")).append("\t")
-                .append(Util.getString("Time/pc (h)")).append("\t")
-                .append(Util.getString("Power/pc (A)")).append("\n");
+        electOutput.append(Util.getString("component")).append("\t")
+                .append(Util.getString("itemNumber")).append("\t")
+                .append(Util.getString("amount")).append("\t")
+                .append(Util.getString("priceEur")).append("\t")
+                .append(Util.getString("weightKg")).append("\t")
+                .append(Util.getString("timeH")).append("\t")
+                .append(Util.getString("powerA")).append("\n");
 
-        mechaOutput.append(Util.getString("Component")).append("\t")
-                .append(Util.getString("Item no.")).append("\t")
-                .append(Util.getString("Amount")).append("\t")
-                .append(Util.getString("Price/pc (EUR)")).append("\t")
-                .append(Util.getString("Weight/pc (kg)")).append("\n");
+        mechaOutput.append(Util.getString("component")).append("\t")
+                .append(Util.getString("itemNumber")).append("\t")
+                .append(Util.getString("amount")).append("\t")
+                .append(Util.getString("priceEur")).append("\t")
+                .append(Util.getString("weightKg")).append("\n");
 
         calculation.electConfig.forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
                 .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
@@ -923,7 +923,7 @@ public abstract class CIS {
                 .append(String.format(Util.getLocale(), "%.2f", priceRecord.getAssemblyTime())).append("\t")
                 .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPowerConsumption())).append("\n"));
 
-        electOutput.append("\n\t\n").append(Util.getString("Totals")).append("\t")
+        electOutput.append("\n\t\n").append(Util.getString("totals")).append("\t")
                 .append(" \t")
                 .append("0\t")
                 .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0])).append("\t")
@@ -937,7 +937,7 @@ public abstract class CIS {
                 .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice())).append("\t")
                 .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight())).append("\n"));
 
-        mechaOutput.append("\n\t\n").append(Util.getString("Totals")).append("\t")
+        mechaOutput.append("\n\t\n").append(Util.getString("totals")).append("\t")
                 .append(" \t")
                 .append("0\t")
                 .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[0])).append("\t")
@@ -949,28 +949,28 @@ public abstract class CIS {
                             .where(CONFIG.CIS_TYPE.eq(getClass().getSimpleName())).stream())
                     .collect(Collectors.toMap(ConfigRecord::getKey, configRecord -> Double.parseDouble(configRecord.getValue())));
 
-            totalOutput.append(Util.getString("calcfor10")).append("\t \t \t \t ").append("\n");
-            totalOutput.append(Util.getString("Electronics")).append(":\t \t \t")
+            totalOutput.append(Util.getString("calcFor10")).append("\t \t \t \t ").append("\n");
+            totalOutput.append(Util.getString("electronics")).append(":\t \t \t")
                     .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0])).append("\t \n");
             calculation.totalPrices[2] = calculation.electSums[0];
-            totalOutput.append(Util.getString("Overhead Electronics")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
+            totalOutput.append(Util.getString("electronicsOverhead")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
                     .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
             calculation.totalPrices[2] += calculation.electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100);
-            totalOutput.append(Util.getString("Testing")).append(":\t \t \t")
+            totalOutput.append(Util.getString("electronicsTesting")).append(":\t \t \t")
                     .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
             calculation.totalPrices[2] += calculation.electSums[1] * calcMap.get("STUNDENSATZ");
             if (isGigeInterface()) {
-                totalOutput.append(Util.getString("Overhead GigE")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
+                totalOutput.append(Util.getString("gigEOverhead")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
                         .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
                 calculation.totalPrices[2] += calculation.electSums[0] * (calcMap.get("Z_GIGE") / 100);
             }
-            totalOutput.append(Util.getString("Mechanics")).append(":\t \t \t")
+            totalOutput.append(Util.getString("mechanics")).append(":\t \t \t")
                     .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[0])).append("\t \n");
             calculation.totalPrices[2] += calculation.mechaSums[0];
-            totalOutput.append(Util.getString("Overhead Mechanics")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
+            totalOutput.append(Util.getString("mechanicsOverhead")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
                     .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
             calculation.totalPrices[2] += calculation.mechaSums[0] * (calcMap.get("A_MECHANIK") / 100);
-            totalOutput.append(Util.getString("Assembly")).append(":\t \t ")
+            totalOutput.append(Util.getString("assembly")).append(":\t \t ")
                     .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()).append(" h\t")
                     .append(String.format(Util.getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ"))).append("\t \n");
             calculation.totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ");
@@ -989,12 +989,12 @@ public abstract class CIS {
 
             String format = "%.2f";
             double value = calcMap.get("Z_TRANSPORT") / 100;
-            totalOutput.append(Util.getString("Price/pc")).append(":\t")
+            totalOutput.append(Util.getString("price")).append(":\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[0])).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[1])).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[2])).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[3])).append("\n");
-            totalOutput.append(Util.getString("Surcharge Transport")).append(" (").append(value).append("%):\t")
+            totalOutput.append(Util.getString("transportSurcharge")).append(" (").append(value).append("%):\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[0] * value)).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[1] * value)).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[2] * value)).append("\t")
@@ -1012,7 +1012,7 @@ public abstract class CIS {
                 surcharge += value;
             } else if (!(this instanceof LDSTD)) {
                 value = calcMap.get(getDpiCode()) / 100.0;
-                totalOutput.append(Util.getString("Surcharge DPI/Switchable")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
+                totalOutput.append(Util.getString("switchableDpiSurcharge")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
                         .append(String.format(Util.getLocale(), format, calculation.totalPrices[0] * value)).append("\t")
                         .append(String.format(Util.getLocale(), format, calculation.totalPrices[1] * value)).append("\t")
                         .append(String.format(Util.getLocale(), format, calculation.totalPrices[2] * value)).append("\t")
@@ -1022,7 +1022,7 @@ public abstract class CIS {
 
             format = "%.2f";
             value = calcMap.get("LIZENZ");
-            totalOutput.append(Util.getString("Licence")).append(":\t")
+            totalOutput.append(Util.getString("licence")).append(":\t")
                     .append(String.format(Util.getLocale(), format, value)).append("\t")
                     .append(String.format(Util.getLocale(), format, value)).append("\t")
                     .append(String.format(Util.getLocale(), format, value)).append("\t")
@@ -1031,7 +1031,7 @@ public abstract class CIS {
 
             format = "%.2f";
             value = calcMap.get("Z_DISCONT") / 100;
-            totalOutput.append(Util.getString("Discount Surcharge")).append(" (").append(value).append("%):\t")
+            totalOutput.append(Util.getString("discountSurcharge")).append(" (").append(value).append("%):\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[0] * value)).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[1] * value)).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[2] * value)).append("\t")
@@ -1048,14 +1048,14 @@ public abstract class CIS {
             calculation.totalPrices[2] += addition;
             calculation.totalPrices[3] += addition;
 
-            totalOutput.append(Util.getString("Totals")).append(" (EUR):").append("\t")
+            totalOutput.append(Util.getString("totals")).append(" (EUR):").append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[0])).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[1])).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[2])).append("\t")
                     .append(String.format(Util.getLocale(), format, calculation.totalPrices[3])).append("\n");
         } catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException e) {
             e.printStackTrace();
-            throw new CISException(Util.getString("MissingConfigTables"));
+            throw new CISException(Util.getString("errorMissingConfigTables"));
         }
 
         printout += electOutput.toString();
@@ -1086,7 +1086,7 @@ public abstract class CIS {
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = (int) (sensorBoard.getChips() * sensorBoardCount * 0.72 * getSelectedResolution().getActualResolution());
         if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
-            throw new CISException(Util.getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
+            throw new CISException(Util.getString("errorGigE") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
         return numOfPix;
     }

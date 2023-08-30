@@ -995,15 +995,15 @@ public class VUCIS extends CIS {
             return Util.getString("no light");
         String lights = "\n";
         if (brightFieldLeft != LightColor.NONE)
-            lights += "\t" + Util.getString("Brightfield") + " " + Util.getString("left") + ": " + Util.getString(brightFieldLeft.getDescription()) + "\n";
+            lights += "\t" + Util.getString("brightField") + " " + Util.getString("left") + ": " + Util.getString(brightFieldLeft.getDescription()) + "\n";
         if (brightFieldRight != LightColor.NONE)
-            lights += "\t" + Util.getString("Brightfield") + " " + Util.getString("right") + ": " + Util.getString(brightFieldRight.getDescription()) + "\n";
+            lights += "\t" + Util.getString("brightField") + " " + Util.getString("right") + ": " + Util.getString(brightFieldRight.getDescription()) + "\n";
         if (darkFieldLeft != LightColor.NONE)
-            lights += "\t" + Util.getString("Darkfield") + " " + Util.getString("left") + ": " + Util.getString(darkFieldLeft.getDescription()) + "\n";
+            lights += "\t" + Util.getString("darkField") + " " + Util.getString("left") + ": " + Util.getString(darkFieldLeft.getDescription()) + "\n";
         if (darkFieldRight != LightColor.NONE)
-            lights += "\t" + Util.getString("Darkfield") + " " + Util.getString("right") + ": " + Util.getString(darkFieldRight.getDescription()) + "\n";
+            lights += "\t" + Util.getString("darkField") + " " + Util.getString("right") + ": " + Util.getString(darkFieldRight.getDescription()) + "\n";
         if (coaxLight != LightColor.NONE)
-            lights += "\t" + Util.getString("Coaxial") + ": " + Util.getString(coaxLight.getDescription()) + "\n";
+            lights += "\t" + Util.getString("coaxial") + ": " + Util.getString(coaxLight.getDescription()) + "\n";
         return lights.substring(0, lights.length() - 1); // remove last line break
     }
 
@@ -1013,7 +1013,6 @@ public class VUCIS extends CIS {
     @Override
     protected String getScanDistanceString() {
         return lensType.getWorkingDistanceString() + " +/- " + (lensType.workingDistance / 10 + 1) + "mm";
-
     }
 
     /**
@@ -1021,7 +1020,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getCaseProfile() {
-        return Util.getString("Aluminium case profile: 92x80mm (HxT) with bonded");
+        return Util.getString("aluminumCaseVUCIS");
     }
 
     /**
@@ -1029,11 +1028,11 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getCasePrintout() {
-        return Util.getString("Case dimensions") + "\n\t" +
-                Util.getString("Width") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + "mm +/-3mm\n\t" +
-                Util.getString("Height") + ": ~ 92mm +/-2mm\n\t" +
-                Util.getString("Depth") + ": ~ 80mm +/-2mm\n" +
-                Util.getString("Alu case with bonded glass pane") + "\n";
+        return Util.getString("caseDimensions") + ":\n\t" +
+                Util.getString("width") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + "mm +/-3mm\n\t" +
+                Util.getString("height") + ": ~ 92mm +/-2mm\n\t" +
+                Util.getString("depth") + ": ~ 80mm +/-2mm\n" +
+                Util.getString("aluminumCaseGlassPane") + "\n";
     }
 
     /**
@@ -1050,7 +1049,7 @@ public class VUCIS extends CIS {
     @Override
     protected String getResolutionString() {
         if (getSelectedResolution().isSwitchable())
-            return Util.getString("binning200");
+            return Util.getString("switchableResolution");
         return super.getResolutionString();
     }
 
@@ -1059,7 +1058,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getGeometryCorrectionString() {
-        return Util.getString("Geometry correction: x and y");
+        return Util.getString("xYCorrection");
     }
 
     /**
@@ -1249,6 +1248,9 @@ public class VUCIS extends CIS {
         return isShapeFromShading();
     }
 
+    /**
+     * Returns a copy of this VUCIS
+     */
     @Override
     public CIS copy() {
         return new VUCIS(this);
@@ -1348,6 +1350,11 @@ public class VUCIS extends CIS {
         return WEIGHTS[getScanWidth() / BASE_LENGTH - (isShapeFromShading() ? 0 : 1)] + "kg";
     }
 
+    /**
+     * Returns whether this VUCIS uses an MDR camera link connection on the CIS side
+     *
+     * @return false because VUCIS uses SDR
+     */
     @Override
     public boolean usesMdrCameraLinkOnCisSide() {
         return false; // VUCIS uses SDR not MDR

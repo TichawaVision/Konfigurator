@@ -75,7 +75,7 @@ public class CPUCLink {
      */
     public String toString(String indentation) {
         StringBuilder output = new StringBuilder(indentation)
-                .append(Util.getString("datarate"))
+                .append(Util.getString("dataRate")).append(": ")
                 .append(Math.round(getDataRate() / 100000.0) / 10.0)
                 .append("\u200aMByte/s\n");
         output.append(indentation)
@@ -83,11 +83,11 @@ public class CPUCLink {
                 .append(getPixelCount())
                 .append("\n");
         output.append(indentation)
-                .append(Util.getString("numofcons"))
+                .append(Util.getString("numberClCables")).append(": ")
                 .append(getCableCount())
                 .append("\n");
         output.append(indentation)
-                .append(Util.getString("numofport"))
+                .append(Util.getString("numberClPorts")).append(": ")
                 .append(getPortNumber())
                 .append("\n");
         output.append(indentation)

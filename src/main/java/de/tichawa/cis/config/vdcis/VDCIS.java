@@ -146,7 +146,7 @@ public class VDCIS extends CIS {
      */
     @Override
     protected String getScanDistanceString() {
-        return "~ 55 - 70 mm " + Util.getString("exactresolution");
+        return "~ 55 - 70 mm " + Util.getString("warningExactScanDistanceVDCIS");
     }
 
     /**
@@ -154,7 +154,7 @@ public class VDCIS extends CIS {
      */
     @Override
     protected String getCaseProfile() {
-        return Util.getString("Aluminium case profile: 80x80mm (HxT) with bonded");
+        return Util.getString("aluminumCaseVDCIS");
     }
 
     /**

@@ -236,12 +236,12 @@ public abstract class MaskController<C extends CIS> implements Initializable {
 
                 // show success alert
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(Util.getString("File saved."));
+                alert.setHeaderText(Util.getString("fileSaved"));
                 alert.show();
             } catch (IOException e) {
                 // show error alert
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText(Util.getString("A fatal error occurred during the save attempt.Please close the target file and try again."));
+                alert.setHeaderText(Util.getString("saveError"));
                 alert.show();
             }
         }

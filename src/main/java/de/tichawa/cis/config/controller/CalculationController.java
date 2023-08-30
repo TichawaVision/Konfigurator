@@ -56,8 +56,8 @@ public class CalculationController implements Initializable {
             languageMenu.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("lang"));
             switchLanguageMenuItem.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("switchlang"));
 
-            fileMenu.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("File"));
-            printMenuItem.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("Print"));
+            fileMenu.setText(Util.getString("menuFile"));
+            printMenuItem.setText(Util.getString("menuPrint"));
 
             NumberFormat f = NumberFormat.getInstance(Util.getLocale());
             String[] calcText = CIS_DATA.createCalculation().split("\n\t\n");
@@ -361,7 +361,7 @@ public class CalculationController implements Initializable {
             } else {
                 printPane.getTransforms().clear();
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings."));
+                alert.setHeaderText(Util.getString("printError"));
                 alert.show();
             }
         }

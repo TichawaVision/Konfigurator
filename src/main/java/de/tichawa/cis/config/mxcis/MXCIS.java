@@ -251,7 +251,7 @@ public class MXCIS extends CIS {
      */
     @Override
     protected String getScanDistanceString() {
-        return "~ 10 mm " + Util.getString("exactseetypesign");
+        return "~ 10 mm " + Util.getString("warningExactScanDistance");
     }
 
     /**
@@ -296,7 +296,7 @@ public class MXCIS extends CIS {
         SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / getBinning();
         if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
-            throw new CISException(Util.getString("GIGEERROR") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
+            throw new CISException(Util.getString("errorGigE") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
         return numOfPix;
     }

@@ -78,9 +78,9 @@ public class DataSheetController implements Initializable {
             languageMenu.setText(Util.getString("lang"));
             switchLanguageMenuItem.setText(Util.getString("switchlang"));
 
-            fileMenu.setText(Util.getString("File"));
+            fileMenu.setText(Util.getString("menuFile"));
             //Print.setText(Util.getString("Print"));
-            saveMenuItem.setText(Util.getString("Save"));
+            saveMenuItem.setText(Util.getString("menuSave"));
 
             String[] dataSheetText = CIS_DATA.createPrntOut().split("\n\t\n");
             String key = CIS_DATA.getTiViKey();
@@ -142,7 +142,7 @@ public class DataSheetController implements Initializable {
             } else {
                 printable.getTransforms().clear();
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("A fatal error occurred during the printing attempt.Please control your print settings."));
+                alert.setHeaderText(Util.getString("printError"));
                 alert.show();
             }
         }

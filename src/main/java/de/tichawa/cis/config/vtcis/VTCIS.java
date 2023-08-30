@@ -115,9 +115,9 @@ public class VTCIS extends VSCIS {
     @Override
     protected String getCaseProfile() {
         if (!getLightSources().endsWith("0C")) {
-            return Util.getString("Aluminium case profile: 53x50mm (HxT) with bondedcoax");
+            return Util.getString("aluminumCaseCoax");
         } else {
-            return Util.getString("Aluminium case profile: 86x80mm (HxT) with bonded");
+            return Util.getString("aluminumCaseVTCIS");
         }
     }
 
@@ -135,7 +135,7 @@ public class VTCIS extends VSCIS {
     @Override
     protected String getResolutionString() {
         if (getSelectedResolution().isSwitchable())
-            return Util.getString("binning200");
+            return Util.getString("switchableResolution");
         return super.getResolutionString();
     }
 
