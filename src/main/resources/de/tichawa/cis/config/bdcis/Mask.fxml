@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx" fx:controller="de.tichawa.cis.config.bdcis.MaskController"
+            prefHeight="640.0" prefWidth="1100.0">
+    <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+              AnchorPane.topAnchor="10.0">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" prefWidth="350.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" prefWidth="350.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" prefWidth="400.0"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES" prefHeight="80"/>
+            <!-- TODO ... -->
+        </rowConstraints>
+
+        <!-- TiVi Key for information -->
+        <TitledPane animated="false" collapsible="false" GridPane.columnSpan="3" text="Current TiVi-Key">
+            <HBox alignment="CENTER">
+                <Label fx:id="tiViKeyLabel" style="-fx-font-weight: bold"/>
+            </HBox>
+        </TitledPane>
+
+        <!-- TODO ... -->
+
+        <HBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="3" GridPane.rowIndex="6">
+            <Button mnemonicParsing="false" onAction="#handleCalculation" text="Calculation"/>
+            <Button mnemonicParsing="false" onAction="#handlePartList" text="Part list"/>
+            <Button mnemonicParsing="false" onAction="#handleDataSheet" text="Data Sheet"/>
+            <Button fx:id="oemModeButton" mnemonicParsing="false" onAction="#handleOEMMode" text="OEM Mode"/>
+            <Button mnemonicParsing="false" onAction="#handleEquipment" text="Additional equipment"/>
+        </HBox>
+    </GridPane>
+</AnchorPane>
