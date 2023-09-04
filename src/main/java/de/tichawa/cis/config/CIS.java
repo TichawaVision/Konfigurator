@@ -533,7 +533,7 @@ public abstract class CIS {
      * Default is GigE or CameraLink max 5m unless overwritten by subclass
      */
     protected String getInterfacePrintout() {
-        return "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m) " + Util.getString("interface-SDR"));
+        return "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m) " + Util.getString("interfaceSdr"));
     }
 
     /**
@@ -558,7 +558,7 @@ public abstract class CIS {
         // specs section
         // - scan width, trigger, phase count, max line rate
         printout.append(getScanWidth()).append("mm, ").append(hasEarlyTriggerPrintout() ? getTriggerPrintout() : "");
-        printout.append(Util.getString("numPhases")).append(getPhaseCount()).append(", ");
+        printout.append(Util.getString("phases")).append(": ").append(getPhaseCount()).append(", ");
         printout.append("max. ").append((getMaxLineRate() / 1000) * getMaxLineRateFactor()).append("kHz\n");
 
         // - resolution
@@ -571,9 +571,9 @@ public abstract class CIS {
         printout.append("\n\n");
 
         // - scan width
-        printout.append(Util.getString("scan width")).append(getScanWidth()).append("mm\n");
+        printout.append(Util.getString("scanWidth")).append(": ").append(getScanWidth()).append("mm\n");
         // - selected line rate
-        printout.append(Util.getString("sellinerate")).append(Util.getNumberAsOutputString(getSelectedLineRate() / 1000., 1)).append("kHz\n");
+        printout.append(Util.getString("selectedLineRate")).append(": ").append(Util.getNumberAsOutputString(getSelectedLineRate() / 1000., 1)).append("kHz\n");
         // - transport speed
         printout.append(Util.getString("transportSpeed")).append(": ").append(Util.getNumberAsOutputString(getTransportSpeed() / 1000., 1)).append("mm/s\n");
         // - geometry correction
@@ -581,10 +581,10 @@ public abstract class CIS {
         // - trigger (if late printout)
         printout.append(hasEarlyTriggerPrintout() ? "" : getTriggerPrintout());
         // - trigger pulse
-        printout.append(Util.getString("trigger-pulse"))
-                .append("\n\t").append(Util.getString("trigger-pulse2")).append(" 1 ").append(Util.getString("impulse-every")).append(" ")
+        printout.append(Util.getString("triggerPulse"))
+                .append(":\n\t").append(Util.getString("triggerPulseDouble")).append(": 1 ").append(Util.getString("impulseEvery")).append(" ")
                 .append(String.format(Locale.US, "%.2f", selectedResolution.pixelSize / phaseCount * 2000)).append("µm")
-                .append("\n\t").append(Util.getString("trigger-pulse4")).append(" 1 ").append(Util.getString("impulse-every")).append(" ")
+                .append("\n\t").append(Util.getString("triggerPulse4Times")).append(": 1 ").append(Util.getString("impulseEvery")).append(" ")
                 .append(String.format(Locale.US, "%.2f", selectedResolution.pixelSize / phaseCount * 4000)).append("µm\n");
         // - scan distance
         printout.append(Util.getString("scanDistance")).append(": ").append(getScanDistanceString()).append("\n");
@@ -605,8 +605,8 @@ public abstract class CIS {
                         .replace(" 0A", " ???")).append(" +/- 20%\n");
         // - frequency limit
         if (hasLEDs()) // only print this if there are lights
-            printout.append(Util.getString("FrequencyLimit")).append(" ").append(getMinFreq(calculation) < 0 // if < 0 there are values missing in database -> give error msg
-                    ? Util.getString("missing photo values") + "\n"
+            printout.append(Util.getString("frequencyLimit")).append(": ").append(getMinFreq(calculation) < 0 // if < 0 there are values missing in database -> give error msg
+                    ? Util.getString("missingPhotoValues") + "\n"
                     : "~" + Util.getNumberAsOutputString(getMinFreq(calculation), 0) + "kHz\n");
         // - cooling
         printout.append(Util.getString(getCooling().getShortHand())).append("\n");
@@ -619,7 +619,7 @@ public abstract class CIS {
         printout.append(getEndOfSpecs());
         // - add warning if necessary (if min freq is less than 2 * selected line rate)
         if (getMinFreq(calculation) < getSelectedLineRate() / 1000.)
-            printout.append(PRINTOUT_WARNING).append(Util.getString("warning minfreq linerate")).append("\n");
+            printout.append(PRINTOUT_WARNING).append(Util.getString("warningFrequencyLimit")).append("\n");
 
         //CL Config
         printout.append("\n\t\n");
@@ -627,7 +627,7 @@ public abstract class CIS {
         int numOfPix = calcNumOfPix();
         if (isGigeInterface()) {
             printout.append("Pixel Clock: 40MHz\n");
-            printout.append(Util.getString("numofpix")).append(numOfPix).append("\n");
+            printout.append(Util.getString("numberOfPixels")).append(": ").append(numOfPix).append("\n");
         } else {
             List<CPUCLink> clCalc = getCLCalc(numOfPix, calculation);
             if (!clCalc.isEmpty()) {
@@ -1004,7 +1004,7 @@ public abstract class CIS {
             if (this instanceof MXCIS) {
                 String cat = getTiViKey().split("_")[4];
                 value = calcMap.get("Z_" + cat) / 100;
-                totalOutput.append(Util.getString("Surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
+                totalOutput.append(Util.getString("surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
                         .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[0] * value)).append("\t")
                         .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[1] * value)).append("\t")
                         .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[2] * value)).append("\t")
@@ -1086,7 +1086,7 @@ public abstract class CIS {
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = (int) (sensorBoard.getChips() * sensorBoardCount * 0.72 * getSelectedResolution().getActualResolution());
         if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
-            throw new CISException(Util.getString("errorGigE") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
+            throw new CISException(Util.getString("errorGigE") + ": " + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
         return numOfPix;
     }
@@ -1301,11 +1301,11 @@ public abstract class CIS {
      * enumeration of all available cooling methods
      */
     public enum Cooling {
-        NONE("NOCO", "None", "none"),
-        PAIR("PAIR", "Passive Air", "passair"),
-        FAIR("", "Int. Forced Air (Default)", "intforced"),
-        EAIR("FAIR", "Ext. Forced Air", "extforced"),
-        LICO("LICO", "Liquid Cooling", "lico");
+        NONE("NOCO", "None", "noCooling"),
+        PAIR("PAIR", "Passive Air", "passiveAir"),
+        FAIR("", "Int. Forced Air (Default)", "internalForcedAir"),
+        EAIR("FAIR", "Ext. Forced Air", "externalForcedAir"),
+        LICO("LICO", "Liquid Cooling", "liquidCooling");
 
         private final String code;
         private final String description;

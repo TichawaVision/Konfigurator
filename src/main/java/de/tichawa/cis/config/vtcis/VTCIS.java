@@ -69,8 +69,8 @@ public class VTCIS extends VSCIS {
         }
         boolean flashExtension = getSelectedResolution().getActualResolution() >= 1200 && (numOfPix - 16 * getScanWidth() / BASE_LENGTH * 6 * 2) * getPhaseCount() * 2 > 327680;
         String notes = "LVAL (Modulo 8): " + lval + "\n" +
-                Util.getString("clMode") + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
-                Util.getString("numPhases") + getPhaseCount() + "\n" +
+                Util.getString("clMode") + ": " + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
+                Util.getString("phases") + ": " + getPhaseCount() + "\n" +
                 "Flash Extension: " + (flashExtension ? "Required" : "Not required.") + "\n";
 
         CPUCLink CPUCLink = new CPUCLink(datarate, numOfPixNominal, 85000000, notes);
@@ -126,7 +126,7 @@ public class VTCIS extends VSCIS {
      */
     @Override
     protected String getEndOfCameraLinkSection() {
-        return Util.getString("configOnRequest");
+        return "\n" + Util.getString("configOnRequest") + "\n";
     }
 
     /**

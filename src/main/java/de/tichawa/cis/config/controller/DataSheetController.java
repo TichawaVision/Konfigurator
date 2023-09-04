@@ -76,7 +76,7 @@ public class DataSheetController implements Initializable {
     private void load() {
         try {
             languageMenu.setText(Util.getString("lang"));
-            switchLanguageMenuItem.setText(Util.getString("switchlang"));
+            switchLanguageMenuItem.setText(Util.getString("menuOtherLanguage"));
 
             fileMenu.setText(Util.getString("menuFile"));
             //Print.setText(Util.getString("Print"));
@@ -136,7 +136,7 @@ public class DataSheetController implements Initializable {
             if (p.printPage(printable)) {
                 printable.getTransforms().clear();
                 Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("printsuccess"));
+                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("printSuccess"));
                 alert.show();
                 p.endJob();
             } else {
@@ -156,7 +156,7 @@ public class DataSheetController implements Initializable {
     public void handleSwitchLang() {
         if (isOEMMode()) {
             Alert alert = new Alert(AlertType.CONFIRMATION);
-            alert.setHeaderText(Util.getString("switch confirmation OEM mode"));
+            alert.setHeaderText(Util.getString("switchConfirmationOemMode"));
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 switchLang();

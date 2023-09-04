@@ -54,7 +54,7 @@ public class CalculationController implements Initializable {
     private void load() {
         try {
             languageMenu.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("lang"));
-            switchLanguageMenuItem.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("switchlang"));
+            switchLanguageMenuItem.setText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("menuOtherLanguage"));
 
             fileMenu.setText(Util.getString("menuFile"));
             printMenuItem.setText(Util.getString("menuPrint"));
@@ -355,7 +355,7 @@ public class CalculationController implements Initializable {
             if (p.printPage(printPane)) {
                 printPane.getTransforms().clear();
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("printsuccess"));
+                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("printSuccess"));
                 alert.show();
                 p.endJob();
             } else {

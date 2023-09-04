@@ -411,13 +411,13 @@ public class VUCIS extends CIS {
      * throws a new CIS exception. The message text is build according to the given parameters.
      */
     private static void throwTooManyPortsException(int maxPortsAllowed, int phases, int requiredPorts) {
-        throw new CISException(Util.getString("error too many ports 1")
+        throw new CISException(Util.getString("errorTooManyPorts1") + " "
                 + maxPortsAllowed
-                + Util.getString("error too many ports 2")
-                + (phases < 3 ? 1 + Util.getString("error too many ports or") + 2 : phases)
-                + Util.getString("error too many ports 3")
+                + " " + Util.getString("errorTooManyPorts2") + " "
+                + (phases < 3 ? 1 + " " + Util.getString("errorTooManyPortsOr") + " " + 2 : phases)
+                + " " + Util.getString("errorTooManyPorts3") + " "
                 + requiredPorts
-                + Util.getString("error too many ports 4"));
+                + " " + Util.getString("errorTooManyPorts4"));
     }
 
     /**
@@ -992,7 +992,7 @@ public class VUCIS extends CIS {
     @Override
     protected String getInternalLightsForPrintOut() {
         if (!hasLEDs())
-            return Util.getString("no light");
+            return Util.getString("noLight");
         String lights = "\n";
         if (brightFieldLeft != LightColor.NONE)
             lights += "\t" + Util.getString("brightField") + " " + Util.getString("left") + ": " + Util.getString(brightFieldLeft.getDescription()) + "\n";
@@ -1040,7 +1040,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getEndOfCameraLinkSection() {
-        return Util.getString("configOnRequest");
+        return "\n" + Util.getString("configOnRequest") + "\n";
     }
 
     /**
@@ -1082,7 +1082,7 @@ public class VUCIS extends CIS {
      */
     @Override
     protected String getCaseLengthAppendix() {
-        return " (" + Util.getString("without cooling pipe") + ")";
+        return " (" + Util.getString("noCoolingPipe") + ")";
     }
 
     /**
@@ -1202,7 +1202,7 @@ public class VUCIS extends CIS {
 
     @Override
     protected String getStartOfCLPrintOut() {
-        return Util.getString("mod for lval") + mod + "\n";
+        return Util.getString("modForLval") + ": " + mod + "\n";
     }
 
     @Override
@@ -1212,12 +1212,12 @@ public class VUCIS extends CIS {
 
     @Override
     protected String getTriggerPrintout() {
-        return Util.getString("trigger CC1 or extern") + "\n";
+        return Util.getString("triggerCc1OrExtern") + "\n";
     }
 
     @Override
     protected String getInterfacePrintout() {
-        return "Interface: CameraLink (max. " + (reducedPixelClock ? "10" : "5") + "m) " + Util.getString("interface-SDR");
+        return "Interface: CameraLink (max. " + (reducedPixelClock ? "10" : "5") + "m) " + Util.getString("interfaceSdr");
     }
 
     /**

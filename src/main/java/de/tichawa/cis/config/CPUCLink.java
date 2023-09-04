@@ -79,7 +79,7 @@ public class CPUCLink {
                 .append(Math.round(getDataRate() / 100000.0) / 10.0)
                 .append("\u200aMByte/s\n");
         output.append(indentation)
-                .append(Util.getString("nomPix"))
+                .append(Util.getString("nominalPixels")).append(": ")
                 .append(getPixelCount())
                 .append("\n");
         output.append(indentation)

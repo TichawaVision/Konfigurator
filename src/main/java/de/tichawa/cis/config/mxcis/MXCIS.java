@@ -225,7 +225,7 @@ public class MXCIS extends CIS {
     @Override
     protected String getInternalLightsForPrintOut() {
         String printout = super.getInternalLightsForPrintOut();
-        printout += Util.getString("schipal");
+        printout += Util.getString("sensorChipAlignment") + ": ";
         printout += getSelectedResolution().getActualResolution() > 600 ? Util.getString("staggered") : Util.getString("inline");
         return printout;
     }
@@ -243,7 +243,7 @@ public class MXCIS extends CIS {
      */
     @Override
     protected String getGeometryCorrectionString() {
-        return Util.getString("chpltol") + "\n" + Util.getString("Geocor_opt");
+        return Util.getString("chipPlacementTolerance") + "\n" + Util.getString("geoCorrectionOptional");
     }
 
     /**
@@ -267,7 +267,7 @@ public class MXCIS extends CIS {
      */
     @Override
     protected String getCaseProfile() {
-        return getLedLines() < 2 ? Util.getString("alucase_mxcis") : Util.getString("alucase_mxcis_two");
+        return getLedLines() < 2 ? Util.getString("aluminumCaseMXCIS") : Util.getString("aluminumCaseMXCIS2");
     }
 
     /**
@@ -275,7 +275,7 @@ public class MXCIS extends CIS {
      */
     @Override
     protected String getEndOfSpecs() {
-        return Util.getString("clbase");
+        return " " + Util.getString("baseConfiguration");
     }
 
     /**
@@ -296,7 +296,7 @@ public class MXCIS extends CIS {
         SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / getBinning();
         if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
-            throw new CISException(Util.getString("errorGigE") + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
+            throw new CISException(Util.getString("errorGigE") + ": " + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
         return numOfPix;
     }

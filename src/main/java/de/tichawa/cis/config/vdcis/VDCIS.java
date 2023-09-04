@@ -107,8 +107,8 @@ public class VDCIS extends CIS {
         }
 
         String notes = "LVAL (Modulo 8): " + lval + "\n" +
-                Util.getString("clMode") + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
-                Util.getString("numPhases") + getPhaseCount() + "\n";
+                Util.getString("clMode") + ": " + (mediumMode ? "Base/Medium/Full" : "Full80") + "\n" +
+                Util.getString("phases") + ": " + getPhaseCount() + "\n";
 
         CPUCLink CPUCLink = new CPUCLink(datarate, numOfPixNominal, 85000000, notes);
         cameraLinks.forEach(CPUCLink::addCameraLink);
@@ -162,7 +162,7 @@ public class VDCIS extends CIS {
      */
     @Override
     protected String getEndOfSpecs() {
-        return Util.getString("laser") + "\n";
+        return Util.getString("laserWarning") + "\n";
     }
 
     /**
@@ -170,7 +170,7 @@ public class VDCIS extends CIS {
      */
     @Override
     protected String getEndOfCameraLinkSection() {
-        return Util.getString("configOnRequest");
+        return "\n" + Util.getString("configOnRequest") + "\n";
     }
 
     /**

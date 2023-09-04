@@ -749,7 +749,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         long minFreq = Math.round(1000 * CIS_DATA.getMinFreq(CIS_DATA.calculate())) / 1000;
         lastMinFreq = minFreq;
         lightFrequencyLimitLabel.setText(minFreq < 0 // if < 0 there are values missing in database -> give error msg
-                ? Util.getString("missing photo values") + "\n"
+                ? Util.getString("missingPhotoValues") + "\n"
                 : "~" + minFreq + "\u200akHz\n"
         );
         updateSelectedLineRateWarning();
@@ -761,7 +761,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     private void updateSelectedLineRateWarning() {
         double lineRate = Math.round(CIS_DATA.getSelectedLineRate() / 100.0) / 10.0;
         if (lastMinFreq >= 0 && lastMinFreq < lineRate) // if missing values in database lastMinFreq is <0 -> don't show warning as this would overlap with other warning
-            warningSelectedLineRateLabel.setText(Util.getString("warning minfreq linerate").replace('\n', ' '));
+            warningSelectedLineRateLabel.setText(Util.getString("warningFrequencyLimit").replace('\n', ' '));
         else
             warningSelectedLineRateLabel.setText("");
     }
