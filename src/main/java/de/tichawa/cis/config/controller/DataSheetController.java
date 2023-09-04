@@ -26,7 +26,12 @@ public class DataSheetController implements Initializable {
     private static final double LINE_HEIGHT = 17.5;
 
     protected CIS CIS_DATA;
-
+    @SuppressWarnings("unused")
+    @FXML
+    private TextArea clConfigTextArea;
+    @SuppressWarnings("unused")
+    @FXML
+    private Menu fileMenu;
     @SuppressWarnings("unused")
     @FXML
     private GridPane gridPane;
@@ -35,13 +40,10 @@ public class DataSheetController implements Initializable {
     private TextArea headerTextArea;
     @SuppressWarnings("unused")
     @FXML
-    private TextArea specsTextArea;
+    private Menu languageMenu;
     @SuppressWarnings("unused")
     @FXML
-    private TextArea specsWarningTextArea;
-    @SuppressWarnings("unused")
-    @FXML
-    private TextArea clConfigTextArea;
+    private MenuItem printMenuItem;
     @SuppressWarnings("unused")
     @FXML
     private ImageView productImageView;
@@ -50,177 +52,25 @@ public class DataSheetController implements Initializable {
     private ImageView profileImageView;
     @SuppressWarnings("unused")
     @FXML
-    private Menu fileMenu;
-    @SuppressWarnings("unused")
-    @FXML
-    private MenuItem printMenuItem;
-    @SuppressWarnings("unused")
-    @FXML
     private MenuItem saveMenuItem;
     @SuppressWarnings("unused")
     @FXML
-    private Menu languageMenu;
+    private TextArea specsTextArea;
+    @SuppressWarnings("unused")
+    @FXML
+    private TextArea specsWarningTextArea;
     @SuppressWarnings("unused")
     @FXML
     private MenuItem switchLanguageMenuItem;
 
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-    }
-
-    public void passData(CIS data) {
-        this.CIS_DATA = data.copy();
-        load();
-    }
-
-    private void load() {
-        try {
-            languageMenu.setText(Util.getString("lang"));
-            switchLanguageMenuItem.setText(Util.getString("menuOtherLanguage"));
-
-            fileMenu.setText(Util.getString("menuFile"));
-            //Print.setText(Util.getString("Print"));
-            saveMenuItem.setText(Util.getString("menuSave"));
-
-            String[] dataSheetText = CIS_DATA.createPrntOut().split("\n\t\n");
-            String key = CIS_DATA.getTiViKey();
-
-            headerTextArea.setText(dataSheetText[0]);
-            headerTextArea.setEditable(false);
-            //specs part
-            if (dataSheetText[1].contains(CIS.PRINTOUT_WARNING)) { // if the specs have a warning -> extract it and put it in the SpecsWarning TextArea
-                String[] split = dataSheetText[1].split(CIS.PRINTOUT_WARNING);
-                dataSheetText[1] = split[0]; //take the part before the warning as the spec output
-                specsWarningTextArea.setText(split[1].trim()); //take the part after the warning as warning text
-                specsWarningTextArea.setMinHeight(split[1].trim().split("\n").length * LINE_HEIGHT);
-            }
-            specsTextArea.setText(dataSheetText[1].trim());
-            specsTextArea.setEditable(false);
-            specsTextArea.setMinHeight(dataSheetText[1].trim().split("\n").length * LINE_HEIGHT);
-            specsWarningTextArea.setEditable(false);
-            specsWarningTextArea.lookup(".scroll-bar:vertical").setDisable(true);
-            clConfigTextArea.setText(dataSheetText[2].trim());
-            clConfigTextArea.setEditable(false);
-            clConfigTextArea.setMinHeight(dataSheetText[2].trim().split("\n").length * LINE_HEIGHT);
-
-            InputStream product = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Product.jpg");
-            if (product != null) {
-                productImageView.setImage(new Image(product));
-            }
-            InputStream profile = getClass().getResourceAsStream(getProfileImageUrlString());
-            if (profile != null)
-                profileImageView.setImage(new Image(profile));
-        } catch (CISException e) {
-            ((Stage) headerTextArea.getScene().getWindow()).close();
-
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText(e.getMessage());
-            alert.show();
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void print() { // old print
-        PrinterJob p = PrinterJob.createPrinterJob();
-        Pane printable = gridPane;
-
-        if (p.showPrintDialog(null)) {
-            p.getJobSettings().setPageLayout(p.getPrinter().createPageLayout(p.getJobSettings().getPageLayout().getPaper(), PageOrientation.PORTRAIT, 0.0, 0.0, 0.0, 0.0));
-            double scaleX = p.getJobSettings().getPageLayout().getPrintableHeight() / printable.getHeight();
-            double scaleY = p.getJobSettings().getPageLayout().getPrintableWidth() / printable.getWidth();
-
-            printable.getTransforms().add(new Scale(Math.min(scaleX, scaleY), Math.min(scaleX, scaleY)));
-
-            if (p.printPage(printable)) {
-                printable.getTransforms().clear();
-                Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("printSuccess"));
-                alert.show();
-                p.endJob();
-            } else {
-                printable.getTransforms().clear();
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText(Util.getString("printError"));
-                alert.show();
-            }
-        }
-    }
-
     /**
-     * handles the language switch menu item press:
-     * shows an alert that progress will be lost in OEM mode and switches language only on confirmation
+     * prepares the given text for pdf print. Replaces quarter spaces and tabs with normal spaces as these do not work within a {@link Paragraph}.
+     *
+     * @param text the text that contains space like characters
+     * @return the text where the space like characters are replaced with spaces
      */
-    @SuppressWarnings("unused")
-    public void handleSwitchLang() {
-        if (isOEMMode()) {
-            Alert alert = new Alert(AlertType.CONFIRMATION);
-            alert.setHeaderText(Util.getString("switchConfirmationOemMode"));
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
-                switchLang();
-                setEditable();
-            } //else do nothing
-        } else // no OEM mode -> just switch language
-            switchLang();
-    }
-
-    /**
-     * actually switches the language by setting the new locale and loading the data in the new language
-     */
-    private void switchLang() {
-        Util.switchLanguage();
-        load();
-    }
-
-    /**
-     * makes the datasheet editable by setting header, specs and camera link config areas to editable
-     */
-    public void setEditable() {
-        headerTextArea.setEditable(true);
-        specsTextArea.setEditable(true);
-        specsWarningTextArea.setEditable(true);
-        clConfigTextArea.setEditable(true);
-
-    }
-
-    /**
-     * returns whether the datasheet is in OEM mode by checking whether the header field is editable
-     */
-    private boolean isOEMMode() {
-        return headerTextArea.isEditable();
-    }
-
-    public ImageView getProfileImageView() {
-        return profileImageView;
-    }
-
-    /**
-     * saves the current contents of the datasheet to a pdf file.
-     * Shows a file chooser to determine the file location.
-     */
-    @SuppressWarnings("unused") // shows unused because controller class is set programmatically and not via fxml
-    @FXML
-    private void save() {
-        try {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("PDF files", "*.pdf"),
-                    new FileChooser.ExtensionFilter("All files", "*"));
-            java.io.File file = fileChooser.showSaveDialog(headerTextArea.getScene().getWindow());
-            if (file == null)
-                return;
-            Document document = new Document();
-            PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
-            addHeader(pdfWriter);
-            writeDocument(document);
-        } catch (IOException | DocumentException e) {
-            Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle("Saving failed");
-            alert.setHeaderText("PDF file could not be written or saved. (" + e.getMessage() + ")");
-            alert.showAndWait();
-        }
+    private static String prepareForPdfPrint(String text) {
+        return text.replace('\u200a', ' ').replace('\t', ' ');
     }
 
     /**
@@ -302,6 +152,175 @@ public class DataSheetController implements Initializable {
     }
 
     /**
+     * returns the url to the profile image of the cis.
+     * tries to get the "Profile.jpg" file for the CIS type unless overwritten by subclass
+     *
+     * @return the Profile.jpg for this CIS
+     */
+    protected String getProfileImageUrlString() {
+        return "/de/tichawa/cis/config/" + CIS_DATA.getTiViKey().toLowerCase().split("_")[1] + "/Profile.jpg";
+    }
+
+    public ImageView getProfileImageView() {
+        return profileImageView;
+    }
+
+    /**
+     * handles the language switch menu item press:
+     * shows an alert that progress will be lost in OEM mode and switches language only on confirmation
+     */
+    @SuppressWarnings("unused")
+    public void handleSwitchLang() {
+        if (isOEMMode()) {
+            Alert alert = new Alert(AlertType.CONFIRMATION);
+            alert.setHeaderText(Util.getString("switchConfirmationOemMode"));
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                switchLang();
+                setEditable();
+            } //else do nothing
+        } else // no OEM mode -> just switch language
+            switchLang();
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+    }
+
+    /**
+     * returns whether the datasheet is in OEM mode by checking whether the header field is editable
+     */
+    private boolean isOEMMode() {
+        return headerTextArea.isEditable();
+    }
+
+    private void load() {
+        try {
+            languageMenu.setText(Util.getString("lang"));
+            switchLanguageMenuItem.setText(Util.getString("menuOtherLanguage"));
+
+            fileMenu.setText(Util.getString("menuFile"));
+            //Print.setText(Util.getString("Print"));
+            saveMenuItem.setText(Util.getString("menuSave"));
+
+            String[] dataSheetText = CIS_DATA.createPrntOut().split("\n\t\n");
+            String key = CIS_DATA.getTiViKey();
+
+            headerTextArea.setText(dataSheetText[0]);
+            headerTextArea.setEditable(false);
+            //specs part
+            if (dataSheetText[1].contains(CIS.PRINTOUT_WARNING)) { // if the specs have a warning -> extract it and put it in the SpecsWarning TextArea
+                String[] split = dataSheetText[1].split(CIS.PRINTOUT_WARNING);
+                dataSheetText[1] = split[0]; //take the part before the warning as the spec output
+                specsWarningTextArea.setText(split[1].trim()); //take the part after the warning as warning text
+                specsWarningTextArea.setMinHeight(split[1].trim().split("\n").length * LINE_HEIGHT);
+            }
+            specsTextArea.setText(dataSheetText[1].trim());
+            specsTextArea.setEditable(false);
+            specsTextArea.setMinHeight(dataSheetText[1].trim().split("\n").length * LINE_HEIGHT);
+            specsWarningTextArea.setEditable(false);
+            specsWarningTextArea.lookup(".scroll-bar:vertical").setDisable(true);
+            clConfigTextArea.setText(dataSheetText[2].trim());
+            clConfigTextArea.setEditable(false);
+            clConfigTextArea.setMinHeight(dataSheetText[2].trim().split("\n").length * LINE_HEIGHT);
+
+            InputStream product = getClass().getResourceAsStream("/de/tichawa/cis/config/" + key.toLowerCase().split("_")[1] + "/Product.jpg");
+            if (product != null) {
+                productImageView.setImage(new Image(product));
+            }
+            InputStream profile = getClass().getResourceAsStream(getProfileImageUrlString());
+            if (profile != null)
+                profileImageView.setImage(new Image(profile));
+        } catch (CISException e) {
+            ((Stage) headerTextArea.getScene().getWindow()).close();
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText(e.getMessage());
+            alert.show();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void passData(CIS data) {
+        this.CIS_DATA = data.copy();
+        load();
+    }
+
+    @FXML
+    private void print() { // old print
+        PrinterJob p = PrinterJob.createPrinterJob();
+        Pane printable = gridPane;
+
+        if (p.showPrintDialog(null)) {
+            p.getJobSettings().setPageLayout(p.getPrinter().createPageLayout(p.getJobSettings().getPageLayout().getPaper(), PageOrientation.PORTRAIT, 0.0, 0.0, 0.0, 0.0));
+            double scaleX = p.getJobSettings().getPageLayout().getPrintableHeight() / printable.getHeight();
+            double scaleY = p.getJobSettings().getPageLayout().getPrintableWidth() / printable.getWidth();
+
+            printable.getTransforms().add(new Scale(Math.min(scaleX, scaleY), Math.min(scaleX, scaleY)));
+
+            if (p.printPage(printable)) {
+                printable.getTransforms().clear();
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setHeaderText(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", Util.getLocale()).getString("printSuccess"));
+                alert.show();
+                p.endJob();
+            } else {
+                printable.getTransforms().clear();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setHeaderText(Util.getString("printError"));
+                alert.show();
+            }
+        }
+    }
+
+    /**
+     * saves the current contents of the datasheet to a pdf file.
+     * Shows a file chooser to determine the file location.
+     */
+    @SuppressWarnings("unused") // shows unused because controller class is set programmatically and not via fxml
+    @FXML
+    private void save() {
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("PDF files", "*.pdf"),
+                    new FileChooser.ExtensionFilter("All files", "*"));
+            java.io.File file = fileChooser.showSaveDialog(headerTextArea.getScene().getWindow());
+            if (file == null)
+                return;
+            Document document = new Document();
+            PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(file));
+            addHeader(pdfWriter);
+            writeDocument(document);
+        } catch (IOException | DocumentException e) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Saving failed");
+            alert.setHeaderText("PDF file could not be written or saved. (" + e.getMessage() + ")");
+            alert.showAndWait();
+        }
+    }
+
+    /**
+     * makes the datasheet editable by setting header, specs and camera link config areas to editable
+     */
+    public void setEditable() {
+        headerTextArea.setEditable(true);
+        specsTextArea.setEditable(true);
+        specsWarningTextArea.setEditable(true);
+        clConfigTextArea.setEditable(true);
+
+    }
+
+    /**
+     * actually switches the language by setting the new locale and loading the data in the new language
+     */
+    private void switchLang() {
+        Util.switchLanguage();
+        load();
+    }
+
+    /**
      * writes the text area contents to the given document
      *
      * @param document the document to write
@@ -339,25 +358,5 @@ public class DataSheetController implements Initializable {
         document.add(clConfig);
 
         document.close();
-    }
-
-    /**
-     * returns the url to the profile image of the cis.
-     * tries to get the "Profile.jpg" file for the CIS type unless overwritten by subclass
-     *
-     * @return the Profile.jpg for this CIS
-     */
-    protected String getProfileImageUrlString() {
-        return "/de/tichawa/cis/config/" + CIS_DATA.getTiViKey().toLowerCase().split("_")[1] + "/Profile.jpg";
-    }
-
-    /**
-     * prepares the given text for pdf print. Replaces quarter spaces and tabs with normal spaces as these do not work within a {@link Paragraph}.
-     *
-     * @param text the text that contains space like characters
-     * @return the text where the space like characters are replaced with spaces
-     */
-    private static String prepareForPdfPrint(String text) {
-        return text.replace('\u200a', ' ').replace('\t', ' ');
     }
 }

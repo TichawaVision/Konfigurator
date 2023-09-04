@@ -19,17 +19,25 @@ import static de.tichawa.cis.config.model.Tables.*;
  */
 public class EquipmentController implements Initializable {
 
+    private CIS cisData;
     @FXML
     private TableView<EquipmentEntry> equipmentTableView;
-
-    private CIS cisData;
     private CIS ldstdData;
-
-    private String neededPowerSupply;
-    private String neededPowerCable;
     private String neededCameraLinkCable;
+    private String neededPowerCable;
+    private String neededPowerSupply;
     private String neededTriggerCable;
 
+    /**
+     * returns the given string as a previous size or unchanged if it's not an int string
+     */
+    private static String getPreviousSizeHousingString(String sizeString) {
+        try {
+            return String.valueOf(Integer.parseInt(sizeString) - CIS.BASE_LENGTH);
+        } catch (NumberFormatException e) { // not a number -> return given String
+            return sizeString;
+        }
+    }
 
     /**
      * Initializes the controller by setting up the list view
@@ -48,6 +56,57 @@ public class EquipmentController implements Initializable {
         articleNumberFerixNewColumn.setCellValueFactory(e -> new ReadOnlyObjectWrapper<>(e.getValue().articleNumberFerixNew == 0 ? "-" : String.valueOf(e.getValue().articleNumberFerixNew))); // 0 stands for null value
         equipmentTableView.getColumns().addAll(descriptionColumn, ferixKeyColumn, articleNumberFerixOldColumn, articleNumberFerixNewColumn);
         equipmentTableView.getSortOrder().add(ferixKeyColumn);
+    }
+
+    /**
+     * returns whether the given equipment record is valid
+     *
+     * @param record the equipment record that contains the select_code of the equipment table
+     */
+    private boolean isValidEquipmentRecord(Record record) {
+        return record.get(EQUIPMENT.SELECT_CODE) == null // no select code -> it is valid
+                || Arrays.stream(record.get(EQUIPMENT.SELECT_CODE).split("\\|")).map(String::trim).anyMatch(option -> // any option must match
+                Arrays.stream(option.split("&")).map(String::trim).allMatch(this::isValidPredicate));
+    }
+
+    /**
+     * Returns whether the given positive (= does not start with "!") predicate is valid.
+     * An empty predicate is always valid.
+     * If the TiVi key contains the predicate, it is valid.
+     * If there is external lighting and the {@link LDSTD}'s TiVi Key contains the predicate, it is valid.
+     * If the predicate equals any of the user selected configuration, it is valid.
+     * Otherwise, it is not valid.
+     *
+     * @param predicate the predicate to check
+     * @return true if the predicate could be matched or false otherwise
+     */
+    private boolean isValidPositivePredicate(String predicate) {
+        return predicate == null || predicate.length() == 0 || //predicate matches if it is empty
+                cisData.getTiViKey().contains( // predicate also matches if it is part of the TiVi key
+                        cisData.requiresNextSizeHousing() ? // check if we might need next size housing
+                                // yes, need next size -> the predicate must match the previous size -> if 0 skip this entry and replace with something not in the TiVi key (like °)
+                                (getPreviousSizeHousingString(predicate).equals("0") ?
+                                        "°" : getPreviousSizeHousingString(predicate)) :
+                                predicate // no, no next size needed -> just use the predicate without changes
+                ) ||
+                // predicate also matches if there is external lighting (ldstd has lights) and the TiVi key of the ldstd contains the predicate
+                (!(cisData instanceof LDSTD) && ldstdData.getLedLines() > 0 && ldstdData.getTiViKey().contains(predicate)) ||
+                predicate.equals(neededPowerSupply) || // predicate also matches if it is the selected power supply by the user
+                predicate.equals(neededPowerCable) || // predicate also matches if it is the selected power cable by the user
+                predicate.equals(neededCameraLinkCable) || // predicate also matches if it is the selected camera cable by the user
+                predicate.equals(neededTriggerCable); // predicate also matches if it is the selected trigger cable by the user
+    }
+
+    /**
+     * Returns whether the given predicate is valid.
+     * An empty predicate is always valid. If the predicate starts with an "!" it is negated. Uses {@link #isValidPositivePredicate(String)} to check remaining conditions.
+     *
+     * @param predicate the predicate to check
+     * @return true if the predicate could be matched or false otherwise
+     */
+    private boolean isValidPredicate(String predicate) {
+        return predicate == null
+                || (predicate.startsWith("!") ? !isValidPositivePredicate(predicate.replace("!", "")) : isValidPositivePredicate(predicate));
     }
 
     /**
@@ -85,75 +144,13 @@ public class EquipmentController implements Initializable {
     }
 
     /**
-     * returns whether the given equipment record is valid
-     *
-     * @param record the equipment record that contains the select_code of the equipment table
-     */
-    private boolean isValidEquipmentRecord(Record record) {
-        return record.get(EQUIPMENT.SELECT_CODE) == null // no select code -> it is valid
-                || Arrays.stream(record.get(EQUIPMENT.SELECT_CODE).split("\\|")).map(String::trim).anyMatch(option -> // any option must match
-                Arrays.stream(option.split("&")).map(String::trim).allMatch(this::isValidPredicate));
-    }
-
-    /**
-     * Returns whether the given predicate is valid.
-     * An empty predicate is always valid. If the predicate starts with an "!" it is negated. Uses {@link #isValidPositivePredicate(String)} to check remaining conditions.
-     *
-     * @param predicate the predicate to check
-     * @return true if the predicate could be matched or false otherwise
-     */
-    private boolean isValidPredicate(String predicate) {
-        return predicate == null
-                || (predicate.startsWith("!") ? !isValidPositivePredicate(predicate.replace("!", "")) : isValidPositivePredicate(predicate));
-    }
-
-    /**
-     * Returns whether the given positive (= does not start with "!") predicate is valid.
-     * An empty predicate is always valid.
-     * If the TiVi key contains the predicate, it is valid.
-     * If there is external lighting and the {@link LDSTD}'s TiVi Key contains the predicate, it is valid.
-     * If the predicate equals any of the user selected configuration, it is valid.
-     * Otherwise, it is not valid.
-     *
-     * @param predicate the predicate to check
-     * @return true if the predicate could be matched or false otherwise
-     */
-    private boolean isValidPositivePredicate(String predicate) {
-        return predicate == null || predicate.length() == 0 || //predicate matches if it is empty
-                cisData.getTiViKey().contains( // predicate also matches if it is part of the TiVi key
-                        cisData.requiresNextSizeHousing() ? // check if we might need next size housing
-                                // yes, need next size -> the predicate must match the previous size -> if 0 skip this entry and replace with something not in the TiVi key (like °)
-                                (getPreviousSizeHousingString(predicate).equals("0") ?
-                                        "°" : getPreviousSizeHousingString(predicate)) :
-                                predicate // no, no next size needed -> just use the predicate without changes
-                ) ||
-                // predicate also matches if there is external lighting (ldstd has lights) and the TiVi key of the ldstd contains the predicate
-                (!(cisData instanceof LDSTD) && ldstdData.getLedLines() > 0 && ldstdData.getTiViKey().contains(predicate)) ||
-                predicate.equals(neededPowerSupply) || // predicate also matches if it is the selected power supply by the user
-                predicate.equals(neededPowerCable) || // predicate also matches if it is the selected power cable by the user
-                predicate.equals(neededCameraLinkCable) || // predicate also matches if it is the selected camera cable by the user
-                predicate.equals(neededTriggerCable); // predicate also matches if it is the selected trigger cable by the user
-    }
-
-    /**
-     * returns the given string as a previous size or unchanged if it's not an int string
-     */
-    private static String getPreviousSizeHousingString(String sizeString) {
-        try {
-            return String.valueOf(Integer.parseInt(sizeString) - CIS.BASE_LENGTH);
-        } catch (NumberFormatException e) { // not a number -> return given String
-            return sizeString;
-        }
-    }
-
-    /**
      * POJO for equipment entries. This is used as type parameter by the {@link #equipmentTableView}.
      */
     @AllArgsConstructor
     public static class EquipmentEntry {
-        public final int articleNumberFerixOld;
         public final int articleNumberFerixNew;
-        public final String ferixKey;
+        public final int articleNumberFerixOld;
         public final String description;
+        public final String ferixKey;
     }
 }

@@ -14,12 +14,13 @@
         <ComboBox fx:id="cisComboBox" value="VUCIS">
             <items>
                 <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="BDCIS"/>
+                    <String fx:value="LDSTD"/>
+                    <String fx:value="MXCIS"/>
+                    <String fx:value="VDCIS"/>
                     <String fx:value="VSCIS"/>
                     <String fx:value="VTCIS"/>
-                    <String fx:value="VDCIS"/>
-                    <String fx:value="MXCIS"/>
                     <String fx:value="VUCIS"/>
-                    <String fx:value="LDSTD"/>
                 </FXCollections>
             </items>
         </ComboBox>

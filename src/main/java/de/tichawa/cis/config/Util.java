@@ -22,8 +22,10 @@ import java.util.stream.*;
  */
 public class Util {
 
-    private static final Properties DB_PROPERTIES;
     private static final BasicDataSource DATA_SOURCE;
+    private static final Properties DB_PROPERTIES;
+    @Getter
+    private static Locale locale = Locale.getDefault(); // start with default language
 
     static {
         // setup database connection
@@ -51,65 +53,27 @@ public class Util {
         }
     }
 
-    @Getter
-    private static Locale locale = Locale.getDefault(); // start with default language
-
     /**
-     * combines two lists into a single list of pairs.
-     * Returns a list of {@link Pair} objects with the i-th element of both given lists.
-     * If the lists have different sizes the resulting list has the smaller size.
-     */
-    public static <A, B> List<Pair<A, B>> zip(List<A> as, List<B> bs) {
-        return IntStream.range(0, Math.min(as.size(), bs.size()))
-                .mapToObj(i -> new Pair<>(as.get(i), bs.get(i)))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * returns the value depending on the currently selected language for the given key.
+     * Creates a new stage with the given title by loading the given fxml file
      *
-     * @param key       the key in the resource bundle
-     * @param arguments the arguments for {@link MessageFormat#format(String, Object...)} method that is used internally to format the value String for the given key
+     * @param fxmlRelativeUrl the relative url (to de.tichawa.cis.config) to the fxml file
+     * @param title           the title of the created stage
+     * @return the {@link Stage} object that was created
      */
-    public static String getString(String key, Object... arguments) {
-        return MessageFormat.format(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString(key), arguments);
+    public static Stage createNewStage(String fxmlRelativeUrl, String title) {
+        return createNewStageWithLoader(fxmlRelativeUrl, title).getKey();
     }
 
     /**
-     * switches languages (DE <-> EN)
-     */
-    public static void switchLanguage() {
-        if (locale == Locale.GERMANY)
-            locale = Locale.US;
-        else
-            locale = Locale.GERMANY;
-    }
-
-    /**
-     * returns the database connection
+     * Creates a new stage with the given title by loading the given fxml file while setting the given controller
      *
-     * @return an optional of a {@link DSLContext} database connection object
+     * @param fxmlRelativeUrl the relative url (to de.tichawa.cis.config) to the fxml file
+     * @param title           the title of the created stage
+     * @param controller      the controller object to be set for the {@link FXMLLoader}. Will not be set if null is given.
+     * @return the {@link Stage} object that was created
      */
-    public static Optional<DSLContext> getDatabase() {
-        try {
-            SQLDialect dialect;
-            switch (DB_PROPERTIES.getProperty("dbType")) {
-                case "SQLite":
-                    dialect = SQLDialect.SQLITE;
-                    break;
-                case "MariaDB":
-                    dialect = SQLDialect.MARIADB;
-                    break;
-                default:
-                    dialect = SQLDialect.MYSQL;
-            }
-            DSLContext context = DSL.using(DATA_SOURCE, dialect);
-
-            return Optional.of(context);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return Optional.empty();
-        }
+    public static Stage createNewStage(String fxmlRelativeUrl, String title, Object controller) {
+        return createNewStageWithLoader(fxmlRelativeUrl, title, controller).getKey();
     }
 
     /**
@@ -155,26 +119,30 @@ public class Util {
     }
 
     /**
-     * Creates a new stage with the given title by loading the given fxml file
+     * returns the database connection
      *
-     * @param fxmlRelativeUrl the relative url (to de.tichawa.cis.config) to the fxml file
-     * @param title           the title of the created stage
-     * @return the {@link Stage} object that was created
+     * @return an optional of a {@link DSLContext} database connection object
      */
-    public static Stage createNewStage(String fxmlRelativeUrl, String title) {
-        return createNewStageWithLoader(fxmlRelativeUrl, title).getKey();
-    }
+    public static Optional<DSLContext> getDatabase() {
+        try {
+            SQLDialect dialect;
+            switch (DB_PROPERTIES.getProperty("dbType")) {
+                case "SQLite":
+                    dialect = SQLDialect.SQLITE;
+                    break;
+                case "MariaDB":
+                    dialect = SQLDialect.MARIADB;
+                    break;
+                default:
+                    dialect = SQLDialect.MYSQL;
+            }
+            DSLContext context = DSL.using(DATA_SOURCE, dialect);
 
-    /**
-     * Creates a new stage with the given title by loading the given fxml file while setting the given controller
-     *
-     * @param fxmlRelativeUrl the relative url (to de.tichawa.cis.config) to the fxml file
-     * @param title           the title of the created stage
-     * @param controller      the controller object to be set for the {@link FXMLLoader}. Will not be set if null is given.
-     * @return the {@link Stage} object that was created
-     */
-    public static Stage createNewStage(String fxmlRelativeUrl, String title, Object controller) {
-        return createNewStageWithLoader(fxmlRelativeUrl, title, controller).getKey();
+            return Optional.of(context);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     /**
@@ -186,5 +154,36 @@ public class Util {
      */
     public static String getNumberAsOutputString(double number, int decimals) {
         return String.format(Locale.US, "%." + decimals + "f", number);
+    }
+
+    /**
+     * returns the value depending on the currently selected language for the given key.
+     *
+     * @param key       the key in the resource bundle
+     * @param arguments the arguments for {@link MessageFormat#format(String, Object...)} method that is used internally to format the value String for the given key
+     */
+    public static String getString(String key, Object... arguments) {
+        return MessageFormat.format(ResourceBundle.getBundle("de.tichawa.cis.config.Bundle", getLocale()).getString(key), arguments);
+    }
+
+    /**
+     * switches languages (DE <-> EN)
+     */
+    public static void switchLanguage() {
+        if (locale == Locale.GERMANY)
+            locale = Locale.US;
+        else
+            locale = Locale.GERMANY;
+    }
+
+    /**
+     * combines two lists into a single list of pairs.
+     * Returns a list of {@link Pair} objects with the i-th element of both given lists.
+     * If the lists have different sizes the resulting list has the smaller size.
+     */
+    public static <A, B> List<Pair<A, B>> zip(List<A> as, List<B> bs) {
+        return IntStream.range(0, Math.min(as.size(), bs.size()))
+                .mapToObj(i -> new Pair<>(as.get(i), bs.get(i)))
+                .collect(Collectors.toList());
     }
 }

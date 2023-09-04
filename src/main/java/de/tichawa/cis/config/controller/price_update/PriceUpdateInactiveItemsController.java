@@ -27,37 +27,97 @@ public class PriceUpdateInactiveItemsController implements Initializable {
     private TableView<Pair<Integer, String>> overviewTable;
 
     /**
-     * Handles the initialization on creation. Sets up the overview table columns with a button column to let the user replace an inactive item.
+     * Replaces the article number for all entries in the equipment, electronic and mechanics table.
+     *
+     * @param oldArticleNumber the article number to replace
+     * @param newArticleNumber the new article number after replacing
      */
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        // setup table
-        overviewTable.getColumns().clear();
-        // - article column
-        TableColumn<Pair<Integer, String>, Integer> articleNumberColumn = new TableColumn<>("Article number");
-        articleNumberColumn.setCellValueFactory(i -> new ReadOnlyObjectWrapper<>(i.getValue().getKey()));
-        overviewTable.getColumns().add(articleNumberColumn);
-        // - ferix column
-        TableColumn<Pair<Integer, String>, String> ferixKeyColumn = new TableColumn<>("Ferix key");
-        ferixKeyColumn.setCellValueFactory(i -> new ReadOnlyObjectWrapper<>(i.getValue().getValue()));
-        overviewTable.getColumns().add(ferixKeyColumn);
-        // - replace button column
-        TableColumn<Pair<Integer, String>, Button> replaceArticleColumn = new TableColumn<>();
-        replaceArticleColumn.setCellFactory(ActionButtonTableCell.forTableColumn("Replace article", pair -> {
-            handleReplaceArticle(pair);
-            return pair;
-        }));
-        overviewTable.getColumns().add(replaceArticleColumn);
+    private static void replaceItem(int oldArticleNumber, int newArticleNumber) {
+        System.out.println("replacing " + oldArticleNumber + " with " + newArticleNumber);
+        try {
+            // update in database in all possible locations
+            DSLContext database = PriceUpdateController.getDatabaseOrThrowException();
+
+            // replace in equipment table (only ferix old)
+            int equipmentNumber = database.update(Equipment.EQUIPMENT)
+                    .set(Equipment.EQUIPMENT.ART_NO_FERIX_OLD, newArticleNumber)
+                    .where(Equipment.EQUIPMENT.ART_NO_FERIX_OLD.eq(oldArticleNumber)).execute();
+            // replace in electronics table
+            int electronicNumber = database.update(Electronic.ELECTRONIC)
+                    .set(Electronic.ELECTRONIC.ART_NO, newArticleNumber)
+                    .where(Electronic.ELECTRONIC.ART_NO.eq(oldArticleNumber)).execute();
+            // replace in mechanics table: as art_no
+            int mechanicNumber = database.update(Mechanic.MECHANIC)
+                    .set(Mechanic.MECHANIC.ART_NO, newArticleNumber)
+                    .where(Mechanic.MECHANIC.ART_NO.eq(oldArticleNumber)).execute();
+            // replace in mechanics table: as next_size_art_no
+            int mechanicNextNumber = database.update(Mechanic.MECHANIC)
+                    .set(Mechanic.MECHANIC.NEXT_SIZE_ART_NO, newArticleNumber)
+                    .where(Mechanic.MECHANIC.NEXT_SIZE_ART_NO.eq(oldArticleNumber)).execute();
+
+            // show alert to user of updated records
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setHeaderText("Replaced article in database:");
+            alert.setContentText("Updated\n"
+                    + equipmentNumber + " entries in equipment table,\n"
+                    + electronicNumber + " entries in electronic table,\n"
+                    + mechanicNumber + " entries in mechanic table for art_no,\n"
+                    + mechanicNextNumber + " entries in mechanic table for next_size_art_no.");
+            alert.showAndWait();
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Unable to replace article in database: " + e);
+            e.printStackTrace();
+        }
     }
 
     /**
-     * Accepts the data for initialization. Initializes the overview table with the given items.
+     * Adds a new table cell with the given content to the given pdf table
      *
-     * @param items A map of inactive items to display that maps the article number to the ferix key.
+     * @param table   the pdf table to add the cell to
+     * @param content the string content of the new cell
      */
-    public void passData(Map<Integer, String> items) {
-        overviewTable.getItems().clear();
-        overviewTable.getItems().addAll(items.entrySet().stream().map(e -> new Pair<>(e.getKey(), e.getValue())).collect(Collectors.toList()));
+    private void addCellToPdfTable(PdfPTable table, String content) {
+        PdfPCell cell = new PdfPCell();
+        cell.setPadding(5);
+        cell.setPhrase(new Phrase(content));
+        table.addCell(cell);
+    }
+
+    /**
+     * Adds the header line to the pdf pages
+     *
+     * @param writer the pdf writer of the pdf file
+     */
+    private void addPdfHeader(PdfWriter writer) {
+        // add page event that is automatically called when a new page is written
+        writer.setPageEvent(new PdfPageEventHelper() {
+
+            /**
+             * Handles all activity when a new pdf page is created. Adds the header line to the pdf page.
+             */
+            @Override
+            public void onStartPage(PdfWriter writer, Document document) {
+                // header line consists of a table with invisible borders
+                PdfPTable headerTable = new PdfPTable(new float[]{1, 1}); // 2 columns with equal width (1:1)
+                headerTable.getDefaultCell().setBorder(Rectangle.NO_BORDER); // invisible border
+
+                // left cell
+                headerTable.addCell("Configurator - Inactive items");
+
+                // right cell
+                PdfPCell cell = new PdfPCell(headerTable.getDefaultCell()); // copy default cell options (like no border)
+                cell.setHorizontalAlignment(Element.ALIGN_RIGHT); // align right cell right
+                cell.setVerticalAlignment(Element.ALIGN_BOTTOM); // align right cell bottom
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"); // for date/time format
+                cell.setPhrase(new Phrase("Generated on " + formatter.format(LocalDateTime.now()), FontFactory.getFont(FontFactory.HELVETICA, 10))); // smaller size for date/time
+                headerTable.addCell(cell);
+
+                // format and add table to page
+                headerTable.setTotalWidth(document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin());
+                headerTable.writeSelectedRows(0, -1, document.leftMargin(), document.top() + headerTable.getTotalHeight() + 8, writer.getDirectContent());
+            }
+        });
     }
 
     /**
@@ -126,51 +186,6 @@ public class PriceUpdateInactiveItemsController implements Initializable {
     }
 
     /**
-     * Replaces the article number for all entries in the equipment, electronic and mechanics table.
-     *
-     * @param oldArticleNumber the article number to replace
-     * @param newArticleNumber the new article number after replacing
-     */
-    private static void replaceItem(int oldArticleNumber, int newArticleNumber) {
-        System.out.println("replacing " + oldArticleNumber + " with " + newArticleNumber);
-        try {
-            // update in database in all possible locations
-            DSLContext database = PriceUpdateController.getDatabaseOrThrowException();
-
-            // replace in equipment table (only ferix old)
-            int equipmentNumber = database.update(Equipment.EQUIPMENT)
-                    .set(Equipment.EQUIPMENT.ART_NO_FERIX_OLD, newArticleNumber)
-                    .where(Equipment.EQUIPMENT.ART_NO_FERIX_OLD.eq(oldArticleNumber)).execute();
-            // replace in electronics table
-            int electronicNumber = database.update(Electronic.ELECTRONIC)
-                    .set(Electronic.ELECTRONIC.ART_NO, newArticleNumber)
-                    .where(Electronic.ELECTRONIC.ART_NO.eq(oldArticleNumber)).execute();
-            // replace in mechanics table: as art_no
-            int mechanicNumber = database.update(Mechanic.MECHANIC)
-                    .set(Mechanic.MECHANIC.ART_NO, newArticleNumber)
-                    .where(Mechanic.MECHANIC.ART_NO.eq(oldArticleNumber)).execute();
-            // replace in mechanics table: as next_size_art_no
-            int mechanicNextNumber = database.update(Mechanic.MECHANIC)
-                    .set(Mechanic.MECHANIC.NEXT_SIZE_ART_NO, newArticleNumber)
-                    .where(Mechanic.MECHANIC.NEXT_SIZE_ART_NO.eq(oldArticleNumber)).execute();
-
-            // show alert to user of updated records
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText("Replaced article in database:");
-            alert.setContentText("Updated\n"
-                    + equipmentNumber + " entries in equipment table,\n"
-                    + electronicNumber + " entries in electronic table,\n"
-                    + mechanicNumber + " entries in mechanic table for art_no,\n"
-                    + mechanicNextNumber + " entries in mechanic table for next_size_art_no.");
-            alert.showAndWait();
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Unable to replace article in database: " + e);
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Handles the save menu button press.
      * Opens a file chooser and writes the inactive items as a table to the chosen pdf location.
      * Shows an alert if an error occurs during writing the pdf file.
@@ -203,39 +218,37 @@ public class PriceUpdateInactiveItemsController implements Initializable {
     }
 
     /**
-     * Adds the header line to the pdf pages
-     *
-     * @param writer the pdf writer of the pdf file
+     * Handles the initialization on creation. Sets up the overview table columns with a button column to let the user replace an inactive item.
      */
-    private void addPdfHeader(PdfWriter writer) {
-        // add page event that is automatically called when a new page is written
-        writer.setPageEvent(new PdfPageEventHelper() {
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        // setup table
+        overviewTable.getColumns().clear();
+        // - article column
+        TableColumn<Pair<Integer, String>, Integer> articleNumberColumn = new TableColumn<>("Article number");
+        articleNumberColumn.setCellValueFactory(i -> new ReadOnlyObjectWrapper<>(i.getValue().getKey()));
+        overviewTable.getColumns().add(articleNumberColumn);
+        // - ferix column
+        TableColumn<Pair<Integer, String>, String> ferixKeyColumn = new TableColumn<>("Ferix key");
+        ferixKeyColumn.setCellValueFactory(i -> new ReadOnlyObjectWrapper<>(i.getValue().getValue()));
+        overviewTable.getColumns().add(ferixKeyColumn);
+        // - replace button column
+        TableColumn<Pair<Integer, String>, Button> replaceArticleColumn = new TableColumn<>();
+        replaceArticleColumn.setCellFactory(ActionButtonTableCell.forTableColumn("Replace article", pair -> {
+            handleReplaceArticle(pair);
+            return pair;
+        }));
+        overviewTable.getColumns().add(replaceArticleColumn);
+    }
 
-            /**
-             * Handles all activity when a new pdf page is created. Adds the header line to the pdf page.
-             */
-            @Override
-            public void onStartPage(PdfWriter writer, Document document) {
-                // header line consists of a table with invisible borders
-                PdfPTable headerTable = new PdfPTable(new float[]{1, 1}); // 2 columns with equal width (1:1)
-                headerTable.getDefaultCell().setBorder(Rectangle.NO_BORDER); // invisible border
-
-                // left cell
-                headerTable.addCell("Configurator - Inactive items");
-
-                // right cell
-                PdfPCell cell = new PdfPCell(headerTable.getDefaultCell()); // copy default cell options (like no border)
-                cell.setHorizontalAlignment(Element.ALIGN_RIGHT); // align right cell right
-                cell.setVerticalAlignment(Element.ALIGN_BOTTOM); // align right cell bottom
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"); // for date/time format
-                cell.setPhrase(new Phrase("Generated on " + formatter.format(LocalDateTime.now()), FontFactory.getFont(FontFactory.HELVETICA, 10))); // smaller size for date/time
-                headerTable.addCell(cell);
-
-                // format and add table to page
-                headerTable.setTotalWidth(document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin());
-                headerTable.writeSelectedRows(0, -1, document.leftMargin(), document.top() + headerTable.getTotalHeight() + 8, writer.getDirectContent());
-            }
-        });
+    /**
+     * Accepts the data for initialization. Initializes the overview table with the given items.
+     *
+     * @param items A map of inactive items to display that maps the article number to the ferix key.
+     */
+    public void passData(Map<Integer, String> items) {
+        overviewTable.getItems().clear();
+        overviewTable.getItems().addAll(items.entrySet().stream().map(e -> new Pair<>(e.getKey(), e.getValue())).collect(Collectors.toList()));
     }
 
     /**
@@ -264,18 +277,5 @@ public class PriceUpdateInactiveItemsController implements Initializable {
 
         // all content written -> close
         document.close();
-    }
-
-    /**
-     * Adds a new table cell with the given content to the given pdf table
-     *
-     * @param table   the pdf table to add the cell to
-     * @param content the string content of the new cell
-     */
-    private void addCellToPdfTable(PdfPTable table, String content) {
-        PdfPCell cell = new PdfPCell();
-        cell.setPadding(5);
-        cell.setPhrase(new Phrase(content));
-        table.addCell(cell);
     }
 }

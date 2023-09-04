@@ -16,40 +16,43 @@ public class PriceUpdateNewItemController {
     @FXML
     private Label articleNumberLabel;
     @FXML
+    private TextField assemblyTimeTextField;
+    @FXML
     private TextField ferixKeyTextField;
     @FXML
-    private TextField assemblyTimeTextField;
+    private TextField photoValueTextField;
     @FXML
     private TextField powerConsumptionTextField;
     @FXML
     private TextField weightTextField;
-    @FXML
-    private TextField photoValueTextField;
 
     /**
-     * Accepts the data for initialization. Initializes the form values for the new article with the existing values of the old one.
+     * Inserts the given article into the database's price table
      *
-     * @param oldArticleNumber the article number of the old article. This is used to read the existing values for the other form fields.
-     * @param newArticleNumber the article number of the new article. This is shown in the form as the new article number.
+     * @param articleNumber    the article number of the new article
+     * @param ferixKey         the ferix key of the new article
+     * @param assemblyTime     the assembly time of the new article
+     * @param powerConsumption the power consumption of the new article
+     * @param weight           the weight of the new article
+     * @param photoValue       the photo value of the new article
+     * @return whether the inserting succeeded
      */
-    public void passData(int oldArticleNumber, int newArticleNumber) {
-        articleNumberLabel.setText(String.valueOf(newArticleNumber));
-
+    private boolean addArticleToDatabase(int articleNumber, String ferixKey, double assemblyTime, double powerConsumption, double weight, double photoValue) {
         try {
-            PriceRecord oldArticle = PriceUpdateController.getDatabaseOrThrowException().selectFrom(Price.PRICE).where(Price.PRICE.ART_NO.eq(oldArticleNumber)).fetchOne();
-            if (oldArticle == null) {
-                System.err.println("did not find old article data in database");
-                return;
-            }
-
-            ferixKeyTextField.setText(oldArticle.getFerixKey());
-            assemblyTimeTextField.setText(String.valueOf(oldArticle.getAssemblyTime()));
-            powerConsumptionTextField.setText(String.valueOf(oldArticle.getPowerConsumption()));
-            weightTextField.setText(String.valueOf(oldArticle.getWeight()));
-            photoValueTextField.setText(String.valueOf(oldArticle.getPhotoValue()));
+            int inserted = PriceUpdateController.getDatabaseOrThrowException().insertInto(Price.PRICE,
+                            Price.PRICE.PRICE_, Price.PRICE.ART_NO, Price.PRICE.FERIX_KEY, Price.PRICE.ASSEMBLY_TIME, Price.PRICE.POWER_CONSUMPTION, Price.PRICE.WEIGHT, Price.PRICE.PHOTO_VALUE, Price.PRICE.DISPLAY_NAME)
+                    .values(0d, articleNumber, ferixKey, assemblyTime, powerConsumption, weight, photoValue, "").execute();
+            if (inserted == 1) {
+                System.out.println("added article " + articleNumber + " to database");
+                return true;
+            } else
+                System.out.println("did not insert 1 article into database but " + inserted);
         } catch (IOException e) {
-            System.err.println("failed to read old article data from database");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Database connection failed: Unable to add new article.");
+            alert.showAndWait();
         }
+        return false;
     }
 
     /**
@@ -83,32 +86,29 @@ public class PriceUpdateNewItemController {
     }
 
     /**
-     * Inserts the given article into the database's price table
+     * Accepts the data for initialization. Initializes the form values for the new article with the existing values of the old one.
      *
-     * @param articleNumber    the article number of the new article
-     * @param ferixKey         the ferix key of the new article
-     * @param assemblyTime     the assembly time of the new article
-     * @param powerConsumption the power consumption of the new article
-     * @param weight           the weight of the new article
-     * @param photoValue       the photo value of the new article
-     * @return whether the inserting succeeded
+     * @param oldArticleNumber the article number of the old article. This is used to read the existing values for the other form fields.
+     * @param newArticleNumber the article number of the new article. This is shown in the form as the new article number.
      */
-    private boolean addArticleToDatabase(int articleNumber, String ferixKey, double assemblyTime, double powerConsumption, double weight, double photoValue) {
+    public void passData(int oldArticleNumber, int newArticleNumber) {
+        articleNumberLabel.setText(String.valueOf(newArticleNumber));
+
         try {
-            int inserted = PriceUpdateController.getDatabaseOrThrowException().insertInto(Price.PRICE,
-                            Price.PRICE.PRICE_, Price.PRICE.ART_NO, Price.PRICE.FERIX_KEY, Price.PRICE.ASSEMBLY_TIME, Price.PRICE.POWER_CONSUMPTION, Price.PRICE.WEIGHT, Price.PRICE.PHOTO_VALUE, Price.PRICE.DISPLAY_NAME)
-                    .values(0d, articleNumber, ferixKey, assemblyTime, powerConsumption, weight, photoValue, "").execute();
-            if (inserted == 1) {
-                System.out.println("added article " + articleNumber + " to database");
-                return true;
-            } else
-                System.out.println("did not insert 1 article into database but " + inserted);
+            PriceRecord oldArticle = PriceUpdateController.getDatabaseOrThrowException().selectFrom(Price.PRICE).where(Price.PRICE.ART_NO.eq(oldArticleNumber)).fetchOne();
+            if (oldArticle == null) {
+                System.err.println("did not find old article data in database");
+                return;
+            }
+
+            ferixKeyTextField.setText(oldArticle.getFerixKey());
+            assemblyTimeTextField.setText(String.valueOf(oldArticle.getAssemblyTime()));
+            powerConsumptionTextField.setText(String.valueOf(oldArticle.getPowerConsumption()));
+            weightTextField.setText(String.valueOf(oldArticle.getWeight()));
+            photoValueTextField.setText(String.valueOf(oldArticle.getPhotoValue()));
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Database connection failed: Unable to add new article.");
-            alert.showAndWait();
+            System.err.println("failed to read old article data from database");
         }
-        return false;
     }
 
     /**

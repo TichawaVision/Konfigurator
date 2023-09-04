@@ -16,9 +16,19 @@ import java.util.stream.Collectors;
  * Controller class for PriceUpdateDeletionOverview.fxml
  */
 public class PriceUpdateDeletionOverviewController implements Initializable {
-
+    
     @FXML
     private TableView<Pair<Integer, String>> overviewTable;
+
+    /**
+     * Deletes the given items from the price table
+     *
+     * @return the number of items deleted
+     * @throws IOException if an error occurs during deletion from the database
+     */
+    private static int deleteItemsFromPriceTable(Collection<Integer> items) throws IOException {
+        return PriceUpdateController.getDatabaseOrThrowException().deleteFrom(Price.PRICE).where(Price.PRICE.ART_NO.in(items)).execute();
+    }
 
     /**
      * Handles the confirm deletion button press. Invokes the deletion by calling {@link #deleteItemsFromPriceTable(Collection)} and shows the user the number of items deleted.
@@ -61,15 +71,5 @@ public class PriceUpdateDeletionOverviewController implements Initializable {
         // init table view with items
         overviewTable.getItems().clear();
         overviewTable.getItems().addAll(items.entrySet().stream().map(e -> new Pair<>(e.getKey(), e.getValue())).collect(Collectors.toList()));
-    }
-
-    /**
-     * Deletes the given items from the price table
-     *
-     * @return the number of items deleted
-     * @throws IOException if an error occurs during deletion from the database
-     */
-    private static int deleteItemsFromPriceTable(Collection<Integer> items) throws IOException {
-        return PriceUpdateController.getDatabaseOrThrowException().deleteFrom(Price.PRICE).where(Price.PRICE.ART_NO.in(items)).execute();
     }
 }

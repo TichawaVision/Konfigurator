@@ -16,134 +16,63 @@ import java.util.stream.*;
 
 public class MaskController extends de.tichawa.cis.config.controller.MaskController<VUCIS> implements PropertyChangeListener {
 
-    private static final List<CIS.LightColor> LIGHT_COLOR_OPTIONS_WITH_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor)
-            .collect(Collectors.toList());
-    private static final List<CIS.LightColor> LIGHT_COLOR_OPTIONS_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor).filter(c -> !c.isShapeFromShading())
-            .collect(Collectors.toList());
     private static final List<CIS.LightColor> LIGHT_COLOR_OPTIONS_COAX_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISCoaxLightColor).filter(c -> !c.isShapeFromShading())
             .collect(Collectors.toList()); //coax is always without sfs
-    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_COAX = Stream.of(260, 520, 780, 1040).collect(Collectors.toList());
+    private static final List<CIS.LightColor> LIGHT_COLOR_OPTIONS_WITHOUT_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor).filter(c -> !c.isShapeFromShading())
+            .collect(Collectors.toList());
+    private static final List<CIS.LightColor> LIGHT_COLOR_OPTIONS_WITH_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor)
+            .collect(Collectors.toList());
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITHOUT_COAX = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820/*, 2080 (removed for now)*/).collect(Collectors.toList());
+    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_COAX = Stream.of(260, 520, 780, 1040).collect(Collectors.toList());
     private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_SFS = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820).collect(Collectors.toList());
 
     private static long lastMinFreq = 0;
-
-    @FXML
-    private Label tiViKeyLabel;
-    @FXML
-    private Label warningSelectedLineRateLabel;
-    @FXML
-    private ChoiceBox<String> lensTypeChoiceBox;
-    @FXML
-    private CheckBox lensDofCheckBox;
-    @FXML
-    private Label lensCodeLabel;
-    @FXML
-    private CheckBox reducedPixelClockCheckBox;
-    @FXML
-    private Label cameraLinkInfoLabel;
-    @FXML
-    private Label lightInfoLabel;
-    @FXML
-    private ChoiceBox<String> moduloChoiceBox;
-    @FXML
-    private Label pixelCountLabel;
-    @FXML
-    private Label lightFrequencyLimitLabel;
     @FXML
     private ChoiceBox<CIS.LightColor> brightFieldLeftChoiceBox;
     @FXML
-    private ChoiceBox<CIS.LightColor> coaxChoiceBox;
-    @FXML
     private ChoiceBox<CIS.LightColor> brightFieldRightChoiceBox;
     @FXML
-    private ChoiceBox<CIS.LightColor> darkFieldLeftChoiceBox;
+    private Label cameraLinkInfoLabel;
     @FXML
-    private ChoiceBox<CIS.LightColor> darkFieldRightChoiceBox;
+    private CheckBox cloudyDayCheckBox;
+    @FXML
+    private ChoiceBox<CIS.LightColor> coaxChoiceBox;
     @FXML
     private CheckBox coolingLeftCheckBox;
     @FXML
     private CheckBox coolingRightCheckBox;
     @FXML
-    private CheckBox cloudyDayCheckBox;
+    private Label currentLineRatePercentLabel;
+    @FXML
+    private ChoiceBox<CIS.LightColor> darkFieldLeftChoiceBox;
+    @FXML
+    private ChoiceBox<CIS.LightColor> darkFieldRightChoiceBox;
+    @FXML
+    private Label lensCodeLabel;
+    @FXML
+    private CheckBox lensDofCheckBox;
+    @FXML
+    private ChoiceBox<String> lensTypeChoiceBox;
+    @FXML
+    private Label lightFrequencyLimitLabel;
+    @FXML
+    private Label lightInfoLabel;
     @FXML
     private ChoiceBox<String> lightPresetChoiceBox;
     @FXML
-    private Label currentLineRatePercentLabel;
+    private ChoiceBox<String> moduloChoiceBox;
+    @FXML
+    private Label pixelCountLabel;
+    @FXML
+    private CheckBox reducedPixelClockCheckBox;
+    @FXML
+    private Label tiViKeyLabel;
+    @FXML
+    private Label warningSelectedLineRateLabel;
 
     public MaskController() {
         CIS_DATA = new VUCIS();
         CIS_DATA.addObserver(this); // add this as observer to listen for changes to the model
-    }
-
-    public enum Phases {
-        ONE(1, "One phase (Monochrome)"),
-        TWO(2, "Two phases"),
-        THREE(3, "Three phases (e.g. RGB)"),
-        FOUR(4, "Four phases"),
-        FIVE(5, "Five phases"),
-        SIX(6, "Six phases");
-
-        private final int phaseCount;
-        private final String displayText;
-
-        Phases(int phaseCount, String displayText) {
-            this.phaseCount = phaseCount;
-            this.displayText = displayText;
-        }
-
-        public String getDisplayText() {
-            return displayText;
-        }
-
-        public static Optional<Phases> findByPhaseCount(int phaseCount) {
-            return Arrays.stream(Phases.values()).filter(p -> p.phaseCount == phaseCount).findFirst();
-        }
-
-        public static Optional<Phases> findByDisplayText(String displayText) {
-            return Arrays.stream(Phases.values()).filter(t -> t.displayText.equals(displayText)).findFirst();
-        }
-    }
-
-    public enum LightPresets {
-        MANUAL(CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.NONE, 1, "Manual", false),
-        SFS(CIS.LightColor.WHITE_SFS, CIS.LightColor.WHITE_SFS, CIS.LightColor.WHITE_SFS, CIS.LightColor.WHITE_SFS, CIS.LightColor.NONE, 4, "Shape from Shading (White)", false),
-        COAX(CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.RED, 1, "Coax (Red)", false),
-        BF_RGB(CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.NONE, 1, "BrightField (Red)", false),
-        BF_RGB_S(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.NONE, 3, "BrightField (RGB)", false),
-        CLOUDY_DAY(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.NONE, 3, "Cloudy Day (RGB)", true),
-        DF_RED(CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, 1, "DarkField (Red)", false),
-        WAFER(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, 3, "Wafer (RGB strong)", false);
-
-        private final CIS.LightColor leftBrightField, leftDarkField, rightBrightField, rightDarkField, coax;
-        private final int phaseCount;
-        private final boolean cloudyDay;
-        private final String displayText;
-
-        LightPresets(CIS.LightColor leftBrightField, CIS.LightColor leftDarkField, CIS.LightColor rightBrightField, CIS.LightColor rightDarkField, CIS.LightColor coax,
-                     int phaseCount, String displayText, boolean cloudyDay) {
-            this.leftBrightField = leftBrightField;
-            this.leftDarkField = leftDarkField;
-            this.rightBrightField = rightBrightField;
-            this.rightDarkField = rightDarkField;
-            this.coax = coax;
-            this.phaseCount = phaseCount;
-            this.cloudyDay = cloudyDay;
-            this.displayText = displayText;
-        }
-
-        public String getDisplayText() {
-            return displayText;
-        }
-
-        public static Optional<LightPresets> findByDisplayText(String displayText) {
-            return Arrays.stream(LightPresets.values()).filter(l -> l.getDisplayText().equals(displayText)).findFirst();
-        }
-    }
-
-    @Override
-    public List<CIS.Resolution> setupResolutions() {
-        return VUCIS.getResolutions();
     }
 
     /**
@@ -165,39 +94,184 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * initializes the light preset choice box (adds items, selects initial item, adds listener for changes)
+     * returns the light name corresponding to the given choice box id. The light name will be used as changed property
+     *
+     * @param choiceBoxId the id of the choice box of the light
+     * @return the light (property) name
      */
-    private void initLightPresets() {
-        //set items of choice box
-        lightPresetChoiceBox.getItems().clear();
-        lightPresetChoiceBox.getItems().addAll(Arrays.stream(LightPresets.values()).map(LightPresets::getDisplayText).collect(Collectors.toList()));
-        //select initial value
-        lightPresetChoiceBox.getSelectionModel().select(LightPresets.MANUAL.getDisplayText());
-        //add listener to change lights on change
-        lightPresetChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            LightPresets selected = LightPresets.findByDisplayText(newValue).orElseThrow(() -> new IllegalArgumentException("selected light preset does not exist"));
-            applyLightPreset(selected);
-            //set to selected again because a change will set it to manual
-            lightPresetChoiceBox.getSelectionModel().select(newValue);
-        });
+    private String getLightNameFromChoiceBoxId(String choiceBoxId) {
+        switch (choiceBoxId) {
+            case "brightFieldLeftChoiceBox":
+                return VUCIS.PROPERTY_BRIGHT_FIELD_LEFT;
+            case "brightFieldRightChoiceBox":
+                return VUCIS.PROPERTY_BRIGHT_FIELD_RIGHT;
+            case "darkFieldLeftChoiceBox":
+                return VUCIS.PROPERTY_DARK_FIELD_LEFT;
+            case "darkFieldRightChoiceBox":
+                return VUCIS.PROPERTY_DARK_FIELD_RIGHT;
+            case "coaxChoiceBox":
+                return VUCIS.PROPERTY_COAX;
+            default:
+                throw new IllegalArgumentException("unknown choiceBoxId: " + choiceBoxId);
+        }
     }
 
     /**
-     * initializes the phases choice box
+     * returns the datasheet controller for VUCIS
+     *
+     * @return a new {@link de.tichawa.cis.config.vucis.DataSheetController} object
      */
-    private void initPhases() {
-        //set items to choice box
-        phasesChoiceBox.getItems().clear();
-        phasesChoiceBox.getItems().addAll(Arrays.stream(Phases.values()).map(Phases::getDisplayText).collect(Collectors.toList()));
-        //select initial value
-        Phases initialPhase = Phases.findByPhaseCount(CIS_DATA.getPhaseCount()).orElseThrow(() -> new IllegalArgumentException("selected phases do not exist"));
-        phasesChoiceBox.getSelectionModel().select(initialPhase.getDisplayText());
-        //add listener to set phase count on changes
-        phasesChoiceBox.valueProperty().addListener((property, oldValue, newValue) -> {
-            Phases selectedPhase = Phases.findByDisplayText(newValue).orElseThrow(() -> new IllegalArgumentException("selected phases do not exist"));
-            //set phase count in model when choice box value changed
-            CIS_DATA.setPhaseCount(selectedPhase.phaseCount);
-        });
+    @Override
+    protected DataSheetController getNewDatasheetController() {
+        return new de.tichawa.cis.config.vucis.DataSheetController();
+    }
+
+    @Override
+    public List<CIS.Resolution> setupResolutions() {
+        return VUCIS.getResolutions();
+    }
+
+    /**
+     * handles a coax light change by
+     * - disabling left dark field choice box (no coax + left dark field)
+     * - setting the light color choices for left bright field to ones without shape from shading (no left sided shape from shading + coax)
+     * - setting the scan width choices to valid ones for coax
+     * or resets these changes if coax is deselected
+     */
+    private void handleCoaxChange(CIS.LightColor oldValue, CIS.LightColor newValue) {
+        boolean hasCoax = newValue != CIS.LightColor.NONE;
+        boolean hadCoax = oldValue != CIS.LightColor.NONE;
+        if (hasCoax != hadCoax) {//only do something if we switch from coax to non-coax or other way around
+            //clear scan width and left bright field because these options will be changed
+            scanWidthChoiceBox.getItems().clear();
+            brightFieldLeftChoiceBox.getItems().clear();
+            if (hasCoax) { //coax selected
+                //set items of scan width choice box to ones without coax
+                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                //set items of left bf to ones without sfs (no coax and left sided sfs)
+                brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
+            } else { // coax deselected
+                //set items of scan width choice box to ones with coax
+                if (CIS_DATA.isShapeFromShading()) {
+                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                } else {
+                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                }
+                //set items of left bf to ones with sfs
+                brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
+            } //in either case:
+            //enable/disable left dark field (no dark field + coax)
+            darkFieldLeftChoiceBox.setDisable(hasCoax || CIS_DATA.isCloudyDay());
+            //select current values
+            selectLightChoiceBox(brightFieldLeftChoiceBox, CIS_DATA.getBrightFieldLeft());
+            scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+        }
+    }
+
+    /**
+     * handles a lens change by setting the corresponding boxes
+     */
+    private void handleLensChange(VUCIS.LensType lens) {
+        setLensBoxes(lens.getWorkingDistanceString(), lens.isLongDOF());
+        // disable the checkbox if there is only one version
+        lensDofCheckBox.setDisable(!lens.hasShortDOFVersion());
+        lensCodeLabel.setText(lens.getCode());
+    }
+
+    /**
+     * calculates speeds depending on the given line rate and sets labels accordingly
+     */
+    private void handleLineRateChange(int lineRate) {
+        currentLineRateLabel.setText(lineRate / 1000.0 + " kHz");
+        currentLineRatePercentLabel.setText(Math.round(lineRate / CIS_DATA.getMaxLineRate() * 100) + " %");
+    }
+
+    /**
+     * handles changes to the phase count in the model: shows the corresponding text in the choice box and adjusts the line rate
+     */
+    private void handlePhasesChange(Phases selectedPhase) {
+        // set choice box selection
+        phasesChoiceBox.getSelectionModel().select(selectedPhase.getDisplayText());
+        // adjust line rate outputs
+        updateMaxLineRateChange();
+    }
+
+    /**
+     * calculates the displayed values and sets them to the corresponding texts
+     */
+    private void handleResolutionChange(CIS.Resolution resolution) {
+        // cannot easily set resolution in GUI since this would require mapping the resolution values to the fxml texts
+        // however, since resolution only changes by user input, this does not really matter for now
+
+        // set output texts
+        updateMaxLineRateChange();
+        updatePixelAndDefectSize();
+    }
+
+    /**
+     * handles the serial button press by opening the serial settings window
+     */
+    @FXML
+    private void handleSerial() {
+        Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("Serial.fxml", "Serial Interface parameters");
+        ((SerialController) stageWithLoader.getValue().getController()).initialize(CIS_DATA);
+        stageWithLoader.getKey().show();
+    }
+
+    private void handleTransportSpeedChange(int transportSpeed) {
+        double transportSpeedByThousands = transportSpeed / 1000.0;
+        speedmmsLabel.setText(CIS.round(transportSpeedByThousands, 3) + " mm/s");
+        speedmsLabel.setText(CIS.round(transportSpeedByThousands / 1000, 3) + " m/s");
+        speedmminLabel.setText(CIS.round(transportSpeedByThousands * 0.06, 3) + " m/min");
+        speedipsLabel.setText(CIS.round(transportSpeedByThousands * 0.03937, 3) + " ips");
+    }
+
+    /**
+     * initializes the cloudy day checkbox
+     */
+    private void initCloudyDay() {
+        cloudyDayCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCloudyDay(newValue));
+    }
+
+    /**
+     * initializes the color and light sources section (light preset, phases, cloudy day, bright and dark fields, coax, cooling)
+     */
+    private void initColorAndLightSources() {
+        initLightPresets();
+        initPhases();
+        initCloudyDay();
+        initLights();
+        initCooling();
+        updateLightFrequencyLimit();
+    }
+
+    /**
+     * initializes the cooling checkboxes
+     */
+    private void initCooling() {
+        coolingLeftCheckBox.setSelected(CIS_DATA.hasCoolingLeft());
+        coolingRightCheckBox.setSelected(CIS_DATA.hasCoolingRight());
+        coolingLeftCheckBox.setDisable(true);
+        coolingRightCheckBox.setDisable(true);
+        coolingLeftCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingLeft(newValue));
+        coolingRightCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingRight(newValue));
+    }
+
+    /**
+     * initializes the interface section
+     */
+    private void initInterface() {
+        // disable interface choice
+        interfaceChoiceBox.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
+        // listener and text output for reduced pixel clock
+        reducedPixelClockCheckBox.setText(reducedPixelClockCheckBox.getText() + " (" + (VUCIS.PIXEL_CLOCK_REDUCED / 1000000) + "\u200aMHz)");
+        reducedPixelClockCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
+        reducedPixelClockCheckBox.setSelected(CIS_DATA.isReducedPixelClock());
+        // setup choice box for valid mod options
+        moduloChoiceBox.getItems().clear();
+        moduloChoiceBox.getItems().addAll(VUCIS.VALID_MODS.stream().map(Object::toString).collect(Collectors.toList()));
+        moduloChoiceBox.getSelectionModel().select(String.valueOf(CIS_DATA.getMod()));
+        moduloChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setMod(Integer.parseInt(newValue)));
     }
 
     /**
@@ -244,26 +318,21 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * returns the light name corresponding to the given choice box id. The light name will be used as changed property
-     *
-     * @param choiceBoxId the id of the choice box of the light
-     * @return the light (property) name
+     * initializes the light preset choice box (adds items, selects initial item, adds listener for changes)
      */
-    private String getLightNameFromChoiceBoxId(String choiceBoxId) {
-        switch (choiceBoxId) {
-            case "brightFieldLeftChoiceBox":
-                return VUCIS.PROPERTY_BRIGHT_FIELD_LEFT;
-            case "brightFieldRightChoiceBox":
-                return VUCIS.PROPERTY_BRIGHT_FIELD_RIGHT;
-            case "darkFieldLeftChoiceBox":
-                return VUCIS.PROPERTY_DARK_FIELD_LEFT;
-            case "darkFieldRightChoiceBox":
-                return VUCIS.PROPERTY_DARK_FIELD_RIGHT;
-            case "coaxChoiceBox":
-                return VUCIS.PROPERTY_COAX;
-            default:
-                throw new IllegalArgumentException("unknown choiceBoxId: " + choiceBoxId);
-        }
+    private void initLightPresets() {
+        //set items of choice box
+        lightPresetChoiceBox.getItems().clear();
+        lightPresetChoiceBox.getItems().addAll(Arrays.stream(LightPresets.values()).map(LightPresets::getDisplayText).collect(Collectors.toList()));
+        //select initial value
+        lightPresetChoiceBox.getSelectionModel().select(LightPresets.MANUAL.getDisplayText());
+        //add listener to change lights on change
+        lightPresetChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            LightPresets selected = LightPresets.findByDisplayText(newValue).orElseThrow(() -> new IllegalArgumentException("selected light preset does not exist"));
+            applyLightPreset(selected);
+            //set to selected again because a change will set it to manual
+            lightPresetChoiceBox.getSelectionModel().select(newValue);
+        });
     }
 
     /**
@@ -278,34 +347,13 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * initializes the cloudy day checkbox
+     * initializes the line rate and transport speed section
      */
-    private void initCloudyDay() {
-        cloudyDayCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCloudyDay(newValue));
-    }
-
-    /**
-     * initializes the cooling checkboxes
-     */
-    private void initCooling() {
-        coolingLeftCheckBox.setSelected(CIS_DATA.hasCoolingLeft());
-        coolingRightCheckBox.setSelected(CIS_DATA.hasCoolingRight());
-        coolingLeftCheckBox.setDisable(true);
-        coolingRightCheckBox.setDisable(true);
-        coolingLeftCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingLeft(newValue));
-        coolingRightCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setCoolingRight(newValue));
-    }
-
-    /**
-     * initializes the color and light sources section (light preset, phases, cloudy day, bright and dark fields, coax, cooling)
-     */
-    private void initColorAndLightSources() {
-        initLightPresets();
-        initPhases();
-        initCloudyDay();
-        initLights();
-        initCooling();
-        updateLightFrequencyLimit();
+    private void initLineRateAndTransportSpeed() {
+        handleTransportSpeedChange(CIS_DATA.getTransportSpeed());
+        updateMaxLineRateChange();
+        handleLineRateChange(CIS_DATA.getSelectedLineRate());
+        selectedLineRateSlider.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedLineRate(newValue.intValue()));
     }
 
     /**
@@ -333,6 +381,31 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
+     * initializes the phases choice box
+     */
+    private void initPhases() {
+        //set items to choice box
+        phasesChoiceBox.getItems().clear();
+        phasesChoiceBox.getItems().addAll(Arrays.stream(Phases.values()).map(Phases::getDisplayText).collect(Collectors.toList()));
+        //select initial value
+        Phases initialPhase = Phases.findByPhaseCount(CIS_DATA.getPhaseCount()).orElseThrow(() -> new IllegalArgumentException("selected phases do not exist"));
+        phasesChoiceBox.getSelectionModel().select(initialPhase.getDisplayText());
+        //add listener to set phase count on changes
+        phasesChoiceBox.valueProperty().addListener((property, oldValue, newValue) -> {
+            Phases selectedPhase = Phases.findByDisplayText(newValue).orElseThrow(() -> new IllegalArgumentException("selected phases do not exist"));
+            //set phase count in model when choice box value changed
+            CIS_DATA.setPhaseCount(selectedPhase.phaseCount);
+        });
+    }
+
+    /**
+     * initializes the pixel and defect size section by setting the text labels to the initial values
+     */
+    private void initPixelAndDefectSize() {
+        updatePixelAndDefectSize();
+    }
+
+    /**
      * initializes the resolution and scan width section
      */
     private void initResolutionAndScanWidth() {
@@ -350,40 +423,6 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             if (oldValue != null && newValue != null)
                 CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim()));
         });
-    }
-
-    /**
-     * initializes the line rate and transport speed section
-     */
-    private void initLineRateAndTransportSpeed() {
-        handleTransportSpeedChange(CIS_DATA.getTransportSpeed());
-        updateMaxLineRateChange();
-        handleLineRateChange(CIS_DATA.getSelectedLineRate());
-        selectedLineRateSlider.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedLineRate(newValue.intValue()));
-    }
-
-    /**
-     * initializes the pixel and defect size section by setting the text labels to the initial values
-     */
-    private void initPixelAndDefectSize() {
-        updatePixelAndDefectSize();
-    }
-
-    /**
-     * initializes the interface section
-     */
-    private void initInterface() {
-        // disable interface choice
-        interfaceChoiceBox.getSelectionModel().selectFirst(); // disabled for now (only CameraLink)
-        // listener and text output for reduced pixel clock
-        reducedPixelClockCheckBox.setText(reducedPixelClockCheckBox.getText() + " (" + (VUCIS.PIXEL_CLOCK_REDUCED / 1000000) + "\u200aMHz)");
-        reducedPixelClockCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setReducedPixelClock(newValue));
-        reducedPixelClockCheckBox.setSelected(CIS_DATA.isReducedPixelClock());
-        // setup choice box for valid mod options
-        moduloChoiceBox.getItems().clear();
-        moduloChoiceBox.getItems().addAll(VUCIS.VALID_MODS.stream().map(Object::toString).collect(Collectors.toList()));
-        moduloChoiceBox.getSelectionModel().select(String.valueOf(CIS_DATA.getMod()));
-        moduloChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setMod(Integer.parseInt(newValue)));
     }
 
     /**
@@ -406,14 +445,6 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         initInterface();
         updateCameraLinkInfo();
         updateTiViKey();
-    }
-
-    /**
-     * disables/enables the cooling checkboxes
-     */
-    private void updateCoolingCheckboxes() {
-        coolingLeftCheckBox.setDisable(CIS_DATA.hasCoolingLeft());
-        coolingRightCheckBox.setDisable(CIS_DATA.hasCoolingRight());
     }
 
     /**
@@ -520,134 +551,6 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * sets the light preset to manual (for changes from a light preset)
-     */
-    private void setLightPresetToManual() {
-        lightPresetChoiceBox.getSelectionModel().select(LightPresets.MANUAL.getDisplayText());
-    }
-
-    private void handleTransportSpeedChange(int transportSpeed) {
-        double transportSpeedByThousands = transportSpeed / 1000.0;
-        speedmmsLabel.setText(CIS.round(transportSpeedByThousands, 3) + " mm/s");
-        speedmsLabel.setText(CIS.round(transportSpeedByThousands / 1000, 3) + " m/s");
-        speedmminLabel.setText(CIS.round(transportSpeedByThousands * 0.06, 3) + " m/min");
-        speedipsLabel.setText(CIS.round(transportSpeedByThousands * 0.03937, 3) + " ips");
-    }
-
-    /**
-     * calculates speeds depending on the given line rate and sets labels accordingly
-     */
-    private void handleLineRateChange(int lineRate) {
-        currentLineRateLabel.setText(lineRate / 1000.0 + " kHz");
-        currentLineRatePercentLabel.setText(Math.round(lineRate / CIS_DATA.getMaxLineRate() * 100) + " %");
-    }
-
-    /**
-     * calculates the displayed values and sets them to the corresponding texts
-     */
-    private void handleResolutionChange(CIS.Resolution resolution) {
-        // cannot easily set resolution in GUI since this would require mapping the resolution values to the fxml texts
-        // however, since resolution only changes by user input, this does not really matter for now
-
-        // set output texts
-        updateMaxLineRateChange();
-        updatePixelAndDefectSize();
-    }
-
-    /**
-     * updates the pixel and defect size text labels
-     */
-    private void updatePixelAndDefectSize() {
-        pixelSizeLabel.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
-        defectSizeLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
-    }
-
-    /**
-     * handles a change to the max line rate: sets the new max value of the slider and updates the text label
-     */
-    private void updateMaxLineRateChange() {
-        maxLineRateLabel.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
-        selectedLineRateSlider.setMax(CIS_DATA.getMaxLineRate());
-        selectedLineRateSlider.setValue(CIS_DATA.getMaxLineRate());
-        selectedLineRateSlider.setBlockIncrement(CIS_DATA.getMaxLineRate() / 100); // we can choose increments of 1%
-    }
-
-    /**
-     * handles a lens change by setting the corresponding boxes
-     */
-    private void handleLensChange(VUCIS.LensType lens) {
-        setLensBoxes(lens.getWorkingDistanceString(), lens.isLongDOF());
-        // disable the checkbox if there is only one version
-        lensDofCheckBox.setDisable(!lens.hasShortDOFVersion());
-        lensCodeLabel.setText(lens.getCode());
-    }
-
-    /**
-     * sets the lens boxes to the given values
-     */
-    private void setLensBoxes(String distance, boolean DOF) {
-        lensTypeChoiceBox.getSelectionModel().select(distance);
-        lensDofCheckBox.setSelected(DOF);
-    }
-
-    /**
-     * updates the dark field checkboxes depending on the cloudy day. Left dark field will only get enabled if there is no cloudy day and no coax
-     */
-    private void updateDarkFieldChoiceBoxes(boolean cloudyDay) {
-        // right dark field disabled <=> there is cloudy day
-        darkFieldRightChoiceBox.setDisable(cloudyDay);
-        // left dark field disabled when cloudy day or coax
-        darkFieldLeftChoiceBox.setDisable(cloudyDay || CIS_DATA.hasCoax());
-    }
-
-    /**
-     * handles changes to the phase count in the model: shows the corresponding text in the choice box and adjusts the line rate
-     */
-    private void handlePhasesChange(Phases selectedPhase) {
-        // set choice box selection
-        phasesChoiceBox.getSelectionModel().select(selectedPhase.getDisplayText());
-        // adjust line rate outputs
-        updateMaxLineRateChange();
-    }
-
-    /**
-     * handles a coax light change by
-     * - disabling left dark field choice box (no coax + left dark field)
-     * - setting the light color choices for left bright field to ones without shape from shading (no left sided shape from shading + coax)
-     * - setting the scan width choices to valid ones for coax
-     * or resets these changes if coax is deselected
-     */
-    private void handleCoaxChange(CIS.LightColor oldValue, CIS.LightColor newValue) {
-        boolean hasCoax = newValue != CIS.LightColor.NONE;
-        boolean hadCoax = oldValue != CIS.LightColor.NONE;
-        if (hasCoax != hadCoax) {//only do something if we switch from coax to non-coax or other way around
-            //clear scan width and left bright field because these options will be changed
-            scanWidthChoiceBox.getItems().clear();
-            brightFieldLeftChoiceBox.getItems().clear();
-            if (hasCoax) { //coax selected
-                //set items of scan width choice box to ones without coax
-                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
-                //set items of left bf to ones without sfs (no coax and left sided sfs)
-                brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
-            } else { // coax deselected
-                //set items of scan width choice box to ones with coax
-                if (CIS_DATA.isShapeFromShading()) {
-                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
-                } else {
-                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
-                }
-                //set items of left bf to ones with sfs
-                brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
-            } //in either case:
-            //enable/disable left dark field (no dark field + coax)
-            darkFieldLeftChoiceBox.setDisable(hasCoax || CIS_DATA.isCloudyDay());
-            //select current values
-            selectLightChoiceBox(brightFieldLeftChoiceBox, CIS_DATA.getBrightFieldLeft());
-            scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
-        }
-    }
-
-    /**
      * selects the given light color for the given choice box.
      * Also calls {@link #updateCoolingCheckboxes()} to enable/disable the checkboxes after light change
      * and {@link #updateLensTypeChoiceBox()} to enable/disable lens type changes if there is shape from shading
@@ -659,27 +562,18 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * updates scan width options depending on current shape from shading selection
+     * sets the lens boxes to the given values
      */
-    private void updateScanWidthOptions() {
-        if (!CIS_DATA.hasCoax()) { // with coax already handled
-            //sfs ->
-            scanWidthChoiceBox.getItems().clear();
-            if (CIS_DATA.isShapeFromShading()) {
-                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
-            } else {
-                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
-            }
-            // set initial value
-            scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
-        }
+    private void setLensBoxes(String distance, boolean DOF) {
+        lensTypeChoiceBox.getSelectionModel().select(distance);
+        lensDofCheckBox.setSelected(DOF);
     }
 
     /**
-     * enables/disables lens type choice box depending on whether there is shape from shading (only 10mm distance allowed)
+     * sets the light preset to manual (for changes from a light preset)
      */
-    private void updateLensTypeChoiceBox() {
-        lensTypeChoiceBox.setDisable(CIS_DATA.isShapeFromShading());
+    private void setLightPresetToManual() {
+        lightPresetChoiceBox.getSelectionModel().select(LightPresets.MANUAL.getDisplayText());
     }
 
     /**
@@ -713,6 +607,44 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
+     * disables/enables the cooling checkboxes
+     */
+    private void updateCoolingCheckboxes() {
+        coolingLeftCheckBox.setDisable(CIS_DATA.hasCoolingLeft());
+        coolingRightCheckBox.setDisable(CIS_DATA.hasCoolingRight());
+    }
+
+    /**
+     * updates the dark field checkboxes depending on the cloudy day. Left dark field will only get enabled if there is no cloudy day and no coax
+     */
+    private void updateDarkFieldChoiceBoxes(boolean cloudyDay) {
+        // right dark field disabled <=> there is cloudy day
+        darkFieldRightChoiceBox.setDisable(cloudyDay);
+        // left dark field disabled when cloudy day or coax
+        darkFieldLeftChoiceBox.setDisable(cloudyDay || CIS_DATA.hasCoax());
+    }
+
+    /**
+     * enables/disables lens type choice box depending on whether there is shape from shading (only 10mm distance allowed)
+     */
+    private void updateLensTypeChoiceBox() {
+        lensTypeChoiceBox.setDisable(CIS_DATA.isShapeFromShading());
+    }
+
+    /**
+     * updates the light frequency limit label
+     */
+    private void updateLightFrequencyLimit() {
+        long minFreq = Math.round(1000 * CIS_DATA.getMinFreq(CIS_DATA.calculate())) / 1000;
+        lastMinFreq = minFreq;
+        lightFrequencyLimitLabel.setText(minFreq < 0 // if < 0 there are values missing in database -> give error msg
+                ? Util.getString("missingPhotoValues") + "\n"
+                : "~" + minFreq + "\u200akHz\n"
+        );
+        updateSelectedLineRateWarning();
+    }
+
+    /**
      * updates the light info textbox that shows a warning if the needed light channels are >10.
      * Also shows options to combine bright or dark fields if possible.
      */
@@ -743,16 +675,38 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * updates the light frequency limit label
+     * handles a change to the max line rate: sets the new max value of the slider and updates the text label
      */
-    private void updateLightFrequencyLimit() {
-        long minFreq = Math.round(1000 * CIS_DATA.getMinFreq(CIS_DATA.calculate())) / 1000;
-        lastMinFreq = minFreq;
-        lightFrequencyLimitLabel.setText(minFreq < 0 // if < 0 there are values missing in database -> give error msg
-                ? Util.getString("missingPhotoValues") + "\n"
-                : "~" + minFreq + "\u200akHz\n"
-        );
-        updateSelectedLineRateWarning();
+    private void updateMaxLineRateChange() {
+        maxLineRateLabel.setText(CIS_DATA.getMaxLineRate() / 1000 + " kHz");
+        selectedLineRateSlider.setMax(CIS_DATA.getMaxLineRate());
+        selectedLineRateSlider.setValue(CIS_DATA.getMaxLineRate());
+        selectedLineRateSlider.setBlockIncrement(CIS_DATA.getMaxLineRate() / 100); // we can choose increments of 1%
+    }
+
+    /**
+     * updates the pixel and defect size text labels
+     */
+    private void updatePixelAndDefectSize() {
+        pixelSizeLabel.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
+        defectSizeLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
+    }
+
+    /**
+     * updates scan width options depending on current shape from shading selection
+     */
+    private void updateScanWidthOptions() {
+        if (!CIS_DATA.hasCoax()) { // with coax already handled
+            //sfs ->
+            scanWidthChoiceBox.getItems().clear();
+            if (CIS_DATA.isShapeFromShading()) {
+                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+            } else {
+                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+            }
+            // set initial value
+            scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+        }
     }
 
     /**
@@ -767,29 +721,74 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * returns the datasheet controller for VUCIS
-     *
-     * @return a new {@link de.tichawa.cis.config.vucis.DataSheetController} object
-     */
-    @Override
-    protected DataSheetController getNewDatasheetController() {
-        return new de.tichawa.cis.config.vucis.DataSheetController();
-    }
-
-    /**
-     * handles the serial button press by opening the serial settings window
-     */
-    @FXML
-    private void handleSerial() {
-        Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("Serial.fxml", "Serial Interface parameters");
-        ((SerialController) stageWithLoader.getValue().getController()).initialize(CIS_DATA);
-        stageWithLoader.getKey().show();
-    }
-
-    /**
      * updates the {@link #tiViKeyLabel} by setting the current tivi key of the cis
      */
     private void updateTiViKey() {
         tiViKeyLabel.setText(CIS_DATA.getTiViKey());
+    }
+
+    public enum LightPresets {
+        MANUAL(CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.NONE, 1, "Manual", false),
+        SFS(CIS.LightColor.WHITE_SFS, CIS.LightColor.WHITE_SFS, CIS.LightColor.WHITE_SFS, CIS.LightColor.WHITE_SFS, CIS.LightColor.NONE, 4, "Shape from Shading (White)", false),
+        COAX(CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.NONE, CIS.LightColor.RED, 1, "Coax (Red)", false),
+        BF_RGB(CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.NONE, 1, "BrightField (Red)", false),
+        BF_RGB_S(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.NONE, 3, "BrightField (RGB)", false),
+        CLOUDY_DAY(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.NONE, 3, "Cloudy Day (RGB)", true),
+        DF_RED(CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, CIS.LightColor.RED, CIS.LightColor.NONE, 1, "DarkField (Red)", false),
+        WAFER(CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, CIS.LightColor.NONE, CIS.LightColor.RGB_S, 3, "Wafer (RGB strong)", false);
+
+        private final boolean cloudyDay;
+        private final String displayText;
+        private final CIS.LightColor leftBrightField, leftDarkField, rightBrightField, rightDarkField, coax;
+        private final int phaseCount;
+
+        LightPresets(CIS.LightColor leftBrightField, CIS.LightColor leftDarkField, CIS.LightColor rightBrightField, CIS.LightColor rightDarkField, CIS.LightColor coax,
+                     int phaseCount, String displayText, boolean cloudyDay) {
+            this.leftBrightField = leftBrightField;
+            this.leftDarkField = leftDarkField;
+            this.rightBrightField = rightBrightField;
+            this.rightDarkField = rightDarkField;
+            this.coax = coax;
+            this.phaseCount = phaseCount;
+            this.cloudyDay = cloudyDay;
+            this.displayText = displayText;
+        }
+
+        public static Optional<LightPresets> findByDisplayText(String displayText) {
+            return Arrays.stream(LightPresets.values()).filter(l -> l.getDisplayText().equals(displayText)).findFirst();
+        }
+
+        public String getDisplayText() {
+            return displayText;
+        }
+    }
+
+    public enum Phases {
+        ONE(1, "One phase (Monochrome)"),
+        TWO(2, "Two phases"),
+        THREE(3, "Three phases (e.g. RGB)"),
+        FOUR(4, "Four phases"),
+        FIVE(5, "Five phases"),
+        SIX(6, "Six phases");
+
+        private final String displayText;
+        private final int phaseCount;
+
+        Phases(int phaseCount, String displayText) {
+            this.phaseCount = phaseCount;
+            this.displayText = displayText;
+        }
+
+        public static Optional<Phases> findByDisplayText(String displayText) {
+            return Arrays.stream(Phases.values()).filter(t -> t.displayText.equals(displayText)).findFirst();
+        }
+
+        public static Optional<Phases> findByPhaseCount(int phaseCount) {
+            return Arrays.stream(Phases.values()).filter(p -> p.phaseCount == phaseCount).findFirst();
+        }
+
+        public String getDisplayText() {
+            return displayText;
+        }
     }
 }

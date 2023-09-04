@@ -19,35 +19,43 @@ import java.util.ResourceBundle;
 public class CalculationController implements Initializable {
 
     protected CIS CIS_DATA;
-
-    @FXML
-    private Label headerLabel;
-    @FXML
-    private TableView<CalcLine> electronicsTableView;
     @FXML
     private TableView<CalcLine> electronicsSubTotalsTableView;
     @FXML
-    private TableView<CalcLine> mechanicsTableView;
-    @FXML
-    private TableView<CalcLine> mechanicsSubTotalsTableView;
-    @FXML
-    private TableView<PriceLine> totalsTableView;
+    private TableView<CalcLine> electronicsTableView;
     @FXML
     private Menu fileMenu;
     @FXML
-    private MenuItem printMenuItem;
+    private Label headerLabel;
     @FXML
     private Menu languageMenu;
     @FXML
+    private TableView<CalcLine> mechanicsSubTotalsTableView;
+    @FXML
+    private TableView<CalcLine> mechanicsTableView;
+    @FXML
+    private MenuItem printMenuItem;
+    @FXML
     private MenuItem switchLanguageMenuItem;
+    @FXML
+    private TableView<PriceLine> totalsTableView;
+
+    private int getRowCount(GridPane pane) {
+        int numRows = pane.getRowConstraints().size();
+        for (int i = 0; i < pane.getChildren().size(); i++) {
+            Node child = pane.getChildren().get(i);
+            if (child.isManaged()) {
+                Integer rowIndex = GridPane.getRowIndex(child);
+                if (rowIndex != null) {
+                    numRows = Math.max(numRows, rowIndex + 1);
+                }
+            }
+        }
+        return numRows;
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-    }
-
-    public void passData(CIS data) {
-        this.CIS_DATA = data.copy();
-        load();
     }
 
     @SuppressWarnings("unchecked")
@@ -298,6 +306,11 @@ public class CalculationController implements Initializable {
         }
     }
 
+    public void passData(CIS data) {
+        this.CIS_DATA = data.copy();
+        load();
+    }
+
     public void print() {
         String calc = CIS_DATA.getVersionHeader() + "\n\t\n" + CIS_DATA.createCalculation();
         Stage printStage = new Stage();
@@ -369,14 +382,19 @@ public class CalculationController implements Initializable {
         printStage.close();
     }
 
+    public void switchLang() {
+        Util.switchLanguage();
+        load();
+    }
+
     public static class CalcLine {
-        private final SimpleStringProperty name;
-        private final SimpleStringProperty id;
         private final SimpleIntegerProperty amount;
-        private final SimpleDoubleProperty price;
-        private final SimpleDoubleProperty weight;
-        private final SimpleDoubleProperty time;
+        private final SimpleStringProperty id;
+        private final SimpleStringProperty name;
         private final SimpleDoubleProperty power;
+        private final SimpleDoubleProperty price;
+        private final SimpleDoubleProperty time;
+        private final SimpleDoubleProperty weight;
 
         public CalcLine(String name, String id, int amount, double price, double weight, double time, double power) {
             this.name = new SimpleStringProperty(name);
@@ -388,69 +406,42 @@ public class CalculationController implements Initializable {
             this.power = new SimpleDoubleProperty(power);
         }
 
-        public SimpleStringProperty getName() {
-            return name;
+        public SimpleIntegerProperty getAmount() {
+            return amount;
         }
 
         public SimpleStringProperty getId() {
             return id;
         }
 
-        public SimpleIntegerProperty getAmount() {
-            return amount;
-        }
-
-        public SimpleDoubleProperty getPrice() {
-            return price;
-        }
-
-        public SimpleDoubleProperty getWeight() {
-            return weight;
-        }
-
-        public SimpleDoubleProperty getTime() {
-            return time;
+        public SimpleStringProperty getName() {
+            return name;
         }
 
         public SimpleDoubleProperty getPower() {
             return power;
         }
 
-    }
-
-    public static class PriceLine {
-        private final SimpleStringProperty name;
-        private final SimpleStringProperty id;
-        private final SimpleStringProperty amount;
-        private final SimpleStringProperty price;
-        private final SimpleStringProperty weight;
-
-        public PriceLine(String name, String id, String amount, String price, String weight) {
-            this.name = new SimpleStringProperty(name);
-            this.id = new SimpleStringProperty(id);
-            this.amount = new SimpleStringProperty(amount);
-            this.price = new SimpleStringProperty(price);
-            this.weight = new SimpleStringProperty(weight);
-        }
-
-        public SimpleStringProperty getName() {
-            return name;
-        }
-
-        public SimpleStringProperty getId() {
-            return id;
-        }
-
-        public SimpleStringProperty getAmount() {
-            return amount;
-        }
-
-        public SimpleStringProperty getPrice() {
+        public SimpleDoubleProperty getPrice() {
             return price;
         }
 
-        public SimpleStringProperty getWeight() {
+        public SimpleDoubleProperty getTime() {
+            return time;
+        }
+
+        public SimpleDoubleProperty getWeight() {
             return weight;
+        }
+
+    }
+
+    private static class CustomDoubleCell extends TableCell<CalcLine, Double> {
+        @Override
+        public void updateItem(final Double item, boolean empty) {
+            if (item != null) {
+                setText(String.format(Util.getLocale(), "%.2f", item));
+            }
         }
     }
 
@@ -463,31 +454,39 @@ public class CalculationController implements Initializable {
         }
     }
 
-    private static class CustomDoubleCell extends TableCell<CalcLine, Double> {
-        @Override
-        public void updateItem(final Double item, boolean empty) {
-            if (item != null) {
-                setText(String.format(Util.getLocale(), "%.2f", item));
-            }
-        }
-    }
+    public static class PriceLine {
+        private final SimpleStringProperty amount;
+        private final SimpleStringProperty id;
+        private final SimpleStringProperty name;
+        private final SimpleStringProperty price;
+        private final SimpleStringProperty weight;
 
-    public void switchLang() {
-        Util.switchLanguage();
-        load();
-    }
-
-    private int getRowCount(GridPane pane) {
-        int numRows = pane.getRowConstraints().size();
-        for (int i = 0; i < pane.getChildren().size(); i++) {
-            Node child = pane.getChildren().get(i);
-            if (child.isManaged()) {
-                Integer rowIndex = GridPane.getRowIndex(child);
-                if (rowIndex != null) {
-                    numRows = Math.max(numRows, rowIndex + 1);
-                }
-            }
+        public PriceLine(String name, String id, String amount, String price, String weight) {
+            this.name = new SimpleStringProperty(name);
+            this.id = new SimpleStringProperty(id);
+            this.amount = new SimpleStringProperty(amount);
+            this.price = new SimpleStringProperty(price);
+            this.weight = new SimpleStringProperty(weight);
         }
-        return numRows;
+
+        public SimpleStringProperty getAmount() {
+            return amount;
+        }
+
+        public SimpleStringProperty getId() {
+            return id;
+        }
+
+        public SimpleStringProperty getName() {
+            return name;
+        }
+
+        public SimpleStringProperty getPrice() {
+            return price;
+        }
+
+        public SimpleStringProperty getWeight() {
+            return weight;
+        }
     }
 }
