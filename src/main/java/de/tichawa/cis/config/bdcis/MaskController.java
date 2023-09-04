@@ -8,27 +8,47 @@ import java.beans.*;
 import java.net.URL;
 import java.util.*;
 
+/**
+ * Controller class for bdcis/Mask.fxml
+ */
 public class MaskController extends de.tichawa.cis.config.controller.MaskController<BDCIS> implements PropertyChangeListener {
 
     @FXML
     private Label tiViKeyLabel;
 
+    /**
+     * Default constructor that creates a new {@link BDCIS} object that gets changed by the user.
+     */
     public MaskController() {
         CIS_DATA = new BDCIS();
         CIS_DATA.addObserver(this); // add this as observer to listen for changes to the model
     }
 
+    /**
+     * Initializes the GUI for BDCIS.
+     * This method is automatically called when the GUI for BDCIS is created.
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        //TODO
         updateTiViKey();
-        //throw new UnsupportedOperationException("not implemented yet");
     }
 
+    /**
+     * Handles property changes to the model (the underlying {@link BDCIS} object)
+     *
+     * @param evt the property change event
+     */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
+        System.out.println("BDCIS Maskcontroller: observed change for " + evt.getPropertyName() + " to " + evt.getNewValue());
+        
         throw new UnsupportedOperationException("not implemented yet");
     }
 
+    /**
+     * Returns a list of all available resolutions for BDCIS
+     */
     @Override
     public List<CIS.Resolution> setupResolutions() {
         // TODO
@@ -36,7 +56,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     }
 
     /**
-     * updates the {@link #tiViKeyLabel} by setting the current tivi key of the cis
+     * Updates the {@link #tiViKeyLabel} by setting the current tivi key of the cis
      */
     private void updateTiViKey() {
         tiViKeyLabel.setText(CIS_DATA.getTiViKey());

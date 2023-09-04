@@ -8,20 +8,8 @@ import java.util.*;
 
 // Alle MXCIS spezifische Funktionen 
 public class MXCIS extends CIS {
-    private static final HashMap<Integer, String> resToSens = new HashMap<>();
     private static final HashMap<Integer, Integer> dpiToRate = new HashMap<>();
-
-    @Getter
-    @Setter
-    private int mode;
-
-    public MXCIS() {
-    }
-
-    protected MXCIS(MXCIS cis) {
-        super(cis);
-        this.mode = cis.mode;
-    }
+    private static final HashMap<Integer, String> resToSens = new HashMap<>();
 
     static {
         resToSens.put(200, "PI3033");
@@ -42,65 +30,48 @@ public class MXCIS extends CIS {
         dpiToRate.put(600, 10);
     }
 
+    @Getter
+    @Setter
+    private int mode;
+
+    public MXCIS() {
+    }
+
+    protected MXCIS(MXCIS cis) {
+        super(cis);
+        this.mode = cis.mode;
+    }
+
+    /**
+     * calculates the number of pixels:
+     * chips on board * number of boards * pixels per sensor / binning
+     */
     @Override
-    public String getTiViKey() {
-        String key = "G_MXCIS";
-        key += String.format("_%04d", getScanWidth());
-        key += String.format("_%04d", getSelectedResolution().getActualResolution());
-
-        if (getPhaseCount() == 4) {
-            key += "_K4";
-        } else if ((getSelectedResolution().getActualResolution() != 600 && getSelectedLineRate() <= getMaxLineRate() * 0.25) || (getSelectedResolution().getActualResolution() == 600 && getSelectedLineRate() <= getMaxLineRate() * 0.2)) {
-            key += "_K1";
-        } else if (getSelectedLineRate() <= getMaxLineRate() * 0.5) {
-            key += "_K2";
-        } else {
-            key += "_K3";
+    public int calcNumOfPix() {
+        SensorChipRecord sensorChip = getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
+        SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
+        int numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / getBinning();
+        if (this.isGigEInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
+            throw new CISException(Util.getString("errorGigE") + ": " + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
+        return numOfPix;
+    }
 
-        key += "_";
-        switch (getLightSources()) {
-            case "0D0C":
-                key += "NO";
-                break;
-            case "2D0C":
-            case "1D1C":
-                key += getLedLines();
-                break;
+    // should return false if code is unknown
+    @Override
+    protected boolean checkSpecificApplicability(String code) {
+        switch (code) {
+            case "L": //MODE: LOW (MXCIS only)
+                return getMode() == 4;
+            case "H": //Mode: HIGH (MXCIS only)
+                return getMode() == 2;
         }
-
-        if (!getLightSources().equals("0D0C")) {
-            if (getPhaseCount() == 4) {
-                key += "RGB";
-            } else {
-                key += getLightColors().stream()
-                        .findAny().orElse(LightColor.NONE)
-                        .getShortHand();
-            }
-        }
-
-        if (!getLightSources().endsWith("0C")) {
-            key += "C";
-        }
-
-        key += getMechanicVersion();
-
-        if (isGigeInterface()) {
-            key += "GT";
-        }
-        if (key.endsWith("_")) {
-            key = key.substring(0, key.length() - 1);
-        }
-
-        return key;
+        return false;
     }
 
     @Override
-    public double getMaxLineRate() {
-        SensorChipRecord sensorChip = getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
-        SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown ADC board"));
-        AdcBoardRecord adcBoard = getADC("MODU_ADC(SLOW)").orElseThrow(() -> new CISException("Unknown ADC board."));
-        return 1000 * Math.round(1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
+    public CIS copy() {
+        return new MXCIS(this);
     }
 
     @Override
@@ -169,23 +140,52 @@ public class MXCIS extends CIS {
         return Collections.singletonList(CPUCLink);
     }
 
-    public Optional<SensorBoardRecord> getSensorBoard(int res) {
-        while (!getSensorBoard("SENS_" + res).isPresent()) {
-            res *= 2;
-        }
-
-        return getSensorBoard("SENS_" + res);
+    /**
+     * returns the case profile string for print out
+     */
+    @Override
+    protected String getCaseProfile() {
+        return getLedLines() < 2 ? Util.getString("aluminumCaseMXCIS") : Util.getString("aluminumCaseMXCIS2");
     }
 
-    public Optional<SensorChipRecord> getSensorChip(int res) {
-        int z = 1;
-        while (resToSens.get(res * z) == null) {
-            z++;
-        }
+    /**
+     * returns a string that is appended at the end of the specs section for print out: base camera link configuration
+     */
+    @Override
+    protected String getEndOfSpecs() {
+        return " " + Util.getString("baseConfiguration");
+    }
 
-        setBinning(z);
+    /**
+     * returns the extra case length that is added to the scan width for print out
+     */
+    @Override
+    protected int getExtraCaseLength() {
+        return 288;
+    }
 
-        return getSensorChip(resToSens.get(res * z));
+    /**
+     * returns the geometry correction string for print out
+     */
+    @Override
+    protected String getGeometryCorrectionString() {
+        return Util.getString("chipPlacementTolerance") + "\n" + Util.getString("geoCorrectionOptional");
+    }
+
+    @Override
+    public double getGeometryFactor(boolean coax) {
+        return coax ? 0.021 : 0.366;
+    }
+
+    /**
+     * returns the internal light string for print out by adding schipal staggered/inline to the general calculation by the base class CIS
+     */
+    @Override
+    protected String getInternalLightsForPrintOut() {
+        String printout = super.getInternalLightsForPrintOut();
+        printout += Util.getString("sensorChipAlignment") + ": ";
+        printout += getSelectedResolution().getActualResolution() > 600 ? Util.getString("staggered") : Util.getString("inline");
+        return printout;
     }
 
     @Override
@@ -194,8 +194,11 @@ public class MXCIS extends CIS {
     }
 
     @Override
-    public double getGeometryFactor(boolean coax) {
-        return coax ? 0.021 : 0.366;
+    public double getMaxLineRate() {
+        SensorChipRecord sensorChip = getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
+        SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown ADC board"));
+        AdcBoardRecord adcBoard = getADC("MODU_ADC(SLOW)").orElseThrow(() -> new CISException("Unknown ADC board."));
+        return 1000 * Math.round(1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
     }
 
     /**
@@ -217,93 +220,6 @@ public class MXCIS extends CIS {
             factor = 1;
         }
         return factor;
-    }
-
-    /**
-     * returns the internal light string for print out by adding schipal staggered/inline to the general calculation by the base class CIS
-     */
-    @Override
-    protected String getInternalLightsForPrintOut() {
-        String printout = super.getInternalLightsForPrintOut();
-        printout += Util.getString("sensorChipAlignment") + ": ";
-        printout += getSelectedResolution().getActualResolution() > 600 ? Util.getString("staggered") : Util.getString("inline");
-        return printout;
-    }
-
-    /**
-     * returns the transport speed factor for print out
-     */
-    @Override
-    protected double getTransportSpeedFactor() {
-        return 1;
-    }
-
-    /**
-     * returns the geometry correction string for print out
-     */
-    @Override
-    protected String getGeometryCorrectionString() {
-        return Util.getString("chipPlacementTolerance") + "\n" + Util.getString("geoCorrectionOptional");
-    }
-
-    /**
-     * returns the scan distance string for print out: ~10mm
-     */
-    @Override
-    protected String getScanDistanceString() {
-        return "~ 10 mm " + Util.getString("warningExactScanDistance");
-    }
-
-    /**
-     * returns the extra case length that is added to the scan width for print out
-     */
-    @Override
-    protected int getExtraCaseLength() {
-        return 288;
-    }
-
-    /**
-     * returns the case profile string for print out
-     */
-    @Override
-    protected String getCaseProfile() {
-        return getLedLines() < 2 ? Util.getString("aluminumCaseMXCIS") : Util.getString("aluminumCaseMXCIS2");
-    }
-
-    /**
-     * returns a string that is appended at the end of the specs section for print out: base camera link configuration
-     */
-    @Override
-    protected String getEndOfSpecs() {
-        return " " + Util.getString("baseConfiguration");
-    }
-
-    /**
-     * returns the sensitivity factor that is used for the minimum frequency calculation
-     */
-    @Override
-    protected double getSensitivityFactor() {
-        return 30;
-    }
-
-    /**
-     * calculates the number of pixels:
-     * chips on board * number of boards * pixels per sensor / binning
-     */
-    @Override
-    public int calcNumOfPix() {
-        SensorChipRecord sensorChip = getSensorChip(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
-        SensorBoardRecord sensorBoard = getSensorBoard(getSelectedResolution().getActualResolution()).orElseThrow(() -> new CISException("Unknown sensor board"));
-        int numOfPix = sensorBoard.getChips() * getBoardCount() * sensorChip.getPixelPerSensor() / getBinning();
-        if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
-            throw new CISException(Util.getString("errorGigE") + ": " + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
-        }
-        return numOfPix;
-    }
-
-    @Override
-    public CIS copy() {
-        return new MXCIS(this);
     }
 
     /**
@@ -329,15 +245,91 @@ public class MXCIS extends CIS {
         return numberOfSensorsPerFpga;
     }
 
-    // should return false if code is unknown
+    /**
+     * returns the scan distance string for print out: ~10mm
+     */
     @Override
-    protected boolean checkSpecificApplicability(String code) {
-        switch (code) {
-            case "L": //MODE: LOW (MXCIS only)
-                return getMode() == 4;
-            case "H": //Mode: HIGH (MXCIS only)
-                return getMode() == 2;
+    protected String getScanDistanceString() {
+        return "~ 10 mm " + Util.getString("warningExactScanDistance");
+    }
+
+    /**
+     * returns the sensitivity factor that is used for the minimum frequency calculation
+     */
+    @Override
+    protected double getSensitivityFactor() {
+        return 30;
+    }
+
+    @Override
+    public String getTiViKey() {
+        String key = "G_MXCIS";
+        key += String.format("_%04d", getScanWidth());
+        key += String.format("_%04d", getSelectedResolution().getActualResolution());
+
+        if (getPhaseCount() == 4) {
+            key += "_K4";
+        } else if ((getSelectedResolution().getActualResolution() != 600 && getSelectedLineRate() <= getMaxLineRate() * 0.25) || (getSelectedResolution().getActualResolution() == 600 && getSelectedLineRate() <= getMaxLineRate() * 0.2)) {
+            key += "_K1";
+        } else if (getSelectedLineRate() <= getMaxLineRate() * 0.5) {
+            key += "_K2";
+        } else {
+            key += "_K3";
         }
-        return false;
+
+        key += "_";
+        switch (getLightSources()) {
+            case "0D0C":
+                key += "NO";
+                break;
+            case "2D0C":
+            case "1D1C":
+                key += getLedLines();
+                break;
+        }
+
+        if (!getLightSources().equals("0D0C")) {
+            if (getPhaseCount() == 4) {
+                key += "RGB";
+            } else {
+                key += getLightColors().stream()
+                        .findAny().orElse(LightColor.NONE)
+                        .getShortHand();
+            }
+        }
+
+        if (!getLightSources().endsWith("0C")) {
+            key += "C";
+        }
+
+        key += getMechanicVersion();
+
+        if (this.isGigEInterface()) {
+            key += "GT";
+        }
+        if (key.endsWith("_")) {
+            key = key.substring(0, key.length() - 1);
+        }
+
+        return key;
+    }
+
+    public Optional<SensorBoardRecord> getSensorBoard(int res) {
+        while (!getSensorBoard("SENS_" + res).isPresent()) {
+            res *= 2;
+        }
+
+        return getSensorBoard("SENS_" + res);
+    }
+
+    public Optional<SensorChipRecord> getSensorChip(int res) {
+        int z = 1;
+        while (resToSens.get(res * z) == null) {
+            z++;
+        }
+
+        setBinning(z);
+
+        return getSensorChip(resToSens.get(res * z));
     }
 }

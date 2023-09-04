@@ -21,20 +21,14 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         LDSTD_DATA = new LDSTD();
     }
 
-    @Override
-    public List<CIS.Resolution> setupResolutions() {
-        return Arrays.asList(
-                new CIS.Resolution(1200, 1200, true, 0.25, 0.02115),
-                new CIS.Resolution(1200, 1200, false, 0.5, 0.02115),
-                new CIS.Resolution(600, 600, false, 1.0, 0.0423),
-                new CIS.Resolution(400, 1200, false, 1.0, 0.0635),
-                new CIS.Resolution(300, 300, false, 1.5, 0.0847),
-                new CIS.Resolution(200, 600, false, 2.0, 0.125),
-                new CIS.Resolution(150, 300, false, 3.0, 0.167),
-                new CIS.Resolution(100, 300, false, 4.0, 0.25),
-                new CIS.Resolution(75, 300, false, 6.0, 0.339),
-                new CIS.Resolution(50, 300, false, 8.0, 0.5),
-                new CIS.Resolution(25, 300, false, 10.0, 1.0));
+    /**
+     * handles the serial button press by opening the serial settings window
+     */
+    @FXML
+    private void handleSerial() {
+        Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("Serial.fxml", "Serial Interface parameters");
+        ((SerialController) stageWithLoader.getValue().getController()).initialize(CIS_DATA);
+        stageWithLoader.getKey().show();
     }
 
     @Override
@@ -119,11 +113,11 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
 
             pixelSizeLabel.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
-            defectSizeLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
-            speedmmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
-            speedmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
-            speedmminLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
-            speedipsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
+            defectSizeLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
+            speedmmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+            speedmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+            speedmminLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+            speedipsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
         scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
         {
@@ -153,10 +147,10 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
 
             currentLineRateLabel.setText(newValue.intValue() / 1000.0 + " kHz");
 
-            speedmmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
-            speedmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
-            speedmminLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
-            speedipsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
+            speedmmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+            speedmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+            speedmminLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+            speedipsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
         internalLightSourceChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
         {
@@ -216,7 +210,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 CIS.LightColor.findByDescription(newValue)
                         .ifPresent(LDSTD_DATA::setLightColor));
         interfaceChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
-                CIS_DATA.setGigeInterface(interfaceChoiceBox.getSelectionModel().getSelectedIndex() == 1));
+                CIS_DATA.setGigEInterface(interfaceChoiceBox.getSelectionModel().getSelectedIndex() == 1));
         coolingChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS.Cooling
                 .findByDescription(newValue.split("\\(")[0].trim())
                 .ifPresent(CIS_DATA::setCooling));
@@ -237,13 +231,19 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         cameraLinkModeChoiceBox.getSelectionModel().selectLast();
     }
 
-    /**
-     * handles the serial button press by opening the serial settings window
-     */
-    @FXML
-    private void handleSerial() {
-        Pair<Stage, FXMLLoader> stageWithLoader = Util.createNewStageWithLoader("Serial.fxml", "Serial Interface parameters");
-        ((SerialController) stageWithLoader.getValue().getController()).initialize(CIS_DATA);
-        stageWithLoader.getKey().show();
+    @Override
+    public List<CIS.Resolution> setupResolutions() {
+        return Arrays.asList(
+                new CIS.Resolution(1200, 1200, true, 0.25, 0.02115),
+                new CIS.Resolution(1200, 1200, false, 0.5, 0.02115),
+                new CIS.Resolution(600, 600, false, 1.0, 0.0423),
+                new CIS.Resolution(400, 1200, false, 1.0, 0.0635),
+                new CIS.Resolution(300, 300, false, 1.5, 0.0847),
+                new CIS.Resolution(200, 600, false, 2.0, 0.125),
+                new CIS.Resolution(150, 300, false, 3.0, 0.167),
+                new CIS.Resolution(100, 300, false, 4.0, 0.25),
+                new CIS.Resolution(75, 300, false, 6.0, 0.339),
+                new CIS.Resolution(50, 300, false, 8.0, 0.5),
+                new CIS.Resolution(25, 300, false, 10.0, 1.0));
     }
 }

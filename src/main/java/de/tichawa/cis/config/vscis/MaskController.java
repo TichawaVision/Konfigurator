@@ -1,6 +1,6 @@
 package de.tichawa.cis.config.vscis;
 
-import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.controller.DataSheetController;
 import de.tichawa.cis.config.ldstd.LDSTD;
 import javafx.scene.control.Alert;
@@ -12,6 +12,11 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     public MaskController() {
         CIS_DATA = new VSCIS();
         LDSTD_DATA = new LDSTD();
+    }
+
+    @Override
+    protected DataSheetController getNewDatasheetController() {
+        return new de.tichawa.cis.config.vscis.DataSheetController();
     }
 
     @Override
@@ -87,11 +92,11 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
 
             pixelSizeLabel.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
-            defectSizeLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
-            speedmmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
-            speedmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
-            speedmminLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
-            speedipsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
+            defectSizeLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
+            speedmmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+            speedmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+            speedmminLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+            speedipsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
         scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
         {
@@ -106,10 +111,10 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
 
             currentLineRateLabel.setText(newValue.intValue() / 1000.0 + " kHz");
 
-            speedmmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
-            speedmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
-            speedmminLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
-            speedipsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
+            speedmmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+            speedmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+            speedmminLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+            speedipsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
         internalLightSourceChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
         {
@@ -170,7 +175,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 CIS.LightColor.findByDescription(newValue)
                         .ifPresent(LDSTD_DATA::setLightColor));
         interfaceChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
-                CIS_DATA.setGigeInterface(interfaceChoiceBox.getSelectionModel().getSelectedIndex() == 1));
+                CIS_DATA.setGigEInterface(interfaceChoiceBox.getSelectionModel().getSelectedIndex() == 1));
         coolingChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS.Cooling
                 .findByDescription(newValue)
                 .ifPresent(CIS_DATA::setCooling));
@@ -187,10 +192,5 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         interfaceChoiceBox.getSelectionModel().selectFirst();
         coolingChoiceBox.getSelectionModel().select(1);
         externalTriggerCheckbox.setSelected(false);
-    }
-
-    @Override
-    protected DataSheetController getNewDatasheetController() {
-        return new de.tichawa.cis.config.vscis.DataSheetController();
     }
 }

@@ -17,54 +17,8 @@ public class VSCIS extends CIS {
     }
 
     @Override
-    public String getTiViKey() {
-        String key = "G_" + getClass().getSimpleName();
-        key += String.format("_%04d", getScanWidth());
-
-        if (getSelectedResolution().isSwitchable()) {
-            key += "_XXXX";
-        } else {
-            key += String.format("_%04d", getSelectedResolution().getActualResolution());
-        }
-
-        key += "_";
-        switch (getLightSources()) {
-            case "0D0C":
-                key += "NO";
-                break;
-            case "2D0C":
-            case "2D1C":
-                key += getLedLines();
-                break;
-        }
-
-        if (!getLightSources().equals("0D0C")) {
-            if (getPhaseCount() == 3) {
-                key += "RGB";
-            } else {
-                key += getLightColors().stream()
-                        .findAny().orElse(LightColor.NONE)
-                        .getShortHand();
-            }
-        }
-
-        if (!getLightSources().endsWith("0C")) {
-            key += "C";
-        }
-
-        key += getMechanicVersion();
-
-        if (isGigeInterface()) {
-            key += "GT";
-        }
-        if (!(this instanceof VTCIS)) {
-            key += getCooling().getCode();
-        }
-        if (key.endsWith("_")) {
-            key = key.substring(0, key.length() - 1);
-        }
-
-        return key;
+    public CIS copy() {
+        return new VSCIS(this);
     }
 
     @Override
@@ -134,12 +88,16 @@ public class VSCIS extends CIS {
         return Collections.singletonList(cl);
     }
 
+    /**
+     * returns the case profile string for print out: 53x50
+     */
     @Override
-    public double getMaxLineRate() {
-        AdcBoardRecord adcBoard = getADC("VARICISC").orElseThrow(() -> new CISException("Unknown ADC board"));
-        SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
-        SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution() + "_VS").orElseThrow(() -> new CISException("Unknown sensor chip"));
-        return 1000 * Math.round(1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
+    protected String getCaseProfile() {
+        if (!getLightSources().endsWith("0C")) {
+            return Util.getString("aluminumCaseCoax");
+        } else {
+            return Util.getString("aluminumCaseVSCIS");
+        }
     }
 
     @Override
@@ -152,16 +110,12 @@ public class VSCIS extends CIS {
         return "";
     }
 
-    /**
-     * returns the case profile string for print out: 53x50
-     */
     @Override
-    protected String getCaseProfile() {
-        if (!getLightSources().endsWith("0C")) {
-            return Util.getString("aluminumCaseCoax");
-        } else {
-            return Util.getString("aluminumCaseVSCIS");
-        }
+    public double getMaxLineRate() {
+        AdcBoardRecord adcBoard = getADC("VARICISC").orElseThrow(() -> new CISException("Unknown ADC board"));
+        SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
+        SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution() + "_VS").orElseThrow(() -> new CISException("Unknown sensor chip"));
+        return 1000 * Math.round(1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getDeadPixels() + 3 + sensorChip.getPixelPerSensor()) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
     }
 
     /**
@@ -175,7 +129,53 @@ public class VSCIS extends CIS {
     }
 
     @Override
-    public CIS copy() {
-        return new VSCIS(this);
+    public String getTiViKey() {
+        String key = "G_" + getClass().getSimpleName();
+        key += String.format("_%04d", getScanWidth());
+
+        if (getSelectedResolution().isSwitchable()) {
+            key += "_XXXX";
+        } else {
+            key += String.format("_%04d", getSelectedResolution().getActualResolution());
+        }
+
+        key += "_";
+        switch (getLightSources()) {
+            case "0D0C":
+                key += "NO";
+                break;
+            case "2D0C":
+            case "2D1C":
+                key += getLedLines();
+                break;
+        }
+
+        if (!getLightSources().equals("0D0C")) {
+            if (getPhaseCount() == 3) {
+                key += "RGB";
+            } else {
+                key += getLightColors().stream()
+                        .findAny().orElse(LightColor.NONE)
+                        .getShortHand();
+            }
+        }
+
+        if (!getLightSources().endsWith("0C")) {
+            key += "C";
+        }
+
+        key += getMechanicVersion();
+
+        if (this.isGigEInterface()) {
+            key += "GT";
+        }
+        if (!(this instanceof VTCIS)) {
+            key += getCooling().getCode();
+        }
+        if (key.endsWith("_")) {
+            key = key.substring(0, key.length() - 1);
+        }
+
+        return key;
     }
 }

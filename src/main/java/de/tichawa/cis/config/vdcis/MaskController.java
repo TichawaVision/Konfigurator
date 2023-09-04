@@ -1,6 +1,6 @@
 package de.tichawa.cis.config.vdcis;
 
-import de.tichawa.cis.config.CIS;
+import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -17,19 +17,6 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
     public MaskController() {
         CIS_DATA = new VDCIS();
         LDSTD_DATA = new LDSTD();
-    }
-
-    @Override
-    public List<CIS.Resolution> setupResolutions() {
-        return Arrays.asList(
-                new CIS.Resolution(1000, 1000, true, 2.5, 0.0254),
-                new CIS.Resolution(1000, 1000, false, 2.5, 0.0254),
-                new CIS.Resolution(500, 500, false, 5.0, 0.0508),
-                new CIS.Resolution(250, 250, false, 10.0, 0.1016),
-                new CIS.Resolution(125, 250, false, 10.0, 0.2032),
-                new CIS.Resolution(100, 500, false, 10.0, 0.254),
-                new CIS.Resolution(50, 250, false, 10.0, 0.508),
-                new CIS.Resolution(25, 250, false, 10.0, 1.016));
     }
 
     @Override
@@ -109,11 +96,11 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             CIS_DATA.setTransportSpeed((int) (CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate()) * 1000);
 
             pixelSizeLabel.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
-            defectSizeLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
-            speedmmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
-            speedmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
-            speedmminLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
-            speedipsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
+            defectSizeLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
+            speedmmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+            speedmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+            speedmminLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+            speedipsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
         scanWidthChoiceBox.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
         {
@@ -134,10 +121,10 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
 
             currentLineRateLabel.setText(newValue.intValue() / 1000.0 + " kHz");
 
-            speedmmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
-            speedmsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
-            speedmminLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
-            speedipsLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
+            speedmmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate(), 3) + " mm/s");
+            speedmsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() / 1000, 3) + " m/s");
+            speedmminLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
+            speedipsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
         internalLightSourceChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
         {
@@ -172,7 +159,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         internalLightColorChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS.LightColor.findByDescription(newValue)
                 .ifPresent(CIS_DATA::setLightColor));
         interfaceChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
-                CIS_DATA.setGigeInterface(interfaceChoiceBox.getSelectionModel().getSelectedIndex() == 1));
+                CIS_DATA.setGigEInterface(interfaceChoiceBox.getSelectionModel().getSelectedIndex() == 1));
         coolingChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS.Cooling
                 .findByDescription(newValue.split("\\(")[0].trim())
                 .ifPresent(CIS_DATA::setCooling));
@@ -189,5 +176,18 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         coolingChoiceBox.getSelectionModel().select(1);
         externalTriggerCheckbox.setSelected(false);
         cameraLinkModeComboBox.getSelectionModel().selectLast();
+    }
+
+    @Override
+    public List<CIS.Resolution> setupResolutions() {
+        return Arrays.asList(
+                new CIS.Resolution(1000, 1000, true, 2.5, 0.0254),
+                new CIS.Resolution(1000, 1000, false, 2.5, 0.0254),
+                new CIS.Resolution(500, 500, false, 5.0, 0.0508),
+                new CIS.Resolution(250, 250, false, 10.0, 0.1016),
+                new CIS.Resolution(125, 250, false, 10.0, 0.2032),
+                new CIS.Resolution(100, 500, false, 10.0, 0.254),
+                new CIS.Resolution(50, 250, false, 10.0, 0.508),
+                new CIS.Resolution(25, 250, false, 10.0, 1.016));
     }
 }

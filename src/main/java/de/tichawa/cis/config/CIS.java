@@ -18,16 +18,42 @@ import java.util.stream.*;
 
 import static de.tichawa.cis.config.model.Tables.*;
 
-// Alle allgemeine CIS Funktionen
+/**
+ * Base class for all contact image sensors (CIS) and therefore for the model.
+ */
 public abstract class CIS {
-    // global constants
+
     public static final int BASE_LENGTH = 260;
     public static final String PRINTOUT_WARNING = "!!WARNING: ";
+
+    public static final String PROPERTY_BINNING = "binning";
+    public static final String PROPERTY_COAX_LIGHT_SOURCES = "coaxLightSources";
+    public static final String PROPERTY_COOLING = "cooling";
+    public static final String PROPERTY_DIFFUSE_LIGHT_SOURCES = "diffuseLightSources";
+    public static final String PROPERTY_EXTERNAL_TRIGGER = "externalTrigger";
+    public static final String PROPERTY_GIG_E = "gigE";
+    public static final String PROPERTY_LINE_RATE = "lineRate";
+    public static final String PROPERTY_PHASE_COUNT = "phaseCount";
+    public static final String PROPERTY_RESOLUTION = "resolution";
+    public static final String PROPERTY_SCAN_WIDTH = "scanWidth";
+    public static final String PROPERTY_TRANSPORT_SPEED = "transportSpeed";
+
     protected static final int DEFAULT_MOD = 8;
+    /**
+     * Map of all available adc boards (loaded from the database). Maps the name of the adc board to the adc board.
+     */
     private static final Map<String, AdcBoardRecord> ADC_BOARDS;
-    private static final Pattern LIGHT_PATTERN = Pattern.compile("(\\d+)D(\\d+)C");
+    /**
+     * Map of actual resolutions to the maximum rate in half mode. Resolutions that don't support half mode are not in this map.
+     */
     private static final HashMap<Integer, Integer> MAX_RATE_FOR_HALF_MODE;
+    /**
+     * Map of all available sensor boards (loaded from the database). Maps the name of the sensor board to the sensor board.
+     */
     private static final Map<String, SensorBoardRecord> SENSOR_BOARDS;
+    /**
+     * Map of all available sensor chips (loaded from the database). Maps the name of the sensor chip to the sensor chip.
+     */
     private static final Map<String, SensorChipRecord> SENSOR_CHIPS;
 
     static {
@@ -61,29 +87,31 @@ public abstract class CIS {
      * The name (type) of the CIS (e.g. VUCIS, VTCIS, ...)
      */
     public final String cisName;
-    // observer currently only supported by VUCIS so only methods used by VUCIS will fire property changes (for now)
+
+    /**
+     * Observers of the model (= the CIS).
+     * Part of the observer pattern (via property change) to communicate changes e.g. to the GUI.
+     * Observing classes should implement {@link PropertyChangeListener} and register via {@link #addObserver(PropertyChangeListener)}.
+     * All model classes ({@link CIS} and its subclasses) provide global PROPERTY_ parameters to identify the changed values.
+     * <p>
+     * Only used by VUCIS and BDCIS currently.
+     */
+    protected final transient PropertyChangeSupport observers = new PropertyChangeSupport(this);
+
     @Getter
     private final Set<LightColor> lightColors;
-    // members
-    protected transient PropertyChangeSupport observers; // part of 'observer' pattern (via property change) to communicate changes of the model (this class) e.g. to the GUI
     @Getter
-    @Setter
     private int binning;
     @Getter
-    @Setter
     private int coaxLightSources;
     @Getter
-    @Setter
     private Cooling cooling;
     @Getter
-    @Setter
     private int diffuseLightSources;
     @Getter
-    @Setter
     private boolean externalTrigger;
     @Getter
-    @Setter
-    private boolean gigeInterface;
+    private boolean gigEInterface;
     @Getter
     private int phaseCount;
     @Getter
@@ -96,10 +124,7 @@ public abstract class CIS {
     private int transportSpeed;
 
     protected CIS() {
-        // init for observer pattern via property change
-        observers = new PropertyChangeSupport(this); // create observer list
-
-        // other inits (known at creation)
+        // inits (known at creation)
         cisName = getClass().getSimpleName();
         this.lightColors = new HashSet<>();
     }
@@ -114,7 +139,7 @@ public abstract class CIS {
         this.cooling = cis.cooling;
         this.diffuseLightSources = cis.diffuseLightSources;
         this.externalTrigger = cis.externalTrigger;
-        this.gigeInterface = cis.gigeInterface;
+        this.gigEInterface = cis.gigEInterface;
         this.lightColors = new HashSet<>(cis.lightColors);
         this.phaseCount = cis.phaseCount;
         this.scanWidth = cis.scanWidth;
@@ -123,20 +148,14 @@ public abstract class CIS {
         this.transportSpeed = cis.transportSpeed;
     }
 
-    public static String getPortName(int x) {
-        return Character.toString((char) (65 + x));
-    }
-
-    public static boolean isDouble(String s) {
-        return s != null && s.matches("[-+]?\\d+[.,]?\\d*");
-    }
-
-    public static boolean isInteger(String s) {
-        return s != null && s.matches("[-+]?\\d+");
-    }
-
-    public static double round(double value, int digits) {
-        return Math.round(Math.pow(10.0, digits) * value) / Math.pow(10.0, digits);
+    /**
+     * Returns the adc board with the given name
+     *
+     * @param name the name of the adc board
+     * @return an {@link Optional} that contains the adc board if there is one with the given name in the {@link #ADC_BOARDS} map (that was previously loaded from the database) or an empty Optional
+     */
+    public static Optional<AdcBoardRecord> getADC(String name) {
+        return Optional.ofNullable(ADC_BOARDS.get(name));
     }
 
     /**
@@ -155,7 +174,7 @@ public abstract class CIS {
         int sensorBoardCount = getBoardCount();
         SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
         int numOfPix = (int) (sensorBoard.getChips() * sensorBoardCount * 0.72 * getSelectedResolution().getActualResolution());
-        if (isGigeInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
+        if (this.isGigEInterface() && getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000 > 80) {
             throw new CISException(Util.getString("errorGigE") + ": " + (getPhaseCount() * numOfPix * getSelectedLineRate() / 1000000) + " MByte");
         }
         return numOfPix;
@@ -206,7 +225,7 @@ public abstract class CIS {
                                             .replace("N", "" + getScanWidth()))); // N is replaced by scan width
 
                             // add to prices
-                            calculateAndAddSinglePrice(electronicRecord.getArtNo(), amount, calculation.electConfig, calculation.electSums, priceRecords);
+                            calculateAndAddSinglePrice(electronicRecord.getArtNo(), amount, calculation.electronicConfig, calculation.electronicSums, priceRecords);
 
                             // add FPGA if there is an item with a code that contains it
                             if (amount > 0 && electronicRecord.getSelectCode() != null && electronicRecord.getSelectCode().contains("FPGA")) {
@@ -243,7 +262,7 @@ public abstract class CIS {
                         // for each applicable entry: add to prices
                         .forEach(mechanicRecord -> {
                             int amount = getMechanicsFactor(mechanicRecord.getAmount(), calculation);
-                            calculateAndAddSinglePrice(mechanicRecord.getArtNo(), amount, calculation.mechaConfig, calculation.mechaSums, priceRecords);
+                            calculateAndAddSinglePrice(mechanicRecord.getArtNo(), amount, calculation.mechanicConfig, calculation.mechanicSums, priceRecords);
                         });
             } catch (DataAccessException e) {
                 throw new CISException("Error in Mechanics");
@@ -285,7 +304,7 @@ public abstract class CIS {
      * @return the power needed, rounded to 1 decimal, or 0 if the corresponding field is null
      */
     public double calculateNeededPower(CISCalculation calculation) {
-        return (calculation.electSums[2] == null) ? 0.0 : (Math.round(10.0 * calculation.electSums[2]) / 10.0);
+        return (calculation.electronicSums[2] == null) ? 0.0 : (Math.round(10.0 * calculation.electronicSums[2]) / 10.0);
     }
 
     /**
@@ -299,7 +318,7 @@ public abstract class CIS {
             int amount = getMechanicsFactor(mechanicRecord.getAmount(), calculation);
             if (mechanicRecord.getNextSizeArtNo().equals(mechanicRecord.getArtNo())) // same number -> depends on N -> make N next size (+260)
                 amount = getMechanicsFactor(mechanicRecord.getAmount().replace("N", "" + (getScanWidth() + BASE_LENGTH)), calculation);
-            calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, calculation.mechaConfig, calculation.mechaSums, priceRecords);
+            calculateAndAddSinglePrice(mechanicRecord.getNextSizeArtNo(), amount, calculation.mechanicConfig, calculation.mechanicSums, priceRecords);
         }
     }
 
@@ -338,7 +357,7 @@ public abstract class CIS {
                 .append(Util.getString("priceEur")).append("\t")
                 .append(Util.getString("weightKg")).append("\n");
 
-        calculation.electConfig.forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
+        calculation.electronicConfig.forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
                 .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
                 .append(amount).append("\t")
                 .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice())).append("\t")
@@ -349,12 +368,12 @@ public abstract class CIS {
         electOutput.append("\n\t\n").append(Util.getString("totals")).append("\t")
                 .append(" \t")
                 .append("0\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[3])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[1])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[2])).append("\n");
+                .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[0])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[3])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[1])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[2])).append("\n");
 
-        calculation.mechaConfig.forEach((priceRecord, amount) -> mechaOutput.append(priceRecord.getFerixKey()).append("\t")
+        calculation.mechanicConfig.forEach((priceRecord, amount) -> mechaOutput.append(priceRecord.getFerixKey()).append("\t")
                 .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
                 .append(amount).append("\t")
                 .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice())).append("\t")
@@ -363,8 +382,8 @@ public abstract class CIS {
         mechaOutput.append("\n\t\n").append(Util.getString("totals")).append("\t")
                 .append(" \t")
                 .append("0\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[0])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[3])).append("\n");
+                .append(String.format(Util.getLocale(), "%.2f", calculation.mechanicSums[0])).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", calculation.mechanicSums[3])).append("\n");
 
         try {
             Map<String, Double> calcMap = Util.getDatabase().map(Stream::of).orElse(Stream.empty())
@@ -374,25 +393,25 @@ public abstract class CIS {
 
             totalOutput.append(Util.getString("calcFor10")).append("\t \t \t \t ").append("\n");
             totalOutput.append(Util.getString("electronics")).append(":\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0])).append("\t \n");
-            calculation.totalPrices[2] = calculation.electSums[0];
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[0])).append("\t \n");
+            calculation.totalPrices[2] = calculation.electronicSums[0];
             totalOutput.append(Util.getString("electronicsOverhead")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
-            calculation.totalPrices[2] += calculation.electSums[0] * (calcMap.get("A_ELEKTRONIK") / 100);
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
+            calculation.totalPrices[2] += calculation.electronicSums[0] * (calcMap.get("A_ELEKTRONIK") / 100);
             totalOutput.append(Util.getString("electronicsTesting")).append(":\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
-            calculation.totalPrices[2] += calculation.electSums[1] * calcMap.get("STUNDENSATZ");
-            if (isGigeInterface()) {
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
+            calculation.totalPrices[2] += calculation.electronicSums[1] * calcMap.get("STUNDENSATZ");
+            if (this.isGigEInterface()) {
                 totalOutput.append(Util.getString("gigEOverhead")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
-                        .append(String.format(Util.getLocale(), "%.2f", calculation.electSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
-                calculation.totalPrices[2] += calculation.electSums[0] * (calcMap.get("Z_GIGE") / 100);
+                        .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
+                calculation.totalPrices[2] += calculation.electronicSums[0] * (calcMap.get("Z_GIGE") / 100);
             }
             totalOutput.append(Util.getString("mechanics")).append(":\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[0])).append("\t \n");
-            calculation.totalPrices[2] += calculation.mechaSums[0];
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.mechanicSums[0])).append("\t \n");
+            calculation.totalPrices[2] += calculation.mechanicSums[0];
             totalOutput.append(Util.getString("mechanicsOverhead")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.mechaSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
-            calculation.totalPrices[2] += calculation.mechaSums[0] * (calcMap.get("A_MECHANIK") / 100);
+                    .append(String.format(Util.getLocale(), "%.2f", calculation.mechanicSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
+            calculation.totalPrices[2] += calculation.mechanicSums[0] * (calcMap.get("A_MECHANIK") / 100);
             totalOutput.append(Util.getString("assembly")).append(":\t \t ")
                     .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()).append(" h\t")
                     .append(String.format(Util.getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ"))).append("\t \n");
@@ -570,7 +589,7 @@ public abstract class CIS {
         printout.append("\n\t\n");
         printout.append(getStartOfCLPrintOut());
         int numOfPix = calcNumOfPix();
-        if (isGigeInterface()) {
+        if (this.isGigEInterface()) {
             printout.append("Pixel Clock: 40MHz\n");
             printout.append(Util.getString("numberOfPixels")).append(": ").append(numOfPix).append("\n");
         } else {
@@ -587,10 +606,6 @@ public abstract class CIS {
             printout.append(getEndOfCameraLinkSection());
         }
         return printout.toString();
-    }
-
-    public Optional<AdcBoardRecord> getADC(String name) {
-        return Optional.ofNullable(ADC_BOARDS.get(name));
     }
 
     /**
@@ -675,7 +690,7 @@ public abstract class CIS {
      */
     private int getElectronicsFactor(String factor) {
         factor = prepareElectronicsFactor(factor); // do CIS specific calculations
-        if (isInteger(factor)) {
+        if (Util.isInteger(factor)) {
             // just a number -> convert to int
             return Integer.parseInt(factor);
         } else if (factor.equals("L")) {
@@ -684,19 +699,19 @@ public abstract class CIS {
         } else if (factor.contains("==")) {
             // condition with L==...
             String[] split = factor.split("==");
-            if (split[0].equals("L") && isInteger(split[1]) && getLedLines() == Integer.parseInt(split[1])) {
+            if (split[0].equals("L") && Util.isInteger(split[1]) && getLedLines() == Integer.parseInt(split[1])) {
                 return 1;
             }
         } else if (factor.contains(">")) {
             // condition with L>...
             String[] split = factor.split(">");
-            if (split[0].equals("L") && isInteger(split[1]) && getLedLines() > Integer.parseInt(split[1])) {
+            if (split[0].equals("L") && Util.isInteger(split[1]) && getLedLines() > Integer.parseInt(split[1])) {
                 return 1;
             }
         } else if (factor.contains("<")) {
             // condition with L<...
             String[] split = factor.split("<");
-            if (split[0].equals("L") && isInteger(split[1]) && getLedLines() < Integer.parseInt(split[1])) {
+            if (split[0].equals("L") && Util.isInteger(split[1]) && getLedLines() < Integer.parseInt(split[1])) {
                 return 1;
             }
         }
@@ -746,7 +761,7 @@ public abstract class CIS {
      * Default is GigE or CameraLink max 5m unless overwritten by subclass
      */
     protected String getInterfacePrintout() {
-        return "Interface: " + (isGigeInterface() ? "GigE" : "CameraLink (max. 5m) " + Util.getString("interfaceSdr"));
+        return "Interface: " + (this.isGigEInterface() ? "GigE" : "CameraLink (max. 5m) " + Util.getString("interfaceSdr"));
     }
 
     /**
@@ -789,7 +804,7 @@ public abstract class CIS {
     }
 
     public int getLedLines() {
-        Matcher m = LIGHT_PATTERN.matcher(getLightSources());
+        Matcher m = Pattern.compile("(\\d+)D(\\d+)C").matcher(getLightSources());
         if (m.matches()) {
             return Integer.parseInt(m.group(1)) + Integer.parseInt(m.group(2));
         } else {
@@ -830,7 +845,7 @@ public abstract class CIS {
     }
 
     private int getMechanicsFactor(String factor, CISCalculation calculation) {
-        if (isInteger(factor)) {
+        if (Util.isInteger(factor)) {
             return Integer.parseInt(factor);
         } else {
             String ev = factor.replace("F", "" + calculation.numFPGA)
@@ -855,8 +870,8 @@ public abstract class CIS {
     protected double getMinFreq(CISCalculation calculation) {
         String key = getTiViKey();
         boolean coax = key.contains("C_");
-        return 100 * calculation.electSums[4]
-                * calculation.mechaSums[4]
+        return 100 * calculation.electronicSums[4]
+                * calculation.mechanicSums[4]
                 * (coax ? 1 : getLedLines())
                 * getGeometryFactor(coax)
                 * getSensitivityFactor() / (1.5 * (key.contains("RGB") ? 3 : 1));
@@ -932,13 +947,6 @@ public abstract class CIS {
     public abstract String getTiViKey();
 
     /**
-     * returns the transport speed factor for print out
-     */
-    protected double getTransportSpeedFactor() {
-        return (1.0 * getSelectedLineRate() / getMaxLineRate());
-    }
-
-    /**
      * returns the trigger printout.
      * Default is CC1 if not external unless overwritten by subclass (that has no options)
      */
@@ -958,8 +966,8 @@ public abstract class CIS {
      * returns the weight printout
      */
     protected String getWeightString(CISCalculation calculation) {
-        return (" " + Math.round((((calculation.electSums[3] == null) ? 0.0 : calculation.electSums[3])
-                + ((calculation.mechaSums[3] == null) ? 0.0 : calculation.mechaSums[3])) * 10) / 10.0 + "kg")
+        return (" " + Math.round((((calculation.electronicSums[3] == null) ? 0.0 : calculation.electronicSums[3])
+                + ((calculation.mechanicSums[3] == null) ? 0.0 : calculation.mechanicSums[3])) * 10) / 10.0 + "kg")
                 .replace(" 0kg", " ???");
     }
 
@@ -1075,10 +1083,10 @@ public abstract class CIS {
                     proceed = multiplier.equals(getSelectedResolution().getBoardResolution() + "dpi");
                     break;
                 case "GIGE": //GigE only
-                    proceed = isGigeInterface();
+                    proceed = this.isGigEInterface();
                     break;
                 case "CL": //CameraLink only
-                    proceed = !isGigeInterface();
+                    proceed = !this.isGigEInterface();
                     break;
                 case "COAX": //At least one coaxial light
                     proceed = key.split("_")[4].endsWith("C") || (this instanceof MXCIS && key.split("_")[5].endsWith("C"));
@@ -1169,6 +1177,42 @@ public abstract class CIS {
         return false;
     }
 
+    public void setBinning(int binning) {
+        int oldValue = this.binning;
+        this.binning = binning;
+        observers.firePropertyChange(PROPERTY_BINNING, oldValue, binning);
+    }
+
+    public void setCoaxLightSources(int coaxLightSources) {
+        int oldValue = this.coaxLightSources;
+        this.coaxLightSources = coaxLightSources;
+        observers.firePropertyChange(PROPERTY_COAX_LIGHT_SOURCES, oldValue, coaxLightSources);
+    }
+
+    public void setCooling(Cooling cooling) {
+        Cooling oldValue = this.cooling;
+        this.cooling = cooling;
+        observers.firePropertyChange(PROPERTY_COOLING, oldValue, cooling);
+    }
+
+    public void setDiffuseLightSources(int diffuseLightSources) {
+        int oldValue = this.diffuseLightSources;
+        this.diffuseLightSources = diffuseLightSources;
+        observers.firePropertyChange(PROPERTY_DIFFUSE_LIGHT_SOURCES, oldValue, diffuseLightSources);
+    }
+
+    public void setExternalTrigger(boolean externalTrigger) {
+        boolean oldValue = this.externalTrigger;
+        this.externalTrigger = externalTrigger;
+        observers.firePropertyChange(PROPERTY_EXTERNAL_TRIGGER, oldValue, externalTrigger);
+    }
+
+    public void setGigEInterface(boolean gigEInterface) {
+        boolean oldValue = this.gigEInterface;
+        this.gigEInterface = gigEInterface;
+        observers.firePropertyChange(PROPERTY_GIG_E, oldValue, gigEInterface);
+    }
+
     public void setLightColor(LightColor lightColor) {
         getLightColors().clear();
         getLightColors().add(lightColor);
@@ -1177,31 +1221,31 @@ public abstract class CIS {
     public void setPhaseCount(int phaseCount) {
         int oldValue = this.phaseCount;
         this.phaseCount = phaseCount;
-        observers.firePropertyChange("phaseCount", oldValue, phaseCount);
+        observers.firePropertyChange(PROPERTY_PHASE_COUNT, oldValue, phaseCount);
     }
 
     public void setScanWidth(int scanWidth) {
         int oldValue = this.scanWidth;
         this.scanWidth = scanWidth;
-        observers.firePropertyChange("scanWidth", oldValue, scanWidth);
+        observers.firePropertyChange(PROPERTY_SCAN_WIDTH, oldValue, scanWidth);
     }
 
     public void setSelectedLineRate(int selectedLineRate) {
         int oldValue = this.selectedLineRate;
         this.selectedLineRate = selectedLineRate;
-        observers.firePropertyChange("lineRate", oldValue, selectedLineRate);
+        observers.firePropertyChange(PROPERTY_LINE_RATE, oldValue, selectedLineRate);
     }
 
     public void setSelectedResolution(Resolution resolution) {
         Resolution oldValue = this.selectedResolution;
         this.selectedResolution = resolution;
-        observers.firePropertyChange("resolution", oldValue, resolution);
+        observers.firePropertyChange(PROPERTY_RESOLUTION, oldValue, resolution);
     }
 
     public void setTransportSpeed(int transportSpeed) {
         int oldValue = this.transportSpeed;
         this.transportSpeed = transportSpeed;
-        observers.firePropertyChange("transportSpeed", oldValue, transportSpeed);
+        observers.firePropertyChange(PROPERTY_TRANSPORT_SPEED, oldValue, transportSpeed);
     }
 
     /**
@@ -1230,19 +1274,6 @@ public abstract class CIS {
             this.code = code;
             this.description = description;
             this.shortHand = shortHand;
-        }
-
-        /**
-         * searches the cooling method with the given code out of all available cooling methods
-         *
-         * @param code the code of the cooling method to search
-         * @return an {@link Optional} of the cooling method with the given code if it exists or an empty one otherwise
-         */
-        @SuppressWarnings("unused")
-        public static Optional<Cooling> findByCode(String code) {
-            return Arrays.stream(Cooling.values())
-                    .filter(c -> c.getCode().equals(code))
-                    .findFirst();
         }
 
         /**
@@ -1332,7 +1363,7 @@ public abstract class CIS {
          * @param shortHand the shortHand of the light color to search
          * @return an {@link Optional} of the light color with the given shortHand if it exists or an empty one otherwise
          */
-        @SuppressWarnings("unused")
+
         public static Optional<LightColor> findByShortHand(String shortHand) {
             return Arrays.stream(LightColor.values())
                     .filter(c -> c.getShortHand().equals(shortHand))
@@ -1347,7 +1378,6 @@ public abstract class CIS {
             return description;
         }
 
-        @SuppressWarnings("unused")
         public String getShortHand() {
             return shortHand;
         }
@@ -1366,10 +1396,10 @@ public abstract class CIS {
      * class for a CIS calculation. Collects electronics and mechanics items and prices.
      */
     public static class CISCalculation {
-        public Map<PriceRecord, Integer> electConfig = new HashMap<>();
-        public Double[] electSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
-        public Map<PriceRecord, Integer> mechaConfig = new HashMap<>();
-        public Double[] mechaSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
+        public Map<PriceRecord, Integer> electronicConfig = new HashMap<>();
+        public Double[] electronicSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
+        public Map<PriceRecord, Integer> mechanicConfig = new HashMap<>();
+        public Double[] mechanicSums = new Double[]{0.0, 0.0, 0.0, 0.0, 1.0};
         public int numFPGA;
         Double[] totalPrices = new Double[]{0.0, 0.0, 0.0, 0.0};
     }

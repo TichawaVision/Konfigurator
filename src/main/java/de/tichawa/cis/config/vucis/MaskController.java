@@ -22,9 +22,9 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             .collect(Collectors.toList());
     private static final List<CIS.LightColor> LIGHT_COLOR_OPTIONS_WITH_SFS = Stream.of(CIS.LightColor.values()).filter(VUCIS::isVUCISLightColor)
             .collect(Collectors.toList());
-    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITHOUT_COAX = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820/*, 2080 (removed for now)*/).collect(Collectors.toList());
-    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_COAX = Stream.of(260, 520, 780, 1040).collect(Collectors.toList());
-    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_SFS = Stream.of(260, 520, 780, 1040, 1300, 1560, 1820).collect(Collectors.toList());
+    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITHOUT_COAX = Arrays.asList(260, 520, 780, 1040, 1300, 1560, 1820/*, 2080 (removed for now)*/);
+    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_COAX = Arrays.asList(260, 520, 780, 1040);
+    private static final List<Integer> SCAN_WIDTH_OPTIONS_WITH_SFS = Arrays.asList(260, 520, 780, 1040, 1300, 1560, 1820);
 
     private static long lastMinFreq = 0;
     @FXML
@@ -220,10 +220,10 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
 
     private void handleTransportSpeedChange(int transportSpeed) {
         double transportSpeedByThousands = transportSpeed / 1000.0;
-        speedmmsLabel.setText(CIS.round(transportSpeedByThousands, 3) + " mm/s");
-        speedmsLabel.setText(CIS.round(transportSpeedByThousands / 1000, 3) + " m/s");
-        speedmminLabel.setText(CIS.round(transportSpeedByThousands * 0.06, 3) + " m/min");
-        speedipsLabel.setText(CIS.round(transportSpeedByThousands * 0.03937, 3) + " ips");
+        speedmmsLabel.setText(Util.round(transportSpeedByThousands, 3) + " mm/s");
+        speedmsLabel.setText(Util.round(transportSpeedByThousands / 1000, 3) + " m/s");
+        speedmminLabel.setText(Util.round(transportSpeedByThousands * 0.06, 3) + " m/min");
+        speedipsLabel.setText(Util.round(transportSpeedByThousands * 0.03937, 3) + " ips");
     }
 
     /**
@@ -452,97 +452,97 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        System.out.println("observed change for " + evt.getPropertyName() + " to " + evt.getNewValue());
+        System.out.println("VUCIS Maskcontroller: observed change for " + evt.getPropertyName() + " to " + evt.getNewValue());
         switch (evt.getPropertyName()) {
             // lights
-            case "leftDarkField":
+            case VUCIS.PROPERTY_DARK_FIELD_LEFT:
                 selectLightChoiceBox(darkFieldLeftChoiceBox, (CIS.LightColor) evt.getNewValue());
                 updateScanWidthOptions();
                 setLightPresetToManual();
                 updateLightInfo();
                 updateLightFrequencyLimit();
                 break;
-            case "leftBrightField":
+            case VUCIS.PROPERTY_BRIGHT_FIELD_LEFT:
                 selectLightChoiceBox(brightFieldLeftChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
                 updateLightFrequencyLimit();
                 break;
-            case "coaxLight":
+            case VUCIS.PROPERTY_COAX:
                 handleCoaxChange((CIS.LightColor) evt.getOldValue(), (CIS.LightColor) evt.getNewValue());
                 selectLightChoiceBox(coaxChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateLightInfo();
                 updateLightFrequencyLimit();
                 break;
-            case "rightBrightField":
+            case VUCIS.PROPERTY_BRIGHT_FIELD_RIGHT:
                 selectLightChoiceBox(brightFieldRightChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
                 updateLightFrequencyLimit();
                 break;
-            case "rightDarkField":
+            case VUCIS.PROPERTY_DARK_FIELD_RIGHT:
                 selectLightChoiceBox(darkFieldRightChoiceBox, (CIS.LightColor) evt.getNewValue());
                 setLightPresetToManual();
                 updateScanWidthOptions();
                 updateLightInfo();
                 updateLightFrequencyLimit();
                 break;
-            case "phaseCount":
+            case CIS.PROPERTY_PHASE_COUNT:
                 Phases selectedPhase = Phases.findByPhaseCount((int) evt.getNewValue()).orElseThrow(() -> new IllegalArgumentException("selected phase count not found"));
                 handlePhasesChange(selectedPhase);
                 setLightPresetToManual();
                 updateCameraLinkInfo();
                 updateLightFrequencyLimit();
                 break;
-            case "cloudyDay":
+            case VUCIS.PROPERTY_CLOUDY_DAY:
                 cloudyDayCheckBox.setSelected((boolean) evt.getNewValue());
                 updateDarkFieldChoiceBoxes((boolean) evt.getNewValue());
                 setLightPresetToManual();
                 updateLightFrequencyLimit();
                 break;
-            case "coolingLeft":
+            case VUCIS.PROPERTY_COOLING_LEFT:
                 coolingLeftCheckBox.setSelected((boolean) evt.getNewValue());
                 setLightPresetToManual();
                 break;
-            case "coolingRight":
+            case VUCIS.PROPERTY_COOLING_RIGHT:
                 coolingRightCheckBox.setSelected((boolean) evt.getNewValue());
                 setLightPresetToManual();
                 break;
             // optics
-            case "lensType":
+            case VUCIS.PROPERTY_LENS_TYPE:
                 handleLensChange((VUCIS.LensType) evt.getNewValue());
                 updateLightFrequencyLimit();
                 break;
             // resolution and scan width
-            case "resolution":
+            case CIS.PROPERTY_RESOLUTION:
                 handleResolutionChange((CIS.Resolution) evt.getNewValue());
                 updateCameraLinkInfo();
                 updateLightFrequencyLimit();
                 break;
-            case "scanWidth":
+            case CIS.PROPERTY_SCAN_WIDTH:
                 scanWidthChoiceBox.getSelectionModel().select(evt.getNewValue() + " mm");
                 updateCameraLinkInfo();
                 break;
             // line rate and transport speed
-            case "lineRate":
+            case CIS.PROPERTY_LINE_RATE:
                 handleLineRateChange((int) evt.getNewValue());
                 updateCameraLinkInfo();
                 updateSelectedLineRateWarning();
                 updateLightFrequencyLimit();
                 break;
-            case "transportSpeed":
+            case CIS.PROPERTY_TRANSPORT_SPEED:
                 handleTransportSpeedChange((int) evt.getNewValue());
                 break;
             // interface
-            case "reducedPixelClock":
+            case VUCIS.PROPERTY_REDUCED_PIXEL_CLOCK:
                 reducedPixelClockCheckBox.setSelected((boolean) evt.getNewValue());
                 updateCameraLinkInfo();
                 break;
             // mod
-            case "mod":
+            case VUCIS.PROPERTY_MOD:
                 moduloChoiceBox.setValue(String.valueOf((int) evt.getNewValue()));
                 updateCameraLinkInfo();
                 break;
@@ -689,7 +689,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
      */
     private void updatePixelAndDefectSize() {
         pixelSizeLabel.setText(CIS_DATA.getSelectedResolution().getPixelSize() + " mm");
-        defectSizeLabel.setText(CIS.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
+        defectSizeLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * 3, 5) + " mm");
     }
 
     /**

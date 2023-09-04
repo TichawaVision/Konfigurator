@@ -107,7 +107,7 @@ public class PriceUpdateController {
         return Files.readAllLines(Launcher.ferixHome.resolve(EXPORTED_PRICES_FILENAME)).stream()
                 .map(line -> line.split("\t"))
                 // filter malformed lines (item at index 0 should be article number, at index 1 price (per items at index 2)
-                .filter(line -> CIS.isInteger(line[0]) && CIS.isDouble(line[1]))
+                .filter(line -> Util.isInteger(line[0]) && Util.isDouble(line[1]))
                 // convert line to tuple <article number, <price, isActive>>
                 .map(line -> new Tuple<>(Integer.parseInt(line[0]), new Tuple<>(Double.parseDouble(line[1]) / decodeQuantity(line[2]), line.length < 4 || line[3].equals("printError"))))
                 // filter items by price > 0

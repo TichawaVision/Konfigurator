@@ -21,42 +21,8 @@ public class VDCIS extends CIS {
     }
 
     @Override
-    public String getTiViKey() {
-        String key = "G_VDCIS";
-        key += String.format("_%04d", getScanWidth());
-
-        if (getSelectedResolution().isSwitchable()) //Switchable
-        {
-            key += "_XXXX";
-        } else {
-            key += String.format("_%04d", getSelectedResolution().getActualResolution());
-        }
-
-        key += "_2";
-
-        if (getPhaseCount() == 4) {
-            key += "RGB";
-        } else {
-            key += getLightColors().stream()
-                    .findAny().orElse(LightColor.NONE)
-                    .getShortHand();
-        }
-
-        if (!getLightSources().endsWith("0C")) {
-            key += "C";
-        }
-
-        key += getMechanicVersion();
-
-        if (isGigeInterface()) {
-            key += "GT";
-        }
-
-        if (key.endsWith("_")) {
-            key = key.substring(0, key.length() - 1);
-        }
-
-        return key;
+    public CIS copy() {
+        return new VDCIS(this);
     }
 
     @Override
@@ -122,9 +88,38 @@ public class VDCIS extends CIS {
         return Collections.singletonList(CPUCLink);
     }
 
+    /**
+     * returns the case profile string for print out: 80x80mm
+     */
+    @Override
+    protected String getCaseProfile() {
+        return Util.getString("aluminumCaseVDCIS");
+    }
+
+    /**
+     * returns a string that is appended to the end of the camera link section in print out: other cl config on request
+     */
+    @Override
+    protected String getEndOfCameraLinkSection() {
+        return "\n" + Util.getString("configOnRequest") + "\n";
+    }
+
+    /**
+     * returns a string that gets appended at the end of the specs section in print out: laser warning
+     */
+    @Override
+    protected String getEndOfSpecs() {
+        return Util.getString("laserWarning") + "\n";
+    }
+
     @Override
     public double getGeometryFactor(boolean coax) {
         return coax ? 0.229 : 0.252;
+    }
+
+    @Override
+    public String getLights() {
+        return "";
     }
 
     @Override
@@ -137,8 +132,11 @@ public class VDCIS extends CIS {
     }
 
     @Override
-    public String getLights() {
-        return "";
+    protected int getNumberOfSensorsPerFpga() {
+        if (getSelectedResolution().getActualResolution() > 600) return 1;
+        if (getPhaseCount() > 1) return 2;
+        // else
+        return super.getNumberOfSensorsPerFpga();
     }
 
     /**
@@ -147,30 +145,6 @@ public class VDCIS extends CIS {
     @Override
     protected String getScanDistanceString() {
         return "~ 55 - 70 mm " + Util.getString("warningExactScanDistanceVDCIS");
-    }
-
-    /**
-     * returns the case profile string for print out: 80x80mm
-     */
-    @Override
-    protected String getCaseProfile() {
-        return Util.getString("aluminumCaseVDCIS");
-    }
-
-    /**
-     * returns a string that gets appended at the end of the specs section in print out: laser warning
-     */
-    @Override
-    protected String getEndOfSpecs() {
-        return Util.getString("laserWarning") + "\n";
-    }
-
-    /**
-     * returns a string that is appended to the end of the camera link section in print out: other cl config on request
-     */
-    @Override
-    protected String getEndOfCameraLinkSection() {
-        return "\n" + Util.getString("configOnRequest") + "\n";
     }
 
     /**
@@ -191,15 +165,41 @@ public class VDCIS extends CIS {
     }
 
     @Override
-    public CIS copy() {
-        return new VDCIS(this);
-    }
+    public String getTiViKey() {
+        String key = "G_VDCIS";
+        key += String.format("_%04d", getScanWidth());
 
-    @Override
-    protected int getNumberOfSensorsPerFpga() {
-        if (getSelectedResolution().getActualResolution() > 600) return 1;
-        if (getPhaseCount() > 1) return 2;
-        // else
-        return super.getNumberOfSensorsPerFpga();
+        if (getSelectedResolution().isSwitchable()) //Switchable
+        {
+            key += "_XXXX";
+        } else {
+            key += String.format("_%04d", getSelectedResolution().getActualResolution());
+        }
+
+        key += "_2";
+
+        if (getPhaseCount() == 4) {
+            key += "RGB";
+        } else {
+            key += getLightColors().stream()
+                    .findAny().orElse(LightColor.NONE)
+                    .getShortHand();
+        }
+
+        if (!getLightSources().endsWith("0C")) {
+            key += "C";
+        }
+
+        key += getMechanicVersion();
+
+        if (this.isGigEInterface()) {
+            key += "GT";
+        }
+
+        if (key.endsWith("_")) {
+            key = key.substring(0, key.length() - 1);
+        }
+
+        return key;
     }
 }

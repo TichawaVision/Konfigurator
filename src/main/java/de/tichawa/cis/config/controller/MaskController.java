@@ -287,8 +287,8 @@ public abstract class MaskController<C extends CIS> implements Initializable {
         if (calculation == null)
             return;
         // sort lists by ferix key (could also add both configs to one list if desired)
-        List<Entry<PriceRecord, Integer>> electronicList = new ArrayList<>(calculation.electConfig.entrySet());
-        List<Entry<PriceRecord, Integer>> mechanicList = new ArrayList<>(calculation.mechaConfig.entrySet());
+        List<Entry<PriceRecord, Integer>> electronicList = new ArrayList<>(calculation.electronicConfig.entrySet());
+        List<Entry<PriceRecord, Integer>> mechanicList = new ArrayList<>(calculation.mechanicConfig.entrySet());
         electronicList.sort(Comparator.comparing(e -> e.getKey().getFerixKey()));
         mechanicList.sort(Comparator.comparing(m -> m.getKey().getFerixKey()));
 

@@ -14,7 +14,6 @@ import java.io.*;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.stream.*;
 
 /**
  * class to collect all utility functions that don't really belong to another class.
@@ -167,6 +166,47 @@ public class Util {
     }
 
     /**
+     * Checks whether the given String is a double number
+     *
+     * @param s the String to test
+     * @return true if s represents a double number i.e.
+     * - s is not null and
+     * - s optionally matches a sign
+     * - followed by at least one digit
+     * - optionally followed by decimal point or comma
+     * - optionally followed by an arbitrary amount of digits
+     * or false otherwise
+     */
+    public static boolean isDouble(String s) {
+        return s != null && s.matches("[-+]?\\d+[.,]?\\d*");
+    }
+
+    /**
+     * Checks whether the given String is an integer number
+     *
+     * @param s the String to test
+     * @return true if s represents an integer number i.e.
+     * - s is not null and
+     * - s optionally matches a sign
+     * - followed by at least one digit
+     * or false otherwise
+     */
+    public static boolean isInteger(String s) {
+        return s != null && s.matches("[-+]?\\d+");
+    }
+
+    /**
+     * Rounds the given number value by the given digits
+     *
+     * @param value  the number value to round
+     * @param digits the number of digits after the decimal point for rounding
+     * @return the rounded number
+     */
+    public static double round(double value, int digits) {
+        return Math.round(Math.pow(10.0, digits) * value) / Math.pow(10.0, digits);
+    }
+
+    /**
      * switches languages (DE <-> EN)
      */
     public static void switchLanguage() {
@@ -174,16 +214,5 @@ public class Util {
             locale = Locale.US;
         else
             locale = Locale.GERMANY;
-    }
-
-    /**
-     * combines two lists into a single list of pairs.
-     * Returns a list of {@link Pair} objects with the i-th element of both given lists.
-     * If the lists have different sizes the resulting list has the smaller size.
-     */
-    public static <A, B> List<Pair<A, B>> zip(List<A> as, List<B> bs) {
-        return IntStream.range(0, Math.min(as.size(), bs.size()))
-                .mapToObj(i -> new Pair<>(as.get(i), bs.get(i)))
-                .collect(Collectors.toList());
     }
 }

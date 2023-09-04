@@ -16,18 +16,31 @@ public class VUCIS extends CIS {
     public static final int MAX_SCAN_WIDTH_WITH_SFS = 1820;
     public static final long PIXEL_CLOCK_NORMAL = 85000000;
     public static final long PIXEL_CLOCK_REDUCED = 53000000;
-    public static final String PROPERTY_BRIGHT_FIELD_LEFT = "BrightFieldLeft";
-    public static final String PROPERTY_BRIGHT_FIELD_RIGHT = "BrightFieldRight";
-    public static final String PROPERTY_COAX = "Coax";
-    public static final String PROPERTY_DARK_FIELD_LEFT = "DarkFieldLeft";
-    public static final String PROPERTY_DARK_FIELD_RIGHT = "DarkFieldRight";
+
+    public static final String PROPERTY_BRIGHT_FIELD_LEFT = "brightFieldLeft";
+    public static final String PROPERTY_BRIGHT_FIELD_RIGHT = "brightFieldRight";
+    public static final String PROPERTY_CLOUDY_DAY = "cloudyDay";
+    public static final String PROPERTY_COAX = "coax";
+    public static final String PROPERTY_COOLING_LEFT = "coolingLeft";
+    public static final String PROPERTY_COOLING_RIGHT = "coolingRight";
+    public static final String PROPERTY_DARK_FIELD_LEFT = "darkFieldLeft";
+    public static final String PROPERTY_DARK_FIELD_RIGHT = "darkFieldRight";
+    public static final String PROPERTY_LENS_TYPE = "lensType";
+    public static final String PROPERTY_MOD = "mod";
+    public static final String PROPERTY_REDUCED_PIXEL_CLOCK = "reducedPixelClock";
+
     public static final List<Integer> VALID_MODS;
+
+    private static final String DEFAULT_ADC_BOARD = "VADCFPGA";
+    private static final String DEFAULT_SENSOR_BOARD = "SMARAGD";
+
     /**
      * estimated weights in kg for a VUCIS by length (first value is for 260 mm, 2nd for 520 mm, ..., last for 2080 mm).
      * These weights were determined by weighing the end product (and scaling by length).
      * These should be used as long as the weight values of the single components are not set in the database.
      */
     private static final double[] WEIGHTS = {3.8, 5.6, 8.2, 11.1, 13.2, 15.4, 17.6, 20}; // total (estimated) weights of the VUCIS by length
+
     /**
      * Available resolutions for VUCIS
      */
@@ -367,7 +380,7 @@ public class VUCIS extends CIS {
         // update value and notify observers
         LightColor oldValue = this.brightFieldLeft;
         this.brightFieldLeft = brightFieldLeft;
-        observers.firePropertyChange("leftBrightField", oldValue, brightFieldLeft);
+        observers.firePropertyChange(PROPERTY_BRIGHT_FIELD_LEFT, oldValue, brightFieldLeft);
     }
 
     /**
@@ -400,7 +413,7 @@ public class VUCIS extends CIS {
         // update value and notify observers
         LightColor oldValue = this.brightFieldRight;
         this.brightFieldRight = brightFieldRight;
-        observers.firePropertyChange("rightBrightField", oldValue, brightFieldRight);
+        observers.firePropertyChange(PROPERTY_BRIGHT_FIELD_RIGHT, oldValue, brightFieldRight);
     }
 
     public LightColor getCoaxLight() {
@@ -432,15 +445,7 @@ public class VUCIS extends CIS {
         //update value and notify observers
         LightColor oldValue = this.coaxLight;
         this.coaxLight = coaxLight;
-        observers.firePropertyChange("coaxLight", oldValue, coaxLight);
-    }
-
-    public int getColorCount() {
-        List<LightColor> colors = Arrays.asList(getBrightFieldLeft(), getCoaxLight(), getBrightFieldRight(), getDarkFieldLeft(), getDarkFieldRight());
-        return Math.max((int) colors.stream()
-                .distinct()
-                .filter(c -> c != LightColor.NONE)
-                .count(), 1);
+        observers.firePropertyChange(PROPERTY_COAX, oldValue, coaxLight);
     }
 
     /**
@@ -472,7 +477,7 @@ public class VUCIS extends CIS {
         // update value and notify observers
         LightColor oldValue = this.darkFieldLeft;
         this.darkFieldLeft = darkFieldLeft;
-        observers.firePropertyChange("leftDarkField", oldValue, darkFieldLeft);
+        observers.firePropertyChange(PROPERTY_DARK_FIELD_LEFT, oldValue, darkFieldLeft);
     }
 
     /**
@@ -505,7 +510,7 @@ public class VUCIS extends CIS {
         // update value and notify observers
         LightColor oldValue = this.darkFieldRight;
         this.darkFieldRight = darkFieldRight;
-        observers.firePropertyChange("rightDarkField", oldValue, darkFieldRight);
+        observers.firePropertyChange(PROPERTY_DARK_FIELD_RIGHT, oldValue, darkFieldRight);
     }
 
     /**
@@ -549,7 +554,7 @@ public class VUCIS extends CIS {
     public void setLensType(LensType lensType) {
         LensType oldValue = this.lensType;
         this.lensType = lensType;
-        observers.firePropertyChange("lensType", oldValue, lensType);
+        observers.firePropertyChange(PROPERTY_LENS_TYPE, oldValue, lensType);
     }
 
     /**
@@ -598,7 +603,7 @@ public class VUCIS extends CIS {
     @Override
     public List<CPUCLink> getCLCalc(int numOfPix, CISCalculation calculation) {
         // calculate maximum number of pixels
-        SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
+        SensorBoardRecord sensorBoard = getSensorBoard(DEFAULT_SENSOR_BOARD).orElseThrow(() -> new CISException("Unknown sensor board"));
         int numSensorBoards = getBoardCount();
         int resolution = getSelectedResolution().getActualResolution();
         int numOfPixNominal = numOfPix - (getBoardCount() * sensorBoard.getOverlap() * resolution / 1200);
@@ -758,6 +763,7 @@ public class VUCIS extends CIS {
             key += "D";
             return key;
         }
+        // else: no cloudy day
         if (isShapeFromShading()) {
             // if no coax -> S in middle
             if (!hasCoax()) {
@@ -776,7 +782,7 @@ public class VUCIS extends CIS {
             key += getDarkFieldRight().getCode();
             return key;
         }
-        //default: just take the code from the lights
+        // else: no shape from shading -> default: just take the code from the lights
         key += getDarkFieldLeft().getCode();
         key += getBrightFieldLeft().getCode();
         key += getCoaxLight().getCode();
@@ -787,9 +793,9 @@ public class VUCIS extends CIS {
 
     @Override
     public double getMaxLineRate() {
-        AdcBoardRecord adcBoard = getADC("VADCFPGA").orElseThrow(() -> new CISException("Unknown ADC board"));
-        SensorBoardRecord sensorBoard = getSensorBoard("SMARAGD").orElseThrow(() -> new CISException("Unknown sensor board"));
-        SensorChipRecord sensorChip = getSensorChip("SMARAGD" + getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
+        AdcBoardRecord adcBoard = getADC(DEFAULT_ADC_BOARD).orElseThrow(() -> new CISException("Unknown ADC board"));
+        SensorBoardRecord sensorBoard = getSensorBoard(DEFAULT_SENSOR_BOARD).orElseThrow(() -> new CISException("Unknown sensor board"));
+        SensorChipRecord sensorChip = getSensorChip(DEFAULT_SENSOR_BOARD + getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
         return 1000 * Math.round(1000 * sensorBoard.getLines() / (getPhaseCount() * (sensorChip.getPixelPerSensor() + 100) * 1.0 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed()))) / 1000.0;
     }
 
@@ -1006,13 +1012,13 @@ public class VUCIS extends CIS {
     public void setReducedPixelClock(boolean reducedPixelClock) {
         boolean oldValue = this.reducedPixelClock;
         this.reducedPixelClock = reducedPixelClock;
-        observers.firePropertyChange("reducedPixelClock", oldValue, reducedPixelClock);
+        observers.firePropertyChange(PROPERTY_REDUCED_PIXEL_CLOCK, oldValue, reducedPixelClock);
     }
 
     public void setMod(int mod) {
         int oldValue = this.mod;
         this.mod = mod;
-        observers.firePropertyChange("mod", oldValue, mod);
+        observers.firePropertyChange(PROPERTY_MOD, oldValue, mod);
     }
 
     /**
@@ -1025,7 +1031,7 @@ public class VUCIS extends CIS {
         double I_p = getIpValue(lightColor, isDarkfield);
         double gamma = getGeometryFactor(lightColor, isDarkfield, isCoax);
         double n = getNFactor(isDarkfield, isCoax);
-        double tau = calculation.mechaSums[4]; // only Lens will have a photo value in mecha table
+        double tau = calculation.mechanicSums[4]; // only Lens will have a photo value in mecha table
         double S_v = getSensitivityFactor();
         double m = getPhaseCount();
         return 100 * I_p * gamma * n * tau * S_v / (1.5 * m);
@@ -1117,7 +1123,7 @@ public class VUCIS extends CIS {
         // update value and notify observers
         boolean oldValue = this.cloudyDay;
         this.cloudyDay = cloudyDay;
-        observers.firePropertyChange("cloudyDay", oldValue, cloudyDay);
+        observers.firePropertyChange(PROPERTY_CLOUDY_DAY, oldValue, cloudyDay);
     }
 
     /**
@@ -1203,13 +1209,13 @@ public class VUCIS extends CIS {
     public void setCoolingLeft(boolean coolingLeft) {
         boolean oldValue = this.coolingLeft;
         this.coolingLeft = coolingLeft;
-        observers.firePropertyChange("coolingLeft", oldValue, coolingLeft);
+        observers.firePropertyChange(PROPERTY_COOLING_LEFT, oldValue, coolingLeft);
     }
 
     public void setCoolingRight(boolean coolingRight) {
         boolean oldValue = this.coolingRight;
         this.coolingRight = coolingRight;
-        observers.firePropertyChange("coolingRight", oldValue, coolingRight);
+        observers.firePropertyChange(PROPERTY_COOLING_RIGHT, oldValue, coolingRight);
     }
 
     /**
