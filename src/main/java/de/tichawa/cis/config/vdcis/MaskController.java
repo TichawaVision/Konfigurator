@@ -2,7 +2,6 @@ package de.tichawa.cis.config.vdcis;
 
 import de.tichawa.cis.config.*;
 import de.tichawa.cis.config.ldstd.LDSTD;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -21,6 +20,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        super.initialize(url, rb);
+
         CIS_DATA.setPhaseCount(2);
         CIS_DATA.setLightColor(CIS.LightColor.RED);
         CIS_DATA.setSelectedResolution(getResolutions().get(0));
@@ -102,18 +103,15 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             speedmminLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
             speedipsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
-        scanWidthChoiceBox.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
-        {
-            int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim());
-
-            if (sw > 1200) {
+        scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue > 1200) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setHeaderText("Selected scan width not available.");
                 alert.show();
                 scanWidthChoiceBox.setValue(oldValue);
                 return;
             }
-            CIS_DATA.setScanWidth(sw);
+            CIS_DATA.setScanWidth(newValue);
         });
         selectedLineRateSlider.valueProperty().addListener((observable, oldValue, newValue) ->
         {

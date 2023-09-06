@@ -20,6 +20,7 @@ import static de.tichawa.cis.config.model.Tables.*;
 
 /**
  * Base class for all contact image sensors (CIS) and therefore for the model.
+ * Implements the observer pattern via {@link PropertyChangeSupport}. {@link PropertyChangeListener}s can register via {@link #addObserver(PropertyChangeListener)}.
  */
 public abstract class CIS {
 
@@ -44,7 +45,7 @@ public abstract class CIS {
      */
     private static final Map<String, AdcBoardRecord> ADC_BOARDS;
     /**
-     * Map of actual resolutions to the maximum rate in half mode. Resolutions that don't support half mode are not in this map.
+     * Mapping of actual resolutions to the maximum rate in half mode. Resolutions that don't support half mode are not in this map.
      */
     private static final HashMap<Integer, Integer> MAX_RATE_FOR_HALF_MODE;
     /**

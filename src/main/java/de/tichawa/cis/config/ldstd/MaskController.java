@@ -12,6 +12,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        super.initialize(url, rb);
+
         CIS_DATA.setPhaseCount(1);
         CIS_DATA.setDiffuseLightSources(1);
         CIS_DATA.setCoaxLightSources(0);
@@ -43,10 +45,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             }
             externalLightColorChoiceBox.setDisable(newValue.equals("RGB") || externalLightSourceChoiceBox.getSelectionModel().getSelectedIndex() == 0);
         });
-        scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
-                CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim())));
-        internalLightSourceChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
-        {
+        scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setScanWidth(newValue));
+        internalLightSourceChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (CIS_DATA.getPhaseCount() == 3 && newValue.equals("None") && LDSTD_DATA.getLedLines() == 0) {
                 internalLightSourceChoiceBox.getSelectionModel().select(oldValue);
                 return;

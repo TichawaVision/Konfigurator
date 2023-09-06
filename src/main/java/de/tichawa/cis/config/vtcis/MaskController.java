@@ -33,6 +33,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        super.initialize(url, rb);
+
         CIS_DATA.setPhaseCount(1);
         CIS_DATA.setDiffuseLightSources(1);
         CIS_DATA.setCoaxLightSources(0);
@@ -119,26 +121,23 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             speedmminLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
             speedipsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
-        scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
-        {
-            int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(' ')).trim());
-
-            if ((sw > 1300 && CIS_DATA.getPhaseCount() == 3) || (sw > 1040 && CIS_DATA.getPhaseCount() == 4) ||
-                    (sw > 780 && CIS_DATA.getPhaseCount() == 5) || (sw > 520 && CIS_DATA.getPhaseCount() == 6)) {
+        scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if ((newValue > 1300 && CIS_DATA.getPhaseCount() == 3) || (newValue > 1040 && CIS_DATA.getPhaseCount() == 4) ||
+                    (newValue > 780 && CIS_DATA.getPhaseCount() == 5) || (newValue > 520 && CIS_DATA.getPhaseCount() == 6)) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setHeaderText("The selected scan width is not available");
                 alert.show();
                 scanWidthChoiceBox.getSelectionModel().select(oldValue);
                 return;
             }
-            if (sw >= 1300 && internalLightSourceChoiceBox.getSelectionModel().getSelectedItem().contains("Coax")) {
+            if (newValue >= 1300 && internalLightSourceChoiceBox.getSelectionModel().getSelectedItem().contains("Coax")) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setHeaderText("The selected scan width is not available");
                 alert.show();
                 scanWidthChoiceBox.getSelectionModel().select(oldValue);
                 return;
             }
-            CIS_DATA.setScanWidth(sw);
+            CIS_DATA.setScanWidth(newValue);
             LDSTD_DATA.setScanWidth(CIS_DATA.getScanWidth());
         });
         selectedLineRateSlider.valueProperty().addListener((observable, oldValue, newValue) ->

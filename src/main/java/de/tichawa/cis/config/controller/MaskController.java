@@ -8,10 +8,11 @@ import javafx.fxml.*;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.stage.*;
-import javafx.util.Pair;
+import javafx.util.*;
 import lombok.Getter;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
@@ -73,7 +74,7 @@ public abstract class MaskController<C extends CIS> implements Initializable {
      * Choice box for the possible scan widths the user can select
      */
     @FXML
-    protected ChoiceBox<String> scanWidthChoiceBox;
+    protected ChoiceBox<Integer> scanWidthChoiceBox;
     @FXML
     protected Slider selectedLineRateSlider;
     @FXML
@@ -325,6 +326,24 @@ public abstract class MaskController<C extends CIS> implements Initializable {
      */
     private boolean hasExternalLighting() {
         return !(CIS_DATA instanceof LDSTD) && LDSTD_DATA.getLedLines() > 0;
+    }
+
+    /**
+     * Initializes the mask controller by setting a string converter to the scan width choice box (so that "mm" is shown besides the length)
+     */
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        scanWidthChoiceBox.setConverter(new StringConverter<Integer>() {
+            @Override
+            public String toString(Integer object) {
+                return object + " mm";
+            }
+
+            @Override
+            public Integer fromString(String string) {
+                return Integer.parseInt(string.substring(0, string.lastIndexOf(" ")).trim());
+            }
+        });
     }
 
     public abstract List<CIS.Resolution> setupResolutions(); // force subclass to set the resolutions for its CIS

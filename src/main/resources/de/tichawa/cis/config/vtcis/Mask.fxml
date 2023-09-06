@@ -4,8 +4,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.*?>
-<AnchorPane id="AnchorPane" prefHeight="510.0" prefWidth="1030.0" xmlns="http://javafx.com/javafx/8"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.tichawa.cis.config.vtcis.MaskController">
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" id="AnchorPane" prefHeight="510.0" prefWidth="1030.0"
+            xmlns="http://javafx.com/javafx/8" fx:controller="de.tichawa.cis.config.vtcis.MaskController">
     <GridPane alignment="CENTER" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
         <columnConstraints>
@@ -72,12 +72,12 @@
                 <ChoiceBox GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="scanWidthChoiceBox">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="1560 mm"/>
-                            <String fx:value="1300 mm"/>
-                            <String fx:value="1040 mm"/>
-                            <String fx:value="780 mm"/>
-                            <String fx:value="520 mm"/>
-                            <String fx:value="260 mm"/>
+                            <Integer fx:value="1560"/>
+                            <Integer fx:value="1300"/>
+                            <Integer fx:value="1040"/>
+                            <Integer fx:value="780"/>
+                            <Integer fx:value="520"/>
+                            <Integer fx:value="260"/>
                         </FXCollections>
                     </items>
                 </ChoiceBox>

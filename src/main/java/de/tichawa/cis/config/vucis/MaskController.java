@@ -126,6 +126,30 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         return new de.tichawa.cis.config.vucis.DataSheetController();
     }
 
+    /**
+     * initializes all choice boxes and checkboxes
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        super.initialize(url, rb);
+
+        // initialize color and light sources section (upper box)
+        initColorAndLightSources();
+        // initialize optics (second box)
+        initOptics();
+        // initialize resolution and scan width section (left box)
+        initResolutionAndScanWidth();
+        // initialize pixel and defect size section
+        initPixelAndDefectSize();
+        // initialize line rate and transport speed
+        initLineRateAndTransportSpeed();
+
+        // initialize other stuff
+        initInterface();
+        updateCameraLinkInfo();
+        updateTiViKey();
+    }
+
     @Override
     public List<CIS.Resolution> setupResolutions() {
         return VUCIS.getResolutions();
@@ -147,15 +171,15 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             brightFieldLeftChoiceBox.getItems().clear();
             if (hasCoax) { //coax selected
                 //set items of scan width choice box to ones without coax
-                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_COAX);
                 //set items of left bf to ones without sfs (no coax and left sided sfs)
                 brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITHOUT_SFS);
             } else { // coax deselected
                 //set items of scan width choice box to ones with coax
                 if (CIS_DATA.isShapeFromShading()) {
-                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS);
                 } else {
-                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                    scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX);
                 }
                 //set items of left bf to ones with sfs
                 brightFieldLeftChoiceBox.getItems().addAll(LIGHT_COLOR_OPTIONS_WITH_SFS);
@@ -164,7 +188,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             darkFieldLeftChoiceBox.setDisable(hasCoax || CIS_DATA.isCloudyDay());
             //select current values
             selectLightChoiceBox(brightFieldLeftChoiceBox, CIS_DATA.getBrightFieldLeft());
-            scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+            scanWidthChoiceBox.getSelectionModel().select((Integer) CIS_DATA.getScanWidth());
         }
     }
 
@@ -415,36 +439,14 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
         resolutionChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> CIS_DATA.setSelectedResolution(getResolutions().get(resolutionChoiceBox.getSelectionModel().getSelectedIndex())));
         // set items to scan width choice box
         scanWidthChoiceBox.getItems().clear();
-        scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+        scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX);
         // set initial value
-        scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+        scanWidthChoiceBox.getSelectionModel().select((Integer) CIS_DATA.getScanWidth());
         // listener for scan width choice box that sets the new scan width in the model
         scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue != null && newValue != null)
-                CIS_DATA.setScanWidth(Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim()));
+                CIS_DATA.setScanWidth(newValue);
         });
-    }
-
-    /**
-     * initializes all choice boxes and checkboxes
-     */
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        // initialize color and light sources section (upper box)
-        initColorAndLightSources();
-        // initialize optics (second box)
-        initOptics();
-        // initialize resolution and scan width section (left box)
-        initResolutionAndScanWidth();
-        // initialize pixel and defect size section
-        initPixelAndDefectSize();
-        // initialize line rate and transport speed
-        initLineRateAndTransportSpeed();
-
-        // initialize other stuff
-        initInterface();
-        updateCameraLinkInfo();
-        updateTiViKey();
     }
 
     /**
@@ -523,7 +525,7 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
                 updateLightFrequencyLimit();
                 break;
             case CIS.PROPERTY_SCAN_WIDTH:
-                scanWidthChoiceBox.getSelectionModel().select(evt.getNewValue() + " mm");
+                scanWidthChoiceBox.getSelectionModel().select((Integer) evt.getNewValue());
                 updateCameraLinkInfo();
                 break;
             // line rate and transport speed
@@ -700,12 +702,12 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             //sfs ->
             scanWidthChoiceBox.getItems().clear();
             if (CIS_DATA.isShapeFromShading()) {
-                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITH_SFS);
             } else {
-                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX.stream().map(o -> o + " mm").collect(Collectors.toList()));
+                scanWidthChoiceBox.getItems().addAll(SCAN_WIDTH_OPTIONS_WITHOUT_COAX);
             }
             // set initial value
-            scanWidthChoiceBox.getSelectionModel().select(CIS_DATA.getScanWidth() + " mm");
+            scanWidthChoiceBox.getSelectionModel().select((Integer) CIS_DATA.getScanWidth());
         }
     }
 

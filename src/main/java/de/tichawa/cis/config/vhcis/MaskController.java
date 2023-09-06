@@ -14,6 +14,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        super.initialize(url, rb);
+
         CIS_DATA.setPhaseCount(1);
         CIS_DATA.setLightColor(CIS.LightColor.RED);
         CIS_DATA.setDiffuseLightSources(1);
@@ -69,11 +71,8 @@ public class MaskController extends de.tichawa.cis.config.controller.MaskControl
             speedmminLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.06, 3) + " m/min");
             speedipsLabel.setText(Util.round(CIS_DATA.getSelectedResolution().getPixelSize() * CIS_DATA.getSelectedLineRate() * 0.03937, 3) + " ips");
         });
-        scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
-        {
-            int sw = Integer.parseInt(newValue.substring(0, newValue.lastIndexOf(" ")).trim());
-
-            CIS_DATA.setScanWidth(sw);
+        scanWidthChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            CIS_DATA.setScanWidth(newValue);
             LDSTD_DATA.setScanWidth(CIS_DATA.getScanWidth());
         });
         selectedLineRateSlider.valueProperty().addListener((observable, oldValue, newValue) ->

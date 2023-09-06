@@ -2,9 +2,17 @@ package de.tichawa.cis.config.bdcis;
 
 import de.tichawa.cis.config.*;
 
-import java.util.List;
+import java.util.*;
 
 public class BDCIS extends CIS {
+    /**
+     * Available resolutions for VUCIS
+     */
+    private static final List<Resolution> resolutions;
+
+    static {
+        resolutions = new LinkedList<>(); //TODO
+    }
 
     public BDCIS() {
         //TODO set initial values to all attributes
@@ -13,6 +21,10 @@ public class BDCIS extends CIS {
     public BDCIS(BDCIS bdcis) {
         super(bdcis);
         //TODO copy all BDCIS attributes
+    }
+
+    public static List<Resolution> getResolutions() {
+        return resolutions;
     }
 
     @Override
