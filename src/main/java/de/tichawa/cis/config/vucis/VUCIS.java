@@ -125,6 +125,155 @@ public class VUCIS extends CisWith5Lights {
         }
     }
 
+    //should return false if code is unknown
+    @Override
+    protected boolean checkSpecificApplicability(String code) {
+        return isValidLCode(code) || isValidCCode(code) || isValidMathExpression(code) || isValidSCode(code);
+        //expand if necessary
+    }
+
+    /**
+     * Returns a copy of this VUCIS
+     */
+    @Override
+    public CIS copy() {
+        return new VUCIS(this);
+    }
+
+    /**
+     * returns the base case length: scan width or next bigger size if there is shape from shading on bright field
+     */
+    @Override
+    protected int getBaseCaseLength() {
+        return getScanWidth() + (hasBrightFieldShapeFromShading() ? BASE_LENGTH : 0);
+    }
+
+    /**
+     * returns the printout for the case: aluminum case with width x height x depth and sealed glass pane
+     */
+    @Override
+    protected String getCasePrintout() {
+        return Util.getString("caseDimensions") + ":\n\t" +
+                Util.getString("width") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + "mm +/-3mm\n\t" +
+                Util.getString("height") + ": ~ 92mm +/-2mm\n\t" +
+                Util.getString("depth") + ": ~ 80mm +/-2mm\n" +
+                Util.getString("aluminumCaseGlassPane") + "\n";
+    }
+
+    /**
+     * returns the case profile string for print out: 92x80mm
+     */
+    @Override
+    protected String getCaseProfile() {
+        return Util.getString("aluminumCaseVUCIS");
+    }
+
+    /**
+     * returns the depth of field for print out.
+     */
+    @Override
+    protected double getDepthOfField() {
+        return lensType.isLongDOF() ? getSelectedResolution().getDepthOfField() * 2 : getSelectedResolution().getDepthOfField();
+    }
+
+    /**
+     * returns the geometry correction string for print out
+     */
+    @Override
+    protected String getGeometryCorrectionString() {
+        return Util.getString("xYCorrection");
+    }
+
+    /**
+     * determines the L value for the current light selection (sum of individual L values).
+     * If the sum is greater than 10, 10 is returned instead since this is the maximum allowed LED channels
+     */
+    @Override
+    public int getLedLines() {
+        int sum = getLights().chars().mapToObj(c -> LightColor.findByCode((char) c))
+                .filter(Optional::isPresent).map(Optional::get)
+                .mapToInt(VUCIS::getLValue).sum();
+        return Math.min(sum, 10); //max 10 allowed
+    }
+
+    @Override
+    public String getLightSources() {
+        return lensType.code;
+    }
+
+    /**
+     * returns the minimum frequency by calculating for each light and taking the minimum of:
+     * 100 * I_p * gamma * n * tau * S_v / (1.5 * m)
+     * <p>
+     * will return the double max value if there is no light
+     */
+    @Override
+    protected double getMinFreq(CISCalculation calculation) {
+        return Collections.min(Arrays.asList(
+                getMinFreqForLight(darkFieldLeft, true, false, calculation),
+                getMinFreqForLight(brightFieldLeft, false, false, calculation),
+                getMinFreqForLight(coaxLight, false, true, calculation),
+                getMinFreqForLight(brightFieldRight, false, false, calculation),
+                getMinFreqForLight(darkFieldRight, true, false, calculation)));
+    }
+
+    /**
+     * returns the scan distance string for print out: 10+-2mm or 23+-3 mm
+     */
+    @Override
+    protected String getScanDistanceString() {
+        return lensType.getWorkingDistanceString() + " +/- " + (lensType.workingDistance / 10 + 1) + "mm";
+    }
+
+    /**
+     * returns a fixed weight string depending on CIS size since calculation is not perfect due to many missing weight values
+     */
+    @Override
+    protected String getWeightString(CISCalculation calculation) {
+        // sfs has next size, otherwise index -1
+        return CisWith5Lights.WEIGHTS[getScanWidth() / BASE_LENGTH - (isShapeFromShading() ? 0 : 1)] + "kg";
+    }
+
+    /**
+     * returns whether the VUCIS has LEDs or not
+     */
+    @Override
+    protected boolean hasLEDs() {
+        return getLedLines() > 0;
+    }
+
+    /**
+     * replaces parts of the mecha factor for VUCIS calculation:
+     * - n(?!X) replaced with number of LEDs in the middle
+     * - C replaced with number of coolings
+     */
+    @Override
+    protected String prepareMechanicsFactor(String factor) {
+        //small n: "LED in middle...", !X: "...that exists" (is not X)
+        return factor.replace("n(?!X)", getNonSfsLEDsInMiddle() + "")
+                .replace("C", getCoolingCount() + "");
+    }
+
+    /**
+     * returns whether a bigger size for the housing is required (that is for shape from shading)
+     *
+     * @return true if a bigger size housing is required i.e. if there is shape from shading or false otherwise
+     */
+    @Override
+    public boolean requiresNextSizeHousing() {
+        return isShapeFromShading();
+    }
+
+    /**
+     * Returns whether this VUCIS uses an MDR camera link connection on the CIS side
+     *
+     * @return false because VUCIS uses SDR
+     */
+    @Override
+    public boolean usesMdrCameraLinkOnCisSide() {
+        return false; // VUCIS uses SDR not MDR
+    }
+
     /**
      * determines the number of lights with the given color on bright field
      */
@@ -190,196 +339,6 @@ public class VUCIS extends CisWith5Lights {
         LensType oldValue = this.lensType;
         this.lensType = lensType;
         observers.firePropertyChange(PROPERTY_LENS_TYPE, oldValue, lensType);
-    }
-
-    /**
-     * generates a set of light colors for this VUCIS in the current configuration
-     *
-     * @return a {@link Set} consisting of a {@link de.tichawa.cis.config.CIS.LightColor} representing each currently set light of this VUCIS
-     */
-    @Override
-    public Set<LightColor> getLightColors() {
-        return getLights().chars()
-                .mapToObj(c -> LightColor.findByCode((char) c))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
-    }
-
-    //should return false if code is unknown
-    @Override
-    protected boolean checkSpecificApplicability(String code) {
-        return isValidLCode(code) || isValidCCode(code) || isValidMathExpression(code) || isValidSCode(code);
-        //expand if necessary
-    }
-
-    /**
-     * Returns a copy of this VUCIS
-     */
-    @Override
-    public CIS copy() {
-        return new VUCIS(this);
-    }
-
-    /**
-     * returns the base case length: scan width or next bigger size if there is shape from shading on bright field
-     */
-    @Override
-    protected int getBaseCaseLength() {
-        return getScanWidth() + (hasBrightFieldShapeFromShading() ? BASE_LENGTH : 0);
-    }
-
-
-    /**
-     * returns the printout for the case: aluminum case with width x height x depth and sealed glass pane
-     */
-    @Override
-    protected String getCasePrintout() {
-        return Util.getString("caseDimensions") + ":\n\t" +
-                Util.getString("width") + ": ~ " + (getBaseCaseLength() + getExtraCaseLength()) + "mm +/-3mm\n\t" +
-                Util.getString("height") + ": ~ 92mm +/-2mm\n\t" +
-                Util.getString("depth") + ": ~ 80mm +/-2mm\n" +
-                Util.getString("aluminumCaseGlassPane") + "\n";
-    }
-
-    /**
-     * returns the case profile string for print out: 92x80mm
-     */
-    @Override
-    protected String getCaseProfile() {
-        return Util.getString("aluminumCaseVUCIS");
-    }
-
-    /**
-     * returns the depth of field for print out.
-     */
-    @Override
-    protected double getDepthOfField() {
-        return lensType.isLongDOF() ? getSelectedResolution().getDepthOfField() * 2 : getSelectedResolution().getDepthOfField();
-    }
-
-
-    /**
-     * returns the geometry correction string for print out
-     */
-    @Override
-    protected String getGeometryCorrectionString() {
-        return Util.getString("xYCorrection");
-    }
-
-    /**
-     * determines the L value for the current light selection (sum of individual L values).
-     * If the sum is greater than 10, 10 is returned instead since this is the maximum allowed LED channels
-     */
-    @Override
-    public int getLedLines() {
-        int sum = getLights().chars().mapToObj(c -> LightColor.findByCode((char) c))
-                .filter(Optional::isPresent).map(Optional::get)
-                .mapToInt(VUCIS::getLValue).sum();
-        return Math.min(sum, 10); //max 10 allowed
-    }
-
-    @Override
-    public String getLightSources() {
-        return lensType.code;
-    }
-
-    /**
-     * returns the minimum frequency by calculating for each light and taking the minimum of:
-     * 100 * I_p * gamma * n * tau * S_v / (1.5 * m)
-     * <p>
-     * will return the double max value if there is no light
-     */
-    @Override
-    protected double getMinFreq(CISCalculation calculation) {
-        return Collections.min(Arrays.asList(
-                getMinFreqForLight(darkFieldLeft, true, false, calculation),
-                getMinFreqForLight(brightFieldLeft, false, false, calculation),
-                getMinFreqForLight(coaxLight, false, true, calculation),
-                getMinFreqForLight(brightFieldRight, false, false, calculation),
-                getMinFreqForLight(darkFieldRight, true, false, calculation)));
-    }
-
-    /**
-     * returns the scan distance string for print out: 10+-2mm or 23+-3 mm
-     */
-    @Override
-    protected String getScanDistanceString() {
-        return lensType.getWorkingDistanceString() + " +/- " + (lensType.workingDistance / 10 + 1) + "mm";
-    }
-
-
-    /**
-     * returns a fixed weight string depending on CIS size since calculation is not perfect due to many missing weight values
-     */
-    @Override
-    protected String getWeightString(CISCalculation calculation) {
-        // sfs has next size, otherwise index -1
-        return CisWith5Lights.WEIGHTS[getScanWidth() / BASE_LENGTH - (isShapeFromShading() ? 0 : 1)] + "kg";
-    }
-
-    /**
-     * returns whether the VUCIS has LEDs or not
-     */
-    @Override
-    protected boolean hasLEDs() {
-        return getLedLines() > 0;
-    }
-
-    /**
-     * replaces parts of the elect factor for VUCIS calculation:
-     * - Light Code with the number of lights (e.g. AM with number of red lights)
-     * - shape from shading light special factors to count all bright / dark field lights
-     */
-    @Override
-    protected String prepareElectronicsFactor(String factor) {
-        if (Arrays.stream(LightColor.values()).map(LightColor::getShortHand).anyMatch(factor::equals)) {
-            return getLights().chars().mapToObj(c -> LightColor.findByCode((char) c)).filter(LightColor.findByShortHand(factor)::equals).count() + "";
-        }
-        switch (factor) {
-            case "RB":
-                return getBrightFieldLightsWithColor(LightColor.RED_SFS) + "";
-            case "WB":
-                return getBrightFieldLightsWithColor(LightColor.WHITE_SFS) + "";
-            case "RD":
-                return getDarkFieldLightsWithColor(LightColor.RED_SFS) + "";
-            case "WD":
-                return getDarkFieldLightsWithColor(LightColor.WHITE_SFS) + "";
-            default:
-                return factor;
-        }
-    }
-
-    /**
-     * replaces parts of the mecha factor for VUCIS calculation:
-     * - n(?!X) replaced with number of LEDs in the middle
-     * - C replaced with number of coolings
-     */
-    @Override
-    protected String prepareMechanicsFactor(String factor) {
-        //small n: "LED in middle...", !X: "...that exists" (is not X)
-        return factor.replace("n(?!X)", getNonSfsLEDsInMiddle() + "")
-                .replace("C", getCoolingCount() + "");
-    }
-
-    /**
-     * returns whether a bigger size for the housing is required (that is for shape from shading)
-     *
-     * @return true if a bigger size housing is required i.e. if there is shape from shading or false otherwise
-     */
-    @Override
-    public boolean requiresNextSizeHousing() {
-        return isShapeFromShading();
-    }
-
-    /**
-     * Returns whether this VUCIS uses an MDR camera link connection on the CIS side
-     *
-     * @return false because VUCIS uses SDR
-     */
-    @Override
-    public boolean usesMdrCameraLinkOnCisSide() {
-        return false; // VUCIS uses SDR not MDR
     }
 
     /**
@@ -546,34 +505,6 @@ public class VUCIS extends CisWith5Lights {
     }
 
     /**
-     * creates the lights code for the current selection by concatenation of single light codes from left dark field, left bright field, coax, right bright field, right dark field.
-     * Special code for cloudy day: 'D' replacing both dark field light codes.
-     * Special code for shape from shading: 'S' in middle if there is no coax light, on left dark field otherwise (coax is left so there can be no left dark field)
-     */
-    @Override
-    public String getLights() {
-        if (isShapeFromShading()) {
-            String key = "";
-            // if no coax -> S in middle
-            if (!hasCoax()) {
-                key += getDarkFieldLeft().getCode();
-                key += getBrightFieldLeft().getCode();
-                key += 'S';
-                key += getBrightFieldRight().getCode();
-                key += getDarkFieldRight().getCode();
-                return key;
-            } // else: (there is coax light) -> (sfs only on right side) -> S on dark field left (no coax and dark field so dark is free)
-            key += 'S';
-            key += getBrightFieldLeft().getCode();
-            key += getCoaxLight().getCode();
-            key += getBrightFieldRight().getCode();
-            key += getDarkFieldRight().getCode();
-            return key;
-        } // else: no shape from shading
-        return super.getLights();
-    }
-
-    /**
      * sets the coax light to the given light color and notifies observers. Also keeps a valid state by
      * - setting the left dark field light to NONE (there can be no coax with left dark field)
      * - setting the left bright field to a non-shape-from-shading color if it isn't already (no coax and left sided shape from shading)
@@ -622,6 +553,56 @@ public class VUCIS extends CisWith5Lights {
     @Override
     protected String getLensTypeCode() {
         return getLensType().getCode();
+    }
+
+    /**
+     * creates the lights code for the current selection by concatenation of single light codes from left dark field, left bright field, coax, right bright field, right dark field.
+     * Special code for cloudy day: 'D' replacing both dark field light codes.
+     * Special code for shape from shading: 'S' in middle if there is no coax light, on left dark field otherwise (coax is left so there can be no left dark field)
+     */
+    @Override
+    public String getLights() {
+        if (isShapeFromShading()) {
+            String key = "";
+            // if no coax -> S in middle
+            if (!hasCoax()) {
+                key += getDarkFieldLeft().getCode();
+                key += getBrightFieldLeft().getCode();
+                key += 'S';
+                key += getBrightFieldRight().getCode();
+                key += getDarkFieldRight().getCode();
+                return key;
+            } // else: (there is coax light) -> (sfs only on right side) -> S on dark field left (no coax and dark field so dark is free)
+            key += 'S';
+            key += getBrightFieldLeft().getCode();
+            key += getCoaxLight().getCode();
+            key += getBrightFieldRight().getCode();
+            key += getDarkFieldRight().getCode();
+            return key;
+        } // else: no shape from shading
+        return super.getLights();
+    }
+
+    /**
+     * replaces parts of the elect factor for VUCIS calculation:
+     * - Light Code with the number of lights (e.g. AM with number of red lights)
+     * - shape from shading light special factors to count all bright / dark field lights
+     */
+    @Override
+    protected String prepareElectronicsMultiplier(String factor) {
+        factor = super.prepareElectronicsMultiplier(factor); // replace light codes with amounts
+        switch (factor) {
+            case "RB":
+                return getBrightFieldLightsWithColor(LightColor.RED_SFS) + "";
+            case "WB":
+                return getBrightFieldLightsWithColor(LightColor.WHITE_SFS) + "";
+            case "RD":
+                return getDarkFieldLightsWithColor(LightColor.RED_SFS) + "";
+            case "WD":
+                return getDarkFieldLightsWithColor(LightColor.WHITE_SFS) + "";
+            default:
+                return factor;
+        }
     }
 
     @Override

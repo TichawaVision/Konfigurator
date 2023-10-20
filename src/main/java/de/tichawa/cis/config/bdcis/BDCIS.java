@@ -86,6 +86,20 @@ public class BDCIS extends CisWith5Lights {
         return CisWith5Lights.WEIGHTS[getScanWidth() / BASE_LENGTH] + "kg";
     }
 
+    /**
+     * Prepares the electronic factor string by replacing
+     * - SN with the number of sensors
+     *
+     * @param factor      the factor string that gets (partly) replaced
+     * @param calculation the CIS calculation that might be needed for replacements in subclasses
+     * @return the factor string after alteration
+     */
+    @Override
+    protected String prepareElectronicsAmountString(String factor, CISCalculation calculation) {
+        return super.prepareElectronicsAmountString(factor, calculation)
+                .replaceAll("SN", getNumberOfSensors() + "");
+    }
+
     @Override
     protected double getGeometryFactor(boolean coax) {
         return 0.4; //TODO
@@ -113,5 +127,13 @@ public class BDCIS extends CisWith5Lights {
     @Override
     protected int getNumOfCPUCLink() {
         return 1; // always 1 cpuc link for BDCIS
+    }
+
+    /**
+     * Calculates the number of sensors in this BDCIS.
+     * Per each 250mm there are 4 sensors for 240dpi, half of that for 120 dpi, quarter for 60dpi, ...
+     */
+    private int getNumberOfSensors() {
+        return (int) Math.ceil(4 * getSelectedResolution().getActualResolution() / 240. * getScanWidth() / BASE_LENGTH);
     }
 }

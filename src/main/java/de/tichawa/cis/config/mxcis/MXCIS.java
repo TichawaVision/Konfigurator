@@ -314,6 +314,24 @@ public class MXCIS extends CIS {
         return key;
     }
 
+    /**
+     * Prepares the electronic factor string by replacing
+     * - L with the number of led lines
+     * - F with the number of FPGAs
+     * - S with the number of boards
+     *
+     * @param factor      the factor string that gets (partly) replaced
+     * @param calculation the CIS calculation that might be needed for replacements in subclasses
+     * @return the factor string after alteration
+     */
+    @Override
+    protected String prepareElectronicsAmountString(String factor, CISCalculation calculation) {
+        return super.prepareElectronicsAmountString(factor, calculation)
+                .replaceAll("L", "" + getLedLines()) // L is replaced by light number
+                .replaceAll("F", "" + calculation.numFPGA) // F is replaced by FPGA number
+                .replaceAll("S", "" + getBoardCount()); // S is replaced by number of boards;
+    }
+
     public Optional<SensorBoardRecord> getSensorBoard(int res) {
         while (!getSensorBoard("SENS_" + res).isPresent()) {
             res *= 2;

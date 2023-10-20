@@ -313,6 +313,95 @@ public abstract class CisWith5Lights extends CIS {
         observers.firePropertyChange(PROPERTY_BRIGHT_FIELD_RIGHT, oldValue, brightFieldRight);
     }
 
+    public LightColor getCoaxLight() {
+        return coaxLight;
+    }
+
+    /**
+     * sets the coax light to the given light color and notifies observers. Also keeps a valid state by
+     * - setting the left dark field light to NONE (there can be no coax with left dark field)
+     * - setting the scan width to the max allowed value for coax if it is bigger
+     * - setting the left cooling to true (coax needs left cooling)
+     * or resets the cooling if coax is deselected and there is no light on the left
+     */
+    public void setCoaxLight(LightColor coaxLight) {
+        if (coaxLight != LightColor.NONE) { // selected coax light
+            // set left dark field to NONE (no coax + left dark field)
+            setDarkFieldLeft(LightColor.NONE);
+            // set scan width to max allowed value if it is bigger
+            if (getScanWidth() > getMaxScanWidthWithCoax())
+                setScanWidth(getMaxScanWidthWithCoax());
+            // set left cooling
+            setCoolingLeft(true);
+        } else if (brightFieldLeft == LightColor.NONE && darkFieldLeft == LightColor.NONE)
+            setCoolingLeft(false); // set no left cooling if not needed
+        //update value and notify observers
+        LightColor oldValue = this.coaxLight;
+        this.coaxLight = coaxLight;
+        observers.firePropertyChange(PROPERTY_COAX, oldValue, coaxLight);
+    }
+
+    public LightColor getDarkFieldLeft() {
+        return darkFieldLeft;
+    }
+
+    /**
+     * sets the left dark field light to the given light color and notifies observers.
+     * Also keeps a valid state by setting the left cooling to true (need cooling if there is a light)
+     * or resets the cooling if there is no light on the left
+     */
+    public void setDarkFieldLeft(LightColor darkFieldLeft) {
+        // set/reset left cooling
+        if (darkFieldLeft != LightColor.NONE)
+            setCoolingLeft(true);
+        else if (coaxLight == LightColor.NONE && brightFieldLeft == LightColor.NONE)
+            setCoolingLeft(false); //set no left cooling if not needed
+        // update value and notify observers
+        LightColor oldValue = this.darkFieldLeft;
+        this.darkFieldLeft = darkFieldLeft;
+        observers.firePropertyChange(PROPERTY_DARK_FIELD_LEFT, oldValue, darkFieldLeft);
+    }
+
+    public LightColor getDarkFieldRight() {
+        return darkFieldRight;
+    }
+
+    /**
+     * sets the right dark field light to the given light color and notifies observers.
+     * Also keeps a valid state by setting the right cooling to true (need cooling if there is a light)
+     * or resets the cooling if there is no light on the right
+     */
+    public void setDarkFieldRight(LightColor darkFieldRight) {
+        // set/reset cooling
+        if (darkFieldRight != LightColor.NONE)
+            setCoolingRight(true);
+        else if (brightFieldRight == LightColor.NONE)
+            setCoolingRight(false); // set no right cooling if not needed
+        // update value and notify observers
+        LightColor oldValue = this.darkFieldRight;
+        this.darkFieldRight = darkFieldRight;
+        observers.firePropertyChange(PROPERTY_DARK_FIELD_RIGHT, oldValue, darkFieldRight);
+    }
+
+    /**
+     * Returns the lens code for the TiVi-key
+     */
+    protected abstract String getLensTypeCode();
+
+    /**
+     * generates a set of light colors for this VUCIS in the current configuration
+     *
+     * @return a {@link Set} consisting of a {@link de.tichawa.cis.config.CIS.LightColor} representing each currently set light of this VUCIS
+     */
+    @Override
+    public Set<LightColor> getLightColors() {
+        return getLights().chars()
+                .mapToObj(c -> LightColor.findByCode((char) c))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
+    }
+
     /**
      * calculates the camera link configuration.
      * Determines the maximum number of pixels per CPUCLink and calculates a lval that is dividable by 16 (some pixels are lost in the process)
@@ -543,6 +632,19 @@ public abstract class CisWith5Lights extends CIS {
     }
 
     /**
+     * Replaces parts of the elect factor:
+     * - Light Code with the number of lights (e.g. AM with number of red lights)
+     */
+    @Override
+    protected String prepareElectronicsMultiplier(String factor) {
+        System.out.println("preparing multiplier: " + factor);
+        if (Arrays.stream(LightColor.values()).map(LightColor::getShortHand).anyMatch(factor::equals)) {
+            return getLights().chars().mapToObj(c -> LightColor.findByCode((char) c)).filter(LightColor.findByShortHand(factor)::equals).count() + "";
+        }
+        return factor;
+    }
+
+    /**
      * Sets the given phase count and updates the transport speed accordingly
      */
     @Override
@@ -594,81 +696,6 @@ public abstract class CisWith5Lights extends CIS {
         this.mod = mod;
         observers.firePropertyChange(PROPERTY_MOD, oldValue, mod);
     }
-
-    public LightColor getCoaxLight() {
-        return coaxLight;
-    }
-
-    /**
-     * sets the coax light to the given light color and notifies observers. Also keeps a valid state by
-     * - setting the left dark field light to NONE (there can be no coax with left dark field)
-     * - setting the scan width to the max allowed value for coax if it is bigger
-     * - setting the left cooling to true (coax needs left cooling)
-     * or resets the cooling if coax is deselected and there is no light on the left
-     */
-    public void setCoaxLight(LightColor coaxLight) {
-        if (coaxLight != LightColor.NONE) { // selected coax light
-            // set left dark field to NONE (no coax + left dark field)
-            setDarkFieldLeft(LightColor.NONE);
-            // set scan width to max allowed value if it is bigger
-            if (getScanWidth() > getMaxScanWidthWithCoax())
-                setScanWidth(getMaxScanWidthWithCoax());
-            // set left cooling
-            setCoolingLeft(true);
-        } else if (brightFieldLeft == LightColor.NONE && darkFieldLeft == LightColor.NONE)
-            setCoolingLeft(false); // set no left cooling if not needed
-        //update value and notify observers
-        LightColor oldValue = this.coaxLight;
-        this.coaxLight = coaxLight;
-        observers.firePropertyChange(PROPERTY_COAX, oldValue, coaxLight);
-    }
-
-    public LightColor getDarkFieldLeft() {
-        return darkFieldLeft;
-    }
-
-    /**
-     * sets the left dark field light to the given light color and notifies observers.
-     * Also keeps a valid state by setting the left cooling to true (need cooling if there is a light)
-     * or resets the cooling if there is no light on the left
-     */
-    public void setDarkFieldLeft(LightColor darkFieldLeft) {
-        // set/reset left cooling
-        if (darkFieldLeft != LightColor.NONE)
-            setCoolingLeft(true);
-        else if (coaxLight == LightColor.NONE && brightFieldLeft == LightColor.NONE)
-            setCoolingLeft(false); //set no left cooling if not needed
-        // update value and notify observers
-        LightColor oldValue = this.darkFieldLeft;
-        this.darkFieldLeft = darkFieldLeft;
-        observers.firePropertyChange(PROPERTY_DARK_FIELD_LEFT, oldValue, darkFieldLeft);
-    }
-
-    public LightColor getDarkFieldRight() {
-        return darkFieldRight;
-    }
-
-    /**
-     * sets the right dark field light to the given light color and notifies observers.
-     * Also keeps a valid state by setting the right cooling to true (need cooling if there is a light)
-     * or resets the cooling if there is no light on the right
-     */
-    public void setDarkFieldRight(LightColor darkFieldRight) {
-        // set/reset cooling
-        if (darkFieldRight != LightColor.NONE)
-            setCoolingRight(true);
-        else if (brightFieldRight == LightColor.NONE)
-            setCoolingRight(false); // set no right cooling if not needed
-        // update value and notify observers
-        LightColor oldValue = this.darkFieldRight;
-        this.darkFieldRight = darkFieldRight;
-        observers.firePropertyChange(PROPERTY_DARK_FIELD_RIGHT, oldValue, darkFieldRight);
-    }
-
-    /**
-     * Returns the lens code for the TiVi-key
-     */
-    protected abstract String getLensTypeCode();
 
     /**
      * Returns the maximum possible scan width with coax lighting

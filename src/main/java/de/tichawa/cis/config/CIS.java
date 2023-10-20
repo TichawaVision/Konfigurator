@@ -216,14 +216,9 @@ public abstract class CIS {
                         // for each applicable record: add price
                         .forEach(electronicRecord -> {
                             // calculate needed amount
-                            int amount = (int) (getElectronicsFactor(electronicRecord.getMultiplier()) *
+                            int amount = (int) (getElectronicsMultiplier(electronicRecord.getMultiplier()) *
                                     // replace codes with numbers and evaluate factor
-                                    MathEval.evaluate(electronicRecord.getAmount()
-                                            .replace(" ", "") // don't need empty spaces
-                                            .replace("L", "" + getLedLines()) // L is replaced by light number
-                                            .replace("F", "" + calculation.numFPGA) // F is replaced by FPGA number
-                                            .replace("S", "" + getBoardCount()) // S is replaced by number of boards
-                                            .replace("N", "" + getScanWidth()))); // N is replaced by scan width
+                                    MathEval.evaluate(prepareElectronicsAmountString(electronicRecord.getAmount(), calculation)));
 
                             // add to prices
                             calculateAndAddSinglePrice(electronicRecord.getArtNo(), amount, calculation.electronicConfig, calculation.electronicSums, priceRecords);
@@ -689,8 +684,8 @@ public abstract class CIS {
      * @param factor the factor String that might contain variables
      * @return the calculated int value corresponding to the given String. If there is a condition, the return value is 1 if the condition is met or -1 otherwise
      */
-    private int getElectronicsFactor(String factor) {
-        factor = prepareElectronicsFactor(factor); // do CIS specific calculations
+    private int getElectronicsMultiplier(String factor) {
+        factor = prepareElectronicsMultiplier(factor); // do CIS specific calculations
         if (Util.isInteger(factor)) {
             // just a number -> convert to int
             return Integer.parseInt(factor);
@@ -1116,7 +1111,6 @@ public abstract class CIS {
                     break;
             } //end switch
         } // end else
-
         proceed = invert ^ proceed;
         return proceed;
     }
@@ -1155,10 +1149,23 @@ public abstract class CIS {
     }
 
     /**
+     * Prepares the electronic amount factor string so that it can be evaluated by {@link MathEval#evaluate(String)} afterwards.
+     * This base implementation removes whitespaces.
+     * Subclasses can further alter the factor string
+     *
+     * @param factor      the factor string that gets (partly) replaced
+     * @param calculation the CIS calculation that might be needed for replacements in subclasses
+     * @return the factor string after alterations
+     */
+    protected String prepareElectronicsAmountString(String factor, CISCalculation calculation) {
+        return factor.replaceAll("\\s", ""); // remove all whitespace
+    }
+
+    /**
      * Method for CIS specific Elect calculations. To be overwritten by subclasses if specific calculations are required.
      * Default implementation returns the given String unchanged.
      */
-    protected String prepareElectronicsFactor(String factor) {
+    protected String prepareElectronicsMultiplier(String factor) {
         return factor;
     }
 
