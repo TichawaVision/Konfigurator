@@ -313,7 +313,7 @@ public class MaskController extends MaskControllerCisWith5Lights<VUCIS> {
         } //else 10 or more
         int ledLines = CIS_DATA.getLights().chars().mapToObj(c -> CIS.LightColor.findByCode((char) c))
                 .filter(Optional::isPresent).map(Optional::get)
-                .mapToInt(VUCIS::getLValue).sum();
+                .mapToInt(CisWith5Lights::getLValue).sum();
         if (ledLines == 10) { // might be actually 10 and 10 is fine
             lightInfoLabel.setText("");
             return;
@@ -321,11 +321,11 @@ public class MaskController extends MaskControllerCisWith5Lights<VUCIS> {
         StringBuilder displayText = new StringBuilder("Too many LED channels. ");
         //might be able to combine bright fields
         if (CIS_DATA.getBrightFieldLeft() == CIS_DATA.getBrightFieldRight() && CIS_DATA.getBrightFieldLeft() != CIS.LightColor.NONE
-                && ledLines - VUCIS.getLValue(CIS_DATA.getBrightFieldLeft()) <= 10)
+                && ledLines - getLValue(CIS_DATA.getBrightFieldLeft()) <= 10)
             displayText.append("\tBright Field channels from both sides might be combined.");
         //might be able to combine dark fields
         if (CIS_DATA.getDarkFieldLeft() == CIS_DATA.getDarkFieldRight() && CIS_DATA.getDarkFieldLeft() != CIS.LightColor.NONE
-                && ledLines - VUCIS.getLValue(CIS_DATA.getDarkFieldLeft()) <= 10)
+                && ledLines - getLValue(CIS_DATA.getDarkFieldLeft()) <= 10)
             displayText.append("\tDark Field channels from both sides might be combined.");
         //might be able to combine all
         //TODO check condition on when we can combine all 88XXX ? 88X88 ? 88XAA ? ...

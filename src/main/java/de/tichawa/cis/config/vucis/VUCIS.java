@@ -51,25 +51,6 @@ public class VUCIS extends CisWith5Lights {
     }
 
     /**
-     * determine L value for each light: RGB = 3, IRUV = 2, Rebz8 = 8, other = 1
-     */
-    public static int getLValue(LightColor lightColor) {
-        switch (lightColor) {
-            case NONE:
-                return 0;
-            case IRUV:
-                return 2;
-            case RGB:
-            case RGB_S:
-                return 3;
-            case RGB8:
-                return 8;
-            default:
-                return 1;
-        }
-    }
-
-    /**
      * returns the smaller distance lens (TC54 or TC54L) for the given lens type.
      */
     private static LensType getLowDistanceLens(LensType lensType) {
@@ -125,13 +106,6 @@ public class VUCIS extends CisWith5Lights {
         }
     }
 
-    //should return false if code is unknown
-    @Override
-    protected boolean checkSpecificApplicability(String code) {
-        return isValidLCode(code) || isValidCCode(code) || isValidMathExpression(code) || isValidSCode(code);
-        //expand if necessary
-    }
-
     /**
      * Returns a copy of this VUCIS
      */
@@ -184,18 +158,6 @@ public class VUCIS extends CisWith5Lights {
         return Util.getString("xYCorrection");
     }
 
-    /**
-     * determines the L value for the current light selection (sum of individual L values).
-     * If the sum is greater than 10, 10 is returned instead since this is the maximum allowed LED channels
-     */
-    @Override
-    public int getLedLines() {
-        int sum = getLights().chars().mapToObj(c -> LightColor.findByCode((char) c))
-                .filter(Optional::isPresent).map(Optional::get)
-                .mapToInt(VUCIS::getLValue).sum();
-        return Math.min(sum, 10); //max 10 allowed
-    }
-
     @Override
     public String getLightSources() {
         return lensType.code;
@@ -243,18 +205,6 @@ public class VUCIS extends CisWith5Lights {
     }
 
     /**
-     * replaces parts of the mecha factor for VUCIS calculation:
-     * - n(?!X) replaced with number of LEDs in the middle
-     * - C replaced with number of coolings
-     */
-    @Override
-    protected String prepareMechanicsFactor(String factor) {
-        //small n: "LED in middle...", !X: "...that exists" (is not X)
-        return factor.replace("n(?!X)", getNonSfsLEDsInMiddle() + "")
-                .replace("C", getCoolingCount() + "");
-    }
-
-    /**
      * returns whether a bigger size for the housing is required (that is for shape from shading)
      *
      * @return true if a bigger size housing is required i.e. if there is shape from shading or false otherwise
@@ -280,13 +230,6 @@ public class VUCIS extends CisWith5Lights {
     private int getBrightFieldLightsWithColor(LightColor lightColor) {
         return (getLights().charAt(1) == lightColor.getCode() ? 1 : 0) +
                 (getLights().charAt(3) == lightColor.getCode() ? 1 : 0);
-    }
-
-    /**
-     * calculates the number of coolings (one left and one right if it is selected)
-     */
-    public int getCoolingCount() {
-        return (coolingLeft ? 1 : 0) + (coolingRight ? 1 : 0);
     }
 
     /**
@@ -406,45 +349,6 @@ public class VUCIS extends CisWith5Lights {
     }
 
     /**
-     * checks whether the given code matches the current cooling selection
-     */
-    private boolean isValidCCode(String code) {
-        switch (code) {
-            case "C":
-                return getCoolingCount() > 0;
-            case "C_L":
-                return hasCoolingLeft();
-            case "C_R":
-                return hasCoolingRight();
-            default:
-                return false;
-        }
-    }
-
-    /**
-     * checks whether the given code matches the current led selection
-     */
-    private boolean isValidLCode(String code) {
-        if (code.charAt(0) != 'L')
-            return false;
-        try {
-            switch (code.charAt(1)) {
-                case '>':
-                    return getLedLines() > Integer.parseInt(code.split(">")[1]);
-                case '<':
-                    return getLedLines() < Integer.parseInt(code.split("<")[1]);
-                case '=': // -> '=='
-                    return getLedLines() == Integer.parseInt(code.split("==")[1]);
-                default: // unknown code
-                    System.err.println("unknown L clause: " + code);
-                    return false;
-            }
-        } catch (NumberFormatException e) { //not a number behind the math operator
-            return false;
-        }
-    }
-
-    /**
      * checks whether the given math code matches the current selection.
      * currently only checks for <
      */
@@ -556,6 +460,21 @@ public class VUCIS extends CisWith5Lights {
     }
 
     /**
+     * Checks whether the given code matches for this VUCIS.
+     *
+     * @param code the code to check
+     * @return true if the code could already be matched by a VUCIS parent class or
+     * if the code is a valid math expression {@link #isValidMathExpression(String)} or
+     * if the code is a valid S code {@link #isValidSCode(String)} or
+     * false otherwise
+     */
+    @Override
+    protected boolean checkSpecificApplicability(String code) {    //should return false if code is unknown
+        return super.checkSpecificApplicability(code) || isValidMathExpression(code) || isValidSCode(code);
+        //expand if necessary
+    }
+
+    /**
      * creates the lights code for the current selection by concatenation of single light codes from left dark field, left bright field, coax, right bright field, right dark field.
      * Special code for cloudy day: 'D' replacing both dark field light codes.
      * Special code for shape from shading: 'S' in middle if there is no coax light, on left dark field otherwise (coax is left so there can be no left dark field)
@@ -605,6 +524,17 @@ public class VUCIS extends CisWith5Lights {
         }
     }
 
+    /**
+     * replaces parts of the mecha factor for VUCIS calculation:
+     * - n(?!X) replaced with number of LEDs in the middle
+     * - C replaced with number of coolings
+     */
+    @Override
+    protected String prepareMechanicsFactor(String factor) {
+        //small n: "LED in middle...", !X: "...that exists" (is not X)
+        return super.prepareMechanicsFactor(factor).replace("n(?!X)", getNonSfsLEDsInMiddle() + "");
+    }
+
     @Override
     protected int getMaxScanWidthWithCoax() {
         return MAX_SCAN_WIDTH_WITH_COAX;
@@ -641,6 +571,9 @@ public class VUCIS extends CisWith5Lights {
         updateScanWidth();
     }
 
+    /**
+     * Sets the scan width to the maximum allowed scan width for shape from shading if necessary
+     */
     private void updateScanWidth() {
         if (isShapeFromShading() && getScanWidth() > MAX_SCAN_WIDTH_WITH_SFS)
             setScanWidth(MAX_SCAN_WIDTH_WITH_SFS);

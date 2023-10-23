@@ -1,6 +1,5 @@
 package de.tichawa.cis.config;
 
-import de.tichawa.cis.config.ldstd.LDSTD;
 import de.tichawa.cis.config.model.tables.records.*;
 import de.tichawa.cis.config.mxcis.MXCIS;
 import de.tichawa.cis.config.vdcis.VDCIS;
@@ -24,6 +23,9 @@ import static de.tichawa.cis.config.model.Tables.*;
  */
 public abstract class CIS {
 
+    /**
+     * The base (scan) length of a CIS
+     */
     public static final int BASE_LENGTH = 260;
     public static final String PRINTOUT_WARNING = "!!WARNING: ";
 
@@ -147,6 +149,86 @@ public abstract class CIS {
         this.selectedLineRate = cis.selectedLineRate;
         this.selectedResolution = cis.selectedResolution; //resolutions don't change so we can copy reference
         this.transportSpeed = cis.transportSpeed;
+    }
+
+    /**
+     * Creates the electronic output part of the calculation
+     *
+     * @param electronicComponents a map that consists of price records of all electronic components with their required amount
+     * @param electronicSums       an array of the electronic totals at the following indices:
+     *                             0 - price total
+     *                             1 - time total
+     *                             2 - power total
+     *                             3 - weight total
+     * @return the electronic calculation as a string represented as a table with lines separated by the newline character and items separated by the tab character
+     */
+    private static String createElectronicCalculationString(Map<PriceRecord, Integer> electronicComponents, Double[] electronicSums) {
+        StringBuilder electronicOutput = new StringBuilder(Util.getString("electronics")).append(":").append("\n\n");
+
+        // "table" head
+        electronicOutput.append(Util.getString("component")).append("\t")
+                .append(Util.getString("itemNumber")).append("\t")
+                .append(Util.getString("amount")).append("\t")
+                .append(Util.getString("priceEur")).append("\t")
+                .append(Util.getString("weightKg")).append("\t")
+                .append(Util.getString("timeH")).append("\t")
+                .append(Util.getString("powerA")).append("\n");
+
+        // "table" content
+        electronicComponents.forEach((priceRecord, amount) -> electronicOutput.append(priceRecord.getFerixKey()).append("\t") // component
+                .append(String.format("%05d", priceRecord.getArtNo())).append("\t")  //item number
+                .append(amount).append("\t") // amount
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice())).append("\t") // price
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight())).append("\t") // weight
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getAssemblyTime())).append("\t") // time
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPowerConsumption())).append("\n")); //power
+
+        // "table" summary (totals)
+        electronicOutput.append("\n\t\n").append(Util.getString("totals")).append("\t") // component
+                .append(" \t") // item number
+                .append("0\t") // amount
+                .append(String.format(Util.getLocale(), "%.2f", electronicSums[0])).append("\t") // price
+                .append(String.format(Util.getLocale(), "%.2f", electronicSums[3])).append("\t") // weight
+                .append(String.format(Util.getLocale(), "%.2f", electronicSums[1])).append("\t") // time
+                .append(String.format(Util.getLocale(), "%.2f", electronicSums[2])).append("\n"); // power
+
+        return electronicOutput.toString();
+    }
+
+    /**
+     * Creates the mechanic output part of the given calculation
+     *
+     * @param mechanicComponents a map that consists of price records of all mechanic components with their required amount
+     * @param mechanicSums       an array of the mechanic totals at the following indices:
+     *                           0 - price total
+     *                           3 - weight total
+     * @return the mechanic calculation as a string represented as a table with lines separated by the newline character and items separated by the tab character
+     */
+    private static String createMechanicCalculationString(Map<PriceRecord, Integer> mechanicComponents, Double[] mechanicSums) {
+        StringBuilder mechanicOutput = new StringBuilder(Util.getString("mechanics")).append(":").append("\n\n");
+
+        // "table" head
+        mechanicOutput.append(Util.getString("component")).append("\t")
+                .append(Util.getString("itemNumber")).append("\t")
+                .append(Util.getString("amount")).append("\t")
+                .append(Util.getString("priceEur")).append("\t")
+                .append(Util.getString("weightKg")).append("\n");
+
+        // "table" content
+        mechanicComponents.forEach((priceRecord, amount) -> mechanicOutput.append(priceRecord.getFerixKey()).append("\t") // component
+                .append(String.format("%05d", priceRecord.getArtNo())).append("\t") // item number
+                .append(amount).append("\t") // amount
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice())).append("\t") // price
+                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight())).append("\n")); // weight
+
+        // "table" summary (totals)
+        mechanicOutput.append("\n\t\n").append(Util.getString("totals")).append("\t") // component
+                .append(" \t") // item number
+                .append("0\t") // amount
+                .append(String.format(Util.getLocale(), "%.2f", mechanicSums[0])).append("\t") // price
+                .append(String.format(Util.getLocale(), "%.2f", mechanicSums[3])).append("\n"); // weight
+
+        return mechanicOutput.toString();
     }
 
     /**
@@ -293,6 +375,10 @@ public abstract class CIS {
         }
     }
 
+    protected double calculateExtraSurcharge(Map<String, Double> calcMap) {
+        return calcMap.get(getDpiCode()) / 100.0;
+    }
+
     /**
      * Extracts the needed power from the given calculation
      *
@@ -331,178 +417,102 @@ public abstract class CIS {
      */
     public abstract CIS copy();
 
-    public String createCalculation() {
-        CISCalculation calculation = calculate();
-
-        String printout = getTiViKey() + "\n\t\n";
-        StringBuilder electOutput = new StringBuilder(Util.getString("electronics")).append(":").append("\n\n");
-        StringBuilder mechaOutput = new StringBuilder(Util.getString("mechanics")).append(":").append("\n\n");
-        StringBuilder totalOutput = new StringBuilder(Util.getString("totals")).append(":").append("\n\n");
-
-        electOutput.append(Util.getString("component")).append("\t")
-                .append(Util.getString("itemNumber")).append("\t")
-                .append(Util.getString("amount")).append("\t")
-                .append(Util.getString("priceEur")).append("\t")
-                .append(Util.getString("weightKg")).append("\t")
-                .append(Util.getString("timeH")).append("\t")
-                .append(Util.getString("powerA")).append("\n");
-
-        mechaOutput.append(Util.getString("component")).append("\t")
-                .append(Util.getString("itemNumber")).append("\t")
-                .append(Util.getString("amount")).append("\t")
-                .append(Util.getString("priceEur")).append("\t")
-                .append(Util.getString("weightKg")).append("\n");
-
-        calculation.electronicConfig.forEach((priceRecord, amount) -> electOutput.append(priceRecord.getFerixKey()).append("\t")
-                .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
-                .append(amount).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice())).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight())).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getAssemblyTime())).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPowerConsumption())).append("\n"));
-
-        electOutput.append("\n\t\n").append(Util.getString("totals")).append("\t")
-                .append(" \t")
-                .append("0\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[0])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[3])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[1])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[2])).append("\n");
-
-        calculation.mechanicConfig.forEach((priceRecord, amount) -> mechaOutput.append(priceRecord.getFerixKey()).append("\t")
-                .append(String.format("%05d", priceRecord.getArtNo())).append("\t")
-                .append(amount).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getPrice())).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", priceRecord.getWeight())).append("\n"));
-
-        mechaOutput.append("\n\t\n").append(Util.getString("totals")).append("\t")
-                .append(" \t")
-                .append("0\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.mechanicSums[0])).append("\t")
-                .append(String.format(Util.getLocale(), "%.2f", calculation.mechanicSums[3])).append("\n");
-
+    /**
+     * Creates a calculation in string format for this CIS in its current state.
+     *
+     * @return a string representing "tables" with table rows separated by newlines and items separated by tabs.
+     * the first "table" is the electronics overview, followed by the mechanics overview, followed by the total summary
+     */
+    public String createCalculationString() {
         try {
+            CISCalculation calculation = calculate();
+
+            // read data from table "config"
             Map<String, Double> calcMap = Util.getDatabase().map(Stream::of).orElse(Stream.empty())
                     .flatMap(context -> context.selectFrom(CONFIG)
                             .where(CONFIG.CIS_TYPE.eq(getClass().getSimpleName())).stream())
                     .collect(Collectors.toMap(ConfigRecord::getKey, configRecord -> Double.parseDouble(configRecord.getValue())));
 
-            totalOutput.append(Util.getString("calcFor10")).append("\t \t \t \t ").append("\n");
-            totalOutput.append(Util.getString("electronics")).append(":\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[0])).append("\t \n");
+            // calculate total prices
+            // - electronic sum
             calculation.totalPrices[2] = calculation.electronicSums[0];
-            totalOutput.append(Util.getString("electronicsOverhead")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
+            // - add electronic extra factor
             calculation.totalPrices[2] += calculation.electronicSums[0] * (calcMap.get("A_ELEKTRONIK") / 100);
-            totalOutput.append(Util.getString("electronicsTesting")).append(":\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
+            // - add electronic time
             calculation.totalPrices[2] += calculation.electronicSums[1] * calcMap.get("STUNDENSATZ");
+            // - add gigE extra
             if (this.isGigEInterface()) {
-                totalOutput.append(Util.getString("gigEOverhead")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
-                        .append(String.format(Util.getLocale(), "%.2f", calculation.electronicSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
                 calculation.totalPrices[2] += calculation.electronicSums[0] * (calcMap.get("Z_GIGE") / 100);
             }
-            totalOutput.append(Util.getString("mechanics")).append(":\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.mechanicSums[0])).append("\t \n");
+            // - add mechanic sum
             calculation.totalPrices[2] += calculation.mechanicSums[0];
-            totalOutput.append(Util.getString("mechanicsOverhead")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
-                    .append(String.format(Util.getLocale(), "%.2f", calculation.mechanicSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
+            // - add mechanic extra factor
             calculation.totalPrices[2] += calculation.mechanicSums[0] * (calcMap.get("A_MECHANIK") / 100);
-            totalOutput.append(Util.getString("assembly")).append(":\t \t ")
-                    .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()).append(" h\t")
-                    .append(String.format(Util.getLocale(), "%.2f", (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ"))).append("\t \n");
+            // - add mechanic time
             calculation.totalPrices[2] += (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ");
 
-            int addition = 0;
-            double surcharge = 0.0;
-
+            // calculate base prices based on number of pieces
             calculation.totalPrices[0] = calculation.totalPrices[2] * calcMap.get("F_1") / 100;
             calculation.totalPrices[1] = calculation.totalPrices[2] * calcMap.get("F_5") / 100;
             calculation.totalPrices[2] = calculation.totalPrices[2] * calcMap.get("F_10") / 100;
             calculation.totalPrices[3] = calculation.totalPrices[2] * calcMap.get("F_25") / 100;
-            totalOutput.append(" \t(1 ").append(Util.getString("pc")).append(")\t")
-                    .append("(5 ").append(Util.getString("pcs")).append(")\t")
-                    .append("(10 ").append(Util.getString("pcs")).append(")\t")
-                    .append("(25 ").append(Util.getString("pcs")).append(")\n");
+            Double[] basePrices = new Double[4];
+            System.arraycopy(calculation.totalPrices, 0, basePrices, 0, basePrices.length);
 
-            String format = "%.2f";
-            double value = calcMap.get("Z_TRANSPORT") / 100;
-            totalOutput.append(Util.getString("price")).append(":\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[0])).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[1])).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[2])).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[3])).append("\n");
-            totalOutput.append(Util.getString("transportSurcharge")).append(" (").append(value).append("%):\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[0] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[1] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[2] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[3] * value)).append("\n");
-            surcharge += value;
-
-            if (this instanceof MXCIS) {
-                String cat = getTiViKey().split("_")[4];
-                value = calcMap.get("Z_" + cat) / 100;
-                totalOutput.append(Util.getString("surcharge")).append(" ").append(cat).append(" (").append(calcMap.get("Z_" + cat)).append("%):\t")
-                        .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[0] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[1] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[2] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), "%.2f", calculation.totalPrices[3] * value)).append("\n");
-                surcharge += value;
-            } else if (!(this instanceof LDSTD)) {
-                value = calcMap.get(getDpiCode()) / 100.0;
-                totalOutput.append(Util.getString("switchableDpiSurcharge")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
-                        .append(String.format(Util.getLocale(), format, calculation.totalPrices[0] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), format, calculation.totalPrices[1] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), format, calculation.totalPrices[2] * value)).append("\t")
-                        .append(String.format(Util.getLocale(), format, calculation.totalPrices[3] * value)).append("\n");
-                surcharge += value;
-            }
-
-            format = "%.2f";
-            value = calcMap.get("LIZENZ");
-            totalOutput.append(Util.getString("licence")).append(":\t")
-                    .append(String.format(Util.getLocale(), format, value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, value)).append("\n");
-            addition += value;
-
-            format = "%.2f";
-            value = calcMap.get("Z_DISCONT") / 100;
-            totalOutput.append(Util.getString("discountSurcharge")).append(" (").append(value).append("%):\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[0] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[1] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[2] * value)).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[3] * value)).append("\n");
-            surcharge += value;
-
+            // calculate total surcharge factor
+            double transportFactor = calcMap.get("Z_TRANSPORT") / 100;
+            double extraSurcharge = calculateExtraSurcharge(calcMap);
+            double discountFactor = calcMap.get("Z_DISCONT") / 100;
+            double surcharge = transportFactor + discountFactor + extraSurcharge;
+            // calculate new prices (applying surcharge factor)
             calculation.totalPrices[0] *= 1 + surcharge;
             calculation.totalPrices[1] *= 1 + surcharge;
             calculation.totalPrices[2] *= 1 + surcharge;
             calculation.totalPrices[3] *= 1 + surcharge;
 
-            calculation.totalPrices[0] += addition;
-            calculation.totalPrices[1] += addition;
-            calculation.totalPrices[2] += addition;
-            calculation.totalPrices[3] += addition;
+            // calculate additional price
+            double licence = calcMap.get("LIZENZ");
+            // calculate new (and final) prices (add additional price)
+            calculation.totalPrices[0] += licence;
+            calculation.totalPrices[1] += licence;
+            calculation.totalPrices[2] += licence;
+            calculation.totalPrices[3] += licence;
+            Double[] finalPrices = new Double[4];
+            System.arraycopy(calculation.totalPrices, 0, finalPrices, 0, finalPrices.length);
 
-            totalOutput.append(Util.getString("totals")).append(" (EUR):").append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[0])).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[1])).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[2])).append("\t")
-                    .append(String.format(Util.getLocale(), format, calculation.totalPrices[3])).append("\n");
+            // create string output
+            String printout = getTiViKey() + "\n\t\n";
+            printout += createElectronicCalculationString(calculation.electronicConfig, calculation.electronicSums);
+            printout += "\n\t\n";
+            printout += createMechanicCalculationString(calculation.mechanicConfig, calculation.mechanicSums);
+            printout += "\n\t\n";
+            printout += createTotalCalculationString(calculation, calcMap, isGigEInterface(), basePrices, transportFactor, licence, discountFactor, finalPrices);
+            return printout;
         } catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException e) {
             e.printStackTrace();
             throw new CISException(Util.getString("errorMissingConfigTables"));
         }
+    }
 
-        printout += electOutput.toString();
-        printout += "\n\t\n";
-        printout += mechaOutput.toString();
-        printout += "\n\t\n";
-        printout += totalOutput.toString();
-
-        return printout;
+    /**
+     * Creates a string that represents an extra surcharge as part of the total summary.
+     * The default implementation adds the switchable dpi surcharge.
+     * This can be changed or expanded by subclasses as necessary.
+     *
+     * @param calcMap    A map that contains information from the config database table and contains extra surcharge values
+     * @param basePrices the base prices (before surcharges) of 1, 5, 10, 25 pieces
+     * @return a string representing one (or more) extra surcharge "table rows" for the total summary "table" created by {@link #createCalculationString()}
+     */
+    protected String createExtraSurchargeString(Map<String, Double> calcMap, Double[] basePrices) {
+        StringBuilder totalOutput = new StringBuilder();
+        String format = "%.2f";
+        double switchableDpiSurchargeFactor = calculateExtraSurcharge(calcMap);
+        totalOutput.append(Util.getString("switchableDpiSurcharge")).append(" (").append(calcMap.get(getDpiCode())).append("%):\t")
+                .append(String.format(Util.getLocale(), format, basePrices[0] * switchableDpiSurchargeFactor)).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[1] * switchableDpiSurchargeFactor)).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[2] * switchableDpiSurchargeFactor)).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[3] * switchableDpiSurchargeFactor)).append("\n");
+        return totalOutput.toString();
     }
 
     /**
@@ -605,6 +615,94 @@ public abstract class CIS {
     }
 
     /**
+     * Creates a string "table" for the total summary with surcharges and additional costs
+     *
+     * @param calculation     the calculation object that contains the base sums for electronic and mechanic components
+     * @param calcMap         the calculation map that contains the config values from the database which holds the surcharge values
+     * @param isGigE          whether there is a gigE surcharge
+     * @param basePrices      the base prices before surcharges and additional costs for 1, 5, 10, 25 pieces (as an array)
+     * @param transportFactor the transport surcharge factor
+     * @param licence         the licence extra costs
+     * @param discountFactor  the discount surcharge factor
+     * @param finalPrices     the prices after applying surcharges and additional costs
+     * @return the "table" string representing the total summary with surcharges and extra costs for 1, 5, 10, 25 pieces.
+     * Table rows are separated by newlines, items by tabs
+     */
+    private String createTotalCalculationString(CISCalculation calculation, Map<String, Double> calcMap, boolean isGigE, Double[] basePrices,
+                                                double transportFactor, double licence, double discountFactor, Double[] finalPrices) {
+        String format = "%.2f"; // general number output format
+        // table header
+        StringBuilder totalOutput = new StringBuilder(Util.getString("totals")).append(":").append("\n\n");
+        // base calculation for 10 pieces
+        // - header
+        totalOutput.append(Util.getString("calcFor10")).append("\t \t \t \t ").append("\n");
+        // - electronic components sum
+        totalOutput.append(Util.getString("electronics")).append(":\t \t \t")
+                .append(String.format(Util.getLocale(), format, calculation.electronicSums[0])).append("\t \n");
+        // - electronic overhead
+        totalOutput.append(Util.getString("electronicsOverhead")).append(" (").append(calcMap.get("A_ELEKTRONIK")).append("%):\t \t \t")
+                .append(String.format(Util.getLocale(), format, calculation.electronicSums[0] * (calcMap.get("A_ELEKTRONIK") / 100))).append("\t \n");
+        // - electronic testing sum
+        totalOutput.append(Util.getString("electronicsTesting")).append(":\t \t \t")
+                .append(String.format(Util.getLocale(), format, calculation.electronicSums[1] * calcMap.get("STUNDENSATZ"))).append("\t \n");
+        // - gigE surcharge
+        if (isGigE) {
+            totalOutput.append(Util.getString("gigEOverhead")).append(" (").append(calcMap.get("Z_GIGE")).append("%):\t \t \t")
+                    .append(String.format(Util.getLocale(), format, calculation.electronicSums[0] * calcMap.get("Z_GIGE") / 100)).append("\t \n");
+        }
+        // - mechanic components sum
+        totalOutput.append(Util.getString("mechanics")).append(":\t \t \t")
+                .append(String.format(Util.getLocale(), format, calculation.mechanicSums[0])).append("\t \n");
+        // - mechanic overhead
+        totalOutput.append(Util.getString("mechanicsOverhead")).append(" (").append(calcMap.get("A_MECHANIK")).append("%):\t \t \t")
+                .append(String.format(Util.getLocale(), format, calculation.mechanicSums[0] * (calcMap.get("A_MECHANIK") / 100))).append("\t \n");
+        // - assembly costs
+        totalOutput.append(Util.getString("assembly")).append(":\t \t ")
+                .append(calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()).append(" h\t")
+                .append(String.format(Util.getLocale(), format, (calcMap.get("MONTAGE_BASIS") + calcMap.get("MONTAGE_PLUS") * getBoardCount()) * calcMap.get("STUNDENSATZ"))).append("\t \n");
+
+        // overview by number of pieces
+        // - header
+        totalOutput.append(" \t(1 ").append(Util.getString("pc")).append(")\t")
+                .append("(5 ").append(Util.getString("pcs")).append(")\t")
+                .append("(10 ").append(Util.getString("pcs")).append(")\t")
+                .append("(25 ").append(Util.getString("pcs")).append(")\n");
+        // - base prices
+        totalOutput.append(Util.getString("price")).append(":\t")
+                .append(String.format(Util.getLocale(), format, basePrices[0])).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[1])).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[2])).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[3])).append("\n");
+        // - transport surcharge
+        totalOutput.append(Util.getString("transportSurcharge")).append(" (").append(transportFactor).append("%):\t")
+                .append(String.format(Util.getLocale(), format, basePrices[0] * transportFactor)).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[1] * transportFactor)).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[2] * transportFactor)).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[3] * transportFactor)).append("\n");
+        // - extra surcharge (based on type of CIS)
+        totalOutput.append(createExtraSurchargeString(calcMap, basePrices));
+        // - licence cost
+        totalOutput.append(Util.getString("licence")).append(":\t")
+                .append(String.format(Util.getLocale(), format, licence)).append("\t")
+                .append(String.format(Util.getLocale(), format, licence)).append("\t")
+                .append(String.format(Util.getLocale(), format, licence)).append("\t")
+                .append(String.format(Util.getLocale(), format, licence)).append("\n");
+        // - discount surcharge
+        totalOutput.append(Util.getString("discountSurcharge")).append(" (").append(discountFactor).append("%):\t")
+                .append(String.format(Util.getLocale(), format, basePrices[0] * discountFactor)).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[1] * discountFactor)).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[2] * discountFactor)).append("\t")
+                .append(String.format(Util.getLocale(), format, basePrices[3] * discountFactor)).append("\n");
+        // - final prices
+        totalOutput.append(Util.getString("totals")).append(" (EUR):").append("\t")
+                .append(String.format(Util.getLocale(), format, finalPrices[0])).append("\t")
+                .append(String.format(Util.getLocale(), format, finalPrices[1])).append("\t")
+                .append(String.format(Util.getLocale(), format, finalPrices[2])).append("\t")
+                .append(String.format(Util.getLocale(), format, finalPrices[3])).append("\n");
+        return totalOutput.toString();
+    }
+
+    /**
      * calculates the actual supported scan width that resulting from the pixel count of the cpucLinks.
      * Might be lower than the selected scan width because lvals should be dividable by 16 and therefore some pixels might be lost.
      */
@@ -669,6 +767,12 @@ public abstract class CIS {
         return getSelectedResolution().getDepthOfField();
     }
 
+    /**
+     * Returns the dpi code that is used in the config database table.
+     *
+     * @return 'Z_SWI_DPI' if the dpi is switchable or
+     * 'Z_[dpi]_DPI' where [dpi] is the currently selected dpi if dpi are not switchable
+     */
     private String getDpiCode() {
         if (getSelectedResolution().isSwitchable()) {
             return "Z_SWT_DPI";
@@ -840,15 +944,29 @@ public abstract class CIS {
                 .orElse("2.0") + "_";
     }
 
+    /**
+     * Determines the mechanics factor by replacing variables in the given factor string with their corresponding numeric values.
+     * If the string just represents an integer, the integer value is returned.
+     * Otherwise, replaces occurrences of the following variables:
+     * - F with the number of FPGAs that was determined in the given calculation,
+     * - S with the current scan width divided by the base length (260 -> 1, 520 -> 2, 780 -> 3, ...),
+     * - N with the current scan width,
+     * - L with the number of LED lines of the current light selection.
+     * Afterwards, calls {@link #prepareMechanicsFactor(String)} to allow further manipulation (by subclasses)
+     *
+     * @param factor      the mechanic factor string that might contain variables
+     * @param calculation the latest calculation data that might be needed to replace variables in the factor string
+     * @return the integer value determined by evaluating the factor string after replacing variables
+     */
     private int getMechanicsFactor(String factor, CISCalculation calculation) {
         if (Util.isInteger(factor)) {
             return Integer.parseInt(factor);
         } else {
-            String ev = factor.replace("F", "" + calculation.numFPGA)
-                    .replace("S", "" + getScanWidth() / BASE_LENGTH)
-                    .replace("N", "" + getScanWidth())
-                    .replace(" ", "")
-                    .replace("L", "" + getLedLines());
+            String ev = factor.replaceAll("F", "" + calculation.numFPGA)
+                    .replaceAll("S", "" + getScanWidth() / BASE_LENGTH)
+                    .replaceAll("N", "" + getScanWidth())
+                    .replaceAll(" ", "")
+                    .replaceAll("L", "" + getLedLines());
             ev = prepareMechanicsFactor(ev); // do CIS specific calculations
             return (int) MathEval.evaluate(ev);
         }

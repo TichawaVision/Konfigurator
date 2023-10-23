@@ -15,9 +15,29 @@ public class LDSTD extends CIS {
         super(cis);
     }
 
+    /**
+     * No extra surcharge for LDSTDs
+     *
+     * @return 0
+     */
+    @Override
+    protected double calculateExtraSurcharge(Map<String, Double> calcMap) {
+        return 0;
+    }
+
     @Override
     public CIS copy() {
         return new LDSTD(this);
+    }
+
+    /**
+     * No extra surcharge for LDSTDs
+     *
+     * @return an empty string
+     */
+    @Override
+    protected String createExtraSurchargeString(Map<String, Double> calcMap, Double[] basePrices) {
+        return "";
     }
 
     @Override

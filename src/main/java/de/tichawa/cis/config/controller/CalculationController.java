@@ -68,7 +68,7 @@ public class CalculationController implements Initializable {
             printMenuItem.setText(Util.getString("menuPrint"));
 
             NumberFormat f = NumberFormat.getInstance(Util.getLocale());
-            String[] calcText = CIS_DATA.createCalculation().split("\n\t\n");
+            String[] calcText = CIS_DATA.createCalculationString().split("\n\t\n");
 
             headerLabel.setText(calcText[0]);
 
@@ -312,7 +312,7 @@ public class CalculationController implements Initializable {
     }
 
     public void print() {
-        String calc = CIS_DATA.getVersionHeader() + "\n\t\n" + CIS_DATA.createCalculation();
+        String calc = CIS_DATA.getVersionHeader() + "\n\t\n" + CIS_DATA.createCalculationString();
         Stage printStage = new Stage();
         GridPane printPane = new GridPane();
         printPane.getStylesheets().add("/de/tichawa/cis/config/style.css");

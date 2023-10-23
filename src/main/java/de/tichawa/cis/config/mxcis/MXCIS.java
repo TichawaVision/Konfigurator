@@ -57,6 +57,14 @@ public class MXCIS extends CIS {
         return numOfPix;
     }
 
+    /**
+     * Extracts the extra surcharge for the category of this MXCIS out of the given map
+     */
+    @Override
+    protected double calculateExtraSurcharge(Map<String, Double> calcMap) {
+        return calcMap.get("Z_" + getCategoryString()) / 100;
+    }
+
     // should return false if code is unknown
     @Override
     protected boolean checkSpecificApplicability(String code) {
@@ -72,6 +80,26 @@ public class MXCIS extends CIS {
     @Override
     public CIS copy() {
         return new MXCIS(this);
+    }
+
+    /**
+     * Creates the "table" row for the MXCIS extra surcharge based on its category
+     *
+     * @param calcMap    the map that contains the extra surcharge amount
+     * @param basePrices the base prices for 1, 5, 10, 25 pieces
+     * @return a string "table row" with the extra surcharge
+     */
+    @Override
+    protected String createExtraSurchargeString(Map<String, Double> calcMap, Double[] basePrices) {
+        StringBuilder totalOutput = new StringBuilder();
+        double MXCISFactor = calculateExtraSurcharge(calcMap);
+        String category = getCategoryString();
+        totalOutput.append(Util.getString("surcharge")).append(" ").append(category).append(" (").append(calcMap.get("Z_" + category)).append("%):\t")
+                .append(String.format(Util.getLocale(), "%.2f", basePrices[0] * MXCISFactor)).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", basePrices[1] * MXCISFactor)).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", basePrices[2] * MXCISFactor)).append("\t")
+                .append(String.format(Util.getLocale(), "%.2f", basePrices[3] * MXCISFactor)).append("\n");
+        return totalOutput.toString();
     }
 
     @Override
@@ -330,6 +358,10 @@ public class MXCIS extends CIS {
                 .replaceAll("L", "" + getLedLines()) // L is replaced by light number
                 .replaceAll("F", "" + calculation.numFPGA) // F is replaced by FPGA number
                 .replaceAll("S", "" + getBoardCount()); // S is replaced by number of boards;
+    }
+
+    private String getCategoryString() {
+        return getTiViKey().split("_")[4];
     }
 
     public Optional<SensorBoardRecord> getSensorBoard(int res) {

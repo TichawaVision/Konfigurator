@@ -245,6 +245,25 @@ public abstract class CisWith5Lights extends CIS {
     }
 
     /**
+     * determine L value for each light: RGB = 3, IRUV = 2, Rebz8 = 8, other = 1
+     */
+    public static int getLValue(LightColor lightColor) {
+        switch (lightColor) {
+            case NONE:
+                return 0;
+            case IRUV:
+                return 2;
+            case RGB:
+            case RGB_S:
+                return 3;
+            case RGB8:
+                return 8;
+            default:
+                return 1;
+        }
+    }
+
+    /**
      * calculates the pixel per CPUCLink.
      * If pixel number can't be divided equally the first CPUCLinks will get 1 more than the later ones.
      */
@@ -341,6 +360,13 @@ public abstract class CisWith5Lights extends CIS {
         observers.firePropertyChange(PROPERTY_COAX, oldValue, coaxLight);
     }
 
+    /**
+     * calculates the number of coolings (one left and one right if it is selected)
+     */
+    public int getCoolingCount() {
+        return (coolingLeft ? 1 : 0) + (coolingRight ? 1 : 0);
+    }
+
     public LightColor getDarkFieldLeft() {
         return darkFieldLeft;
     }
@@ -400,6 +426,20 @@ public abstract class CisWith5Lights extends CIS {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Checks whether the given code matches for this CIS in its current configuration
+     *
+     * @param code the code to check
+     * @return true if the code can already be matched by a parent class or
+     * if it is a valid L code ({@link #isValidLCode(String)}) or
+     * if it is a valid C code ({@link #isValidCCode(String)}) or
+     * false otherwise
+     */
+    @Override
+    protected boolean checkSpecificApplicability(String code) {
+        return super.checkSpecificApplicability(code) || isValidLCode(code) || isValidCCode(code);
     }
 
     /**
@@ -500,6 +540,18 @@ public abstract class CisWith5Lights extends CIS {
         if (coaxLight != LightColor.NONE)
             lights += "\t" + Util.getString("coaxial") + ": " + Util.getString(coaxLight.getDescription()) + "\n";
         return lights.substring(0, lights.length() - 1); // remove last line break
+    }
+
+    /**
+     * determines the L value for the current light selection (sum of individual L values).
+     * If the sum is greater than 10, 10 is returned instead since this is the maximum allowed LED channels
+     */
+    @Override
+    public int getLedLines() {
+        int sum = getLights().chars().mapToObj(c -> LightColor.findByCode((char) c))
+                .filter(Optional::isPresent).map(Optional::get)
+                .mapToInt(CisWith5Lights::getLValue).sum();
+        return Math.min(sum, 10); //max 10 allowed
     }
 
     /**
@@ -637,11 +689,21 @@ public abstract class CisWith5Lights extends CIS {
      */
     @Override
     protected String prepareElectronicsMultiplier(String factor) {
-        System.out.println("preparing multiplier: " + factor);
         if (Arrays.stream(LightColor.values()).map(LightColor::getShortHand).anyMatch(factor::equals)) {
             return getLights().chars().mapToObj(c -> LightColor.findByCode((char) c)).filter(LightColor.findByShortHand(factor)::equals).count() + "";
         }
         return factor;
+    }
+
+    /**
+     * Prepares the mechanic factor by replacing the 'C' Variable by the number of cooling elements needed
+     *
+     * @param factor the factor string before alteration
+     * @return the factor string after the replacement
+     */
+    @Override
+    protected String prepareMechanicsFactor(String factor) {
+        return factor.replace("C", getCoolingCount() + "");
     }
 
     /**
@@ -736,6 +798,45 @@ public abstract class CisWith5Lights extends CIS {
         boolean oldValue = this.cloudyDay;
         this.cloudyDay = cloudyDay;
         observers.firePropertyChange(PROPERTY_CLOUDY_DAY, oldValue, cloudyDay);
+    }
+
+    /**
+     * checks whether the given code matches the current cooling selection
+     */
+    private boolean isValidCCode(String code) {
+        switch (code) {
+            case "C":
+                return getCoolingCount() > 0;
+            case "C_L":
+                return hasCoolingLeft();
+            case "C_R":
+                return hasCoolingRight();
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * checks whether the given code matches the current led selection
+     */
+    private boolean isValidLCode(String code) {
+        if (code.charAt(0) != 'L')
+            return false;
+        try {
+            switch (code.charAt(1)) {
+                case '>':
+                    return getLedLines() > Integer.parseInt(code.split(">")[1]);
+                case '<':
+                    return getLedLines() < Integer.parseInt(code.split("<")[1]);
+                case '=': // -> '=='
+                    return getLedLines() == Integer.parseInt(code.split("==")[1]);
+                default: // unknown code
+                    System.err.println("unknown L clause: " + code);
+                    return false;
+            }
+        } catch (NumberFormatException e) { //not a number behind the math operator
+            return false;
+        }
     }
 
     /**
