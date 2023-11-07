@@ -136,6 +136,16 @@ public class BDCIS extends CisWith5Lights {
     }
 
     /**
+     * replaces parts of the mecha factor for BDCIS calculation:
+     * - C replaced with number of coolings
+     * - SN replaced by number of sensors
+     */
+    @Override
+    protected String prepareMechanicsFactor(String factor) {
+        return super.prepareMechanicsFactor(factor).replaceAll("SN", getNumberOfSensors() + "");
+    }
+
+    /**
      * Returns the maximum scan width with coax. BDCIS does not have coax lighting so the maximum value is returned.
      */
     @Override

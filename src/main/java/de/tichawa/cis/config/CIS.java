@@ -947,7 +947,8 @@ public abstract class CIS {
     /**
      * Determines the mechanics factor by replacing variables in the given factor string with their corresponding numeric values.
      * If the string just represents an integer, the integer value is returned.
-     * Otherwise, replaces occurrences of the following variables:
+     * Otherwise, calls {@link #prepareMechanicsFactor(String)} to allow manipulation (by subclasses), afterwards
+     * replaces occurrences of the following variables:
      * - F with the number of FPGAs that was determined in the given calculation,
      * - S with the current scan width divided by the base length (260 -> 1, 520 -> 2, 780 -> 3, ...),
      * - N with the current scan width,
@@ -962,12 +963,12 @@ public abstract class CIS {
         if (Util.isInteger(factor)) {
             return Integer.parseInt(factor);
         } else {
-            String ev = factor.replaceAll("F", "" + calculation.numFPGA)
+            String ev = prepareMechanicsFactor(factor);// do CIS specific calculations
+            ev = ev.replaceAll("F", "" + calculation.numFPGA)
                     .replaceAll("S", "" + getScanWidth() / BASE_LENGTH)
                     .replaceAll("N", "" + getScanWidth())
                     .replaceAll(" ", "")
                     .replaceAll("L", "" + getLedLines());
-            ev = prepareMechanicsFactor(ev); // do CIS specific calculations
             return (int) MathEval.evaluate(ev);
         }
     }
