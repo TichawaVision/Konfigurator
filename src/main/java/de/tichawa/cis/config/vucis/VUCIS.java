@@ -6,9 +6,6 @@ import de.tichawa.util.MathEval;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.tichawa.cis.config.model.Tables.*;
-import static org.jooq.impl.DSL.min;
-
 /**
  * CIS subclass for all VUCIS objects
  */
@@ -164,22 +161,6 @@ public class VUCIS extends CisWith5Lights {
     }
 
     /**
-     * returns the minimum frequency by calculating for each light and taking the minimum of:
-     * 100 * I_p * gamma * n * tau * S_v / (1.5 * m)
-     * <p>
-     * will return the double max value if there is no light
-     */
-    @Override
-    protected double getMinFreq(CISCalculation calculation) {
-        return Collections.min(Arrays.asList(
-                getMinFreqForLight(darkFieldLeft, true, false, calculation),
-                getMinFreqForLight(brightFieldLeft, false, false, calculation),
-                getMinFreqForLight(coaxLight, false, true, calculation),
-                getMinFreqForLight(brightFieldRight, false, false, calculation),
-                getMinFreqForLight(darkFieldRight, true, false, calculation)));
-    }
-
-    /**
      * returns the scan distance string for print out: 10+-2mm or 23+-3 mm
      */
     @Override
@@ -240,40 +221,6 @@ public class VUCIS extends CisWith5Lights {
                 (getLights().charAt(4) == lightColor.getCode() ? 1 : 0);
     }
 
-    /**
-     * returns the geometry lighting factor for the given VUCIS led:
-     * if cloudy day is selected -> 0.04
-     * if given LED is shape from shading -> 0.08
-     * if given LED is coax -> 0.025
-     * if given LED is darkfield -> 0.08
-     * if given LED is brightfield -> 0.13
-     */
-    private double getGeometryFactor(LightColor lightColor, boolean isDarkfield, boolean isCoax) {
-        if (isCloudyDay()) return 0.04; // cloudy day -> 0.04 for all LEDs
-        if (lightColor.isShapeFromShading()) return 0.08; // LED is sfs -> 0.08
-        if (isCoax) return 0.025; // LED is coax -> 0.025
-        if (isDarkfield) return 0.08; // LED is on df -> 0.08
-        return 0.13; // else: LED is on bf -> 0.13
-    }
-
-    /**
-     * reads the I_p value from the database for the given light color
-     */
-    private double getIpValue(LightColor lightColor, boolean isDarkfield) {
-        //special handling for sfs lights as these have different codes in the database on bright and dark field
-        String shortHand = lightColor.isShapeFromShading() ?
-                lightColor.getCode() + (isDarkfield ? "D" : "B") // add D for darkfield, B for brightfield to the short code
-                : lightColor.getShortHand(); // normal short hand for all other lights
-        return Util.getDatabase().orElseThrow(() -> new IllegalStateException("database not found"))
-                .select(min(PRICE.PHOTO_VALUE))
-                .from(PRICE.join(ELECTRONIC).on(PRICE.ART_NO.eq(ELECTRONIC.ART_NO)))
-                .where(ELECTRONIC.CIS_TYPE.eq(getClass().getSimpleName()))
-                .and(ELECTRONIC.CIS_LENGTH.eq(getScanWidth()))
-                .and(ELECTRONIC.MULTIPLIER.eq(shortHand))
-                .stream().findFirst().orElseThrow(() -> new IllegalStateException("light color not found in database"))
-                .value1();
-    }
-
     public LensType getLensType() {
         return lensType;
     }
@@ -282,46 +229,6 @@ public class VUCIS extends CisWith5Lights {
         LensType oldValue = this.lensType;
         this.lensType = lensType;
         observers.firePropertyChange(PROPERTY_LENS_TYPE, oldValue, lensType);
-    }
-
-    /**
-     * returns the minimum frequency for the given light by calculating:
-     * 100 * I_p * gamma * n * tau * S_v / (1.5 * m)
-     */
-    private double getMinFreqForLight(LightColor lightColor, boolean isDarkfield, boolean isCoax, CISCalculation calculation) {
-        if (lightColor == LightColor.NONE)
-            return Double.MAX_VALUE;
-        double I_p = getIpValue(lightColor, isDarkfield);
-        double gamma = getGeometryFactor(lightColor, isDarkfield, isCoax);
-        double n = getNFactor(isDarkfield, isCoax);
-        double tau = calculation.mechanicSums[4]; // only Lens will have a photo value in mecha table
-        double S_v = getSensitivityFactor();
-        double m = getPhaseCount();
-        return 100 * I_p * gamma * n * tau * S_v / (1.5 * m);
-    }
-
-    /**
-     * returns the n factor for the given light depending on its position:
-     * if it is the coax light -> n is always 1
-     * cloudy day -> both bright field lights -> n=2
-     * shape from shading -> if phase count 1 -> 4 else 1
-     * if both dark/bright field -> 2
-     * else -> 1
-     */
-    private double getNFactor(boolean isDarkfield, boolean isCoax) {
-        if (isCoax)
-            return 1; // coax light always factor 1
-        if (isCloudyDay())
-            return 2; // cloudy day only both or no lights on bright field -> 2 since no lights won't reach this method
-        if (isShapeFromShading())
-            if (getPhaseCount() == 1)
-                return 4; // shape from shading and 1 phase -> multiply by 4
-            else return 1; // shape from shading and not 1 phase -> 1
-        if (isDarkfield && darkFieldLeft != LightColor.NONE && darkFieldLeft == darkFieldRight ||
-                !isDarkfield && brightFieldLeft != LightColor.NONE && brightFieldLeft == brightFieldRight)
-            // if this is darkfield and both dark fields same -> 2 (same for brightfield)
-            return 2;
-        return 1; // default is 1 for any other case
     }
 
     /**
@@ -454,6 +361,22 @@ public class VUCIS extends CisWith5Lights {
         super.setDarkFieldRight(darkFieldRight);
     }
 
+    /**
+     * returns the geometry lighting factor for the given VUCIS led:
+     * if cloudy day is selected -> 0.04
+     * if given LED is shape from shading -> 0.08
+     * if given LED is coax -> 0.025
+     * if given LED is darkfield -> 0.08
+     * if given LED is brightfield -> 0.13
+     */
+    protected double getGeometryFactor(LightColor lightColor, boolean isDarkfield, boolean isCoax) {
+        if (isCloudyDay()) return 0.04; // cloudy day -> 0.04 for all LEDs
+        if (lightColor.isShapeFromShading()) return 0.08; // LED is sfs -> 0.08
+        if (isCoax) return 0.025; // LED is coax -> 0.025
+        if (isDarkfield) return 0.08; // LED is on df -> 0.08
+        return 0.13; // else: LED is on bf -> 0.13
+    }
+
     @Override
     protected String getLensTypeCode() {
         return getLensType().getCode();
@@ -503,6 +426,23 @@ public class VUCIS extends CisWith5Lights {
     }
 
     /**
+     * returns the sensitivity factor that is used for the minimum frequency calculation
+     */
+    @Override
+    protected double getSensitivityFactor() {
+        switch (getSelectedResolution().getBoardResolution()) {
+            case 1200:
+                return 500;
+            case 600:
+                return 1000;
+            case 300:
+                return 1800;
+            default:
+                throw new UnsupportedOperationException("selected board resolution not supported");
+        }
+    }
+
+    /**
      * replaces parts of the elect factor for VUCIS calculation:
      * - Light Code with the number of lights (e.g. AM with number of red lights)
      * - shape from shading light special factors to count all bright / dark field lights
@@ -541,6 +481,30 @@ public class VUCIS extends CisWith5Lights {
     }
 
     /**
+     * returns the n factor for the given light depending on its position:
+     * if it is the coax light -> n is always 1
+     * cloudy day -> both bright field lights -> n=2
+     * shape from shading -> if phase count 1 -> 4 else 1
+     * if both dark/bright field -> 2
+     * else -> 1
+     */
+    protected double getNFactor(boolean isDarkfield, boolean isCoax) {
+        if (isCoax)
+            return 1; // coax light always factor 1
+        if (isCloudyDay())
+            return 2; // cloudy day only both or no lights on bright field -> 2 since no lights won't reach this method
+        if (isShapeFromShading())
+            if (getPhaseCount() == 1)
+                return 4; // shape from shading and 1 phase -> multiply by 4
+            else return 1; // shape from shading and not 1 phase -> 1
+        if (isDarkfield && darkFieldLeft != LightColor.NONE && darkFieldLeft == darkFieldRight ||
+                !isDarkfield && brightFieldLeft != LightColor.NONE && brightFieldLeft == brightFieldRight)
+            // if this is darkfield and both dark fields same -> 2 (same for brightfield)
+            return 2;
+        return 1; // default is 1 for any other case
+    }
+
+    /**
      * calculates the number of needed CPUCLinks.
      * Will represent the data shown in the specification table for now but this might change in the future (may need more CPUCLinks than in table).
      * Therefore, this won't read data from the database and there might be discrepancies!
@@ -561,6 +525,22 @@ public class VUCIS extends CisWith5Lights {
             default:
                 throw new IllegalStateException("illegal phase count: " + getPhaseCount() + ", must be in [1,6]");
         }
+    }
+
+    /**
+     * Returns the phase count for the line rate calculation. For VUCIS this is just the selected line rate.
+     */
+    @Override
+    protected int getPhaseCountForLineRate() {
+        return getPhaseCount();
+    }
+
+    /**
+     * Returns the beta factor (scale factor for optical illustration) for VUCIS. It is always 1.
+     */
+    @Override
+    protected double getScaleFactorOpticalIllustration() {
+        return 1;
     }
 
     /**

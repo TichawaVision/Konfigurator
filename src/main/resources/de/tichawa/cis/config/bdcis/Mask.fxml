@@ -47,7 +47,7 @@
                     <ChoiceBox fx:id="phasesChoiceBox"/>
                 </HBox>
                 <HBox GridPane.columnIndex="3" GridPane.columnSpan="2" alignment="CENTER">
-                    <CheckBox text="Cloudy Day" fx:id="cloudyDayCheckBox"/>
+                    <CheckBox text="Cloudy Day" fx:id="cloudyDayCheckBox" disable="true"/>
                 </HBox>
                 <!-- Lights -->
                 <HBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="1">

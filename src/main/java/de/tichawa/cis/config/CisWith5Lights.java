@@ -6,6 +6,9 @@ import de.tichawa.cis.config.model.tables.records.*;
 import java.util.*;
 import java.util.stream.*;
 
+import static de.tichawa.cis.config.model.Tables.*;
+import static org.jooq.impl.DSL.min;
+
 /**
  * Subclass of CIS that represents all CIS with 5 lighting options (left and right dark and bright field + coax).
  * Currently, used by {@link de.tichawa.cis.config.vucis.VUCIS} and {@link de.tichawa.cis.config.bdcis.BDCIS}.
@@ -409,6 +412,26 @@ public abstract class CisWith5Lights extends CIS {
         observers.firePropertyChange(PROPERTY_DARK_FIELD_RIGHT, oldValue, darkFieldRight);
     }
 
+    protected abstract double getGeometryFactor(LightColor lightColor, boolean isDarkfield, boolean isCoax);
+
+    /**
+     * reads the I_p value from the database for the given light color
+     */
+    private double getIpValue(LightColor lightColor, boolean isDarkfield) {
+        //special handling for sfs lights as these have different codes in the database on bright and dark field
+        String shortHand = lightColor.isShapeFromShading() ?
+                lightColor.getCode() + (isDarkfield ? "D" : "B") // add D for darkfield, B for brightfield to the short code
+                : lightColor.getShortHand(); // normal short hand for all other lights
+        return Util.getDatabase().orElseThrow(() -> new IllegalStateException("database not found"))
+                .select(min(PRICE.PHOTO_VALUE))
+                .from(PRICE.join(ELECTRONIC).on(PRICE.ART_NO.eq(ELECTRONIC.ART_NO)))
+                .where(ELECTRONIC.CIS_TYPE.eq(getClass().getSimpleName()))
+                .and(ELECTRONIC.CIS_LENGTH.eq(getScanWidth()))
+                .and(ELECTRONIC.MULTIPLIER.eq(shortHand))
+                .stream().findFirst().orElseThrow(() -> new IllegalStateException("light color not found in database"))
+                .value1();
+    }
+
     /**
      * Returns the lens code for the TiVi-key
      */
@@ -591,9 +614,25 @@ public abstract class CisWith5Lights extends CIS {
         SensorChipRecord sensorChip = getSensorChip(DEFAULT_SENSOR_BOARD + getSelectedResolution().getBoardResolution()).orElseThrow(() -> new CISException("Unknown sensor chip"));
         return 1000 * Math.round(1000 * sensorBoard.getLines() /
                 (
-                        getPhaseCount() * (sensorChip.getPixelPerSensor() + 100) * 1.0
+                        getPhaseCountForLineRate() * (sensorChip.getPixelPerSensor() + 100) * 1.0
                                 / Math.min(sensorChip.getClockSpeed(), adcBoard.getClockSpeed())
                 )) / 1000.0;
+    }
+
+    /**
+     * returns the minimum frequency by calculating for each light and taking the minimum of:
+     * 100 * I_p * gamma * n * tau * S_v / (1.5 * m)
+     * <p>
+     * will return the double max value if there is no light
+     */
+    @Override
+    public double getMinFreq(CISCalculation calculation) {
+        return Collections.min(Arrays.asList(
+                getMinFreqForLight(darkFieldLeft, true, false, calculation),
+                getMinFreqForLight(brightFieldLeft, false, false, calculation),
+                getMinFreqForLight(coaxLight, false, true, calculation),
+                getMinFreqForLight(brightFieldRight, false, false, calculation),
+                getMinFreqForLight(darkFieldRight, true, false, calculation)));
     }
 
     public int getMod() {
@@ -611,21 +650,9 @@ public abstract class CisWith5Lights extends CIS {
     }
 
     /**
-     * returns the sensitivity factor that is used for the minimum frequency calculation
+     * Returns the sensitivity factor for the minimum frequency calculation ({@link #getMinFreqForLight(LightColor, boolean, boolean, CISCalculation)})
      */
-    @Override
-    protected double getSensitivityFactor() {
-        switch (getSelectedResolution().getBoardResolution()) {
-            case 1200:
-                return 500;
-            case 600:
-                return 1000;
-            case 300:
-                return 1800;
-            default:
-                throw new UnsupportedOperationException("selected board resolution not supported");
-        }
-    }
+    protected abstract double getSensitivityFactor();
 
     @Override
     protected String getStartOfCLPrintOut() {
@@ -765,9 +792,45 @@ public abstract class CisWith5Lights extends CIS {
     protected abstract int getMaxScanWidthWithCoax();
 
     /**
+     * returns the minimum frequency for the given light by calculating:
+     * 100 * I_p * gamma * n * tau * S_v * beta / (1.5 * m)
+     */
+    private double getMinFreqForLight(LightColor lightColor, boolean isDarkfield, boolean isCoax, CISCalculation calculation) {
+        if (lightColor == LightColor.NONE)
+            return Double.MAX_VALUE;
+        double I_p = getIpValue(lightColor, isDarkfield);
+        double gamma = getGeometryFactor(lightColor, isDarkfield, isCoax);
+        double n = getNFactor(isDarkfield, isCoax);
+        double tau = calculation.mechanicSums[4]; // only Lens will have a photo value in mecha table, for BDCIS this should be e.g. on the diffusor as there is no lens in the mecha table
+        double S_v = getSensitivityFactor();
+        double beta = getScaleFactorOpticalIllustration();
+        double m = getPhaseCount();
+        return 100 * I_p * gamma * n * tau * S_v * beta / (1.5 * m);
+    }
+
+    /**
+     * Returns the n factor for the minimum frequency calculation ({@link #getMinFreqForLight(LightColor, boolean, boolean, CISCalculation)})
+     *
+     * @param isDarkfield whether the light is a dark field light
+     * @param isCoax      whether the light is a coax light
+     * @return the n factor for the light
+     */
+    protected abstract double getNFactor(boolean isDarkfield, boolean isCoax);
+
+    /**
      * Returns the number of needed cpuc links
      */
     protected abstract int getNumOfCPUCLink();
+
+    /**
+     * Returns the phase count for the line rate calculation that might be different from the selected phase count.
+     */
+    protected abstract int getPhaseCountForLineRate();
+
+    /**
+     * Returns the beta factor (scale factor for optical illustration) for the minimum frequency calculation
+     */
+    protected abstract double getScaleFactorOpticalIllustration();
 
     public boolean hasCoax() {
         return coaxLight != LightColor.NONE;

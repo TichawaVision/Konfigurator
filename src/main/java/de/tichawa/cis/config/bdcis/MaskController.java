@@ -88,7 +88,7 @@ public class MaskController extends MaskControllerCisWith5Lights<BDCIS> implemen
     protected boolean isValidPhaseOption(Phases phase) {
         switch (phase) {
             case ONE:
-            case TWO:
+                //case TWO:
             case THREE:
                 return true;
             default:

@@ -60,13 +60,13 @@ public class BDCIS extends CisWith5Lights {
             case BLUE:
             case YELLOW:
             case WHITE:
-            case IR:
+                //case IR:
                 //case IR950: //maybe later
-            case UVA:
+                //case UVA:
                 //case VERDE: //maybe later
             case RGB:
             case RGB_S:
-            case IRUV:
+                //case IRUV:
                 return true;
             default:
                 return false;
@@ -100,9 +100,23 @@ public class BDCIS extends CisWith5Lights {
                 .replaceAll("SN", getNumberOfSensors() + "");
     }
 
+    /**
+     * Returns the geometry factor for BDCIS. It is only dependent on the selected resolution so the values of the parameters do not matter here.
+     */
     @Override
-    protected double getGeometryFactor(boolean coax) {
-        return 0.4; //TODO
+    protected double getGeometryFactor(LightColor lightColor, boolean isDarkfield, boolean isCoax) {
+        switch (getSelectedResolution().getActualResolution()) {
+            case 240:
+                return 0.0024;
+            case 120:
+                return 0.00069;
+            case 60:
+                return 0.00019;
+            case 30:
+                return 0.00005;
+            default:
+                throw new IllegalStateException("unexpected resolution selected when determining geometry factor");
+        }
     }
 
     /**
@@ -114,6 +128,14 @@ public class BDCIS extends CisWith5Lights {
     }
 
     /**
+     * Returns the sensitivity factor for BDCIS for the minimum frequency calculation. It is always 500.
+     */
+    @Override
+    protected double getSensitivityFactor() {
+        return 500;
+    }
+
+    /**
      * Returns the maximum scan width with coax. BDCIS does not have coax lighting so the maximum value is returned.
      */
     @Override
@@ -122,11 +144,41 @@ public class BDCIS extends CisWith5Lights {
     }
 
     /**
+     * Returns the n factor for the minimum frequency calculation.
+     *
+     * @return 2 if there are 2 lights or 1 otherwise
+     */
+    @Override
+    protected double getNFactor(boolean isDarkfield, boolean isCoax) {
+        if (brightFieldLeft != LightColor.NONE && brightFieldRight != LightColor.NONE)
+            return 2;
+        return 1;
+    }
+
+    /**
      * Returns the number of cpuc links for BDCIS which is always 1
      */
     @Override
     protected int getNumOfCPUCLink() {
         return 1; // always 1 cpuc link for BDCIS
+    }
+
+    /**
+     * Returns the phase count for calculation of the line rate. BDCIS has an extra phase for laser, so it's one more than the selected phase count
+     */
+    @Override
+    protected int getPhaseCountForLineRate() {
+        return getPhaseCount() + 1;
+    }
+
+    /**
+     * Returns the beta factor (scale factor for optical illustration) for the minimum frequency calculation
+     *
+     * @return 1200 divided by the selected resolution (i.e. 5 for 240 dpi, 10 for 120 dpi, 20 for 60 dpi and 40 for 30 dpi)
+     */
+    @Override
+    protected double getScaleFactorOpticalIllustration() {
+        return 1200 / getSelectedResolution().getActualResolution();
     }
 
     /**
