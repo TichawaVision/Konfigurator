@@ -801,7 +801,7 @@ public abstract class CisWith5Lights extends CIS {
         double I_p = getIpValue(lightColor, isDarkfield);
         double gamma = getGeometryFactor(lightColor, isDarkfield, isCoax);
         double n = getNFactor(isDarkfield, isCoax);
-        double tau = calculation.mechanicSums[4]; // only Lens will have a photo value in mecha table, for BDCIS this should be e.g. on the diffusor as there is no lens in the mecha table
+        double tau = calculation.mechanicSums[4]; // only Lens will have a photo value in mecha table
         double S_v = getSensitivityFactor();
         double beta = getScaleFactorOpticalIllustration();
         double m = getPhaseCount();

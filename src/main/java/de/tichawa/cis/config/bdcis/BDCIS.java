@@ -83,7 +83,7 @@ public class BDCIS extends CisWith5Lights {
      */
     @Override
     protected String getWeightString(CISCalculation calculation) {
-        return CisWith5Lights.WEIGHTS[getScanWidth() / BASE_LENGTH] + "kg";
+        return CisWith5Lights.WEIGHTS[getScanWidth() / BASE_LENGTH - 1] + "kg";
     }
 
     /**
